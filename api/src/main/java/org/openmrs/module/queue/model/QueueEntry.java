@@ -9,19 +9,21 @@
  */
 package org.openmrs.module.queue.model;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-
 import java.util.Date;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.openmrs.BaseOpenmrsMetadata;
+import org.openmrs.BaseChangeableOpenmrsData;
 import org.openmrs.Concept;
 import org.openmrs.Location;
 import org.openmrs.Patient;
@@ -32,7 +34,7 @@ import org.openmrs.Provider;
 @Data
 @Entity
 @Table(name = "queue_entry")
-public class QueueEntry extends BaseOpenmrsMetadata {
+public class QueueEntry extends BaseChangeableOpenmrsData {
 
 	private static final long serialVersionUID = 1L;
 
@@ -40,6 +42,10 @@ public class QueueEntry extends BaseOpenmrsMetadata {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "queue_entry_id")
 	private Integer queueEntryId;
+
+	@ManyToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "queue_id", nullable = false)
+	private Queue queue;
 
 	@Column(name = "patient_id", nullable = false)
 	private Patient patient;
@@ -53,7 +59,8 @@ public class QueueEntry extends BaseOpenmrsMetadata {
 	@Column(nullable = false)
 	private Concept status;
 
-	private double sort_weight;
+	@Column(name = "sort_weight")
+	private double sortWeight;
 
 	//The Location the patient is waiting for, if any.
 	@Column(name = "location_waiting_for")

@@ -11,6 +11,48 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+    <changeSet id="add_queue_20220125" author="corneliouzbett">
+        <preConditions onFail="MARK_RAN" onError="WARN">
+            <not>
+                <tableExists tableName="queue"/>
+            </not>
+        </preConditions>
+        <createTable tableName="queue">
+            <column name="queue_id" type="int" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(255)"/>
+            <column name="creator" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date_created" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="changed_by" type="int"/>
+            <column name="date_changed" type="datetime"/>
+            <column name="retired" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="retired_by" type="int"/>
+            <column name="date_retired" type="datetime"/>
+            <column name="retire_reason" type="varchar(255)"/>
+            <column name="uuid" type="varchar(38)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="queue" baseColumnNames="creator"
+                                 constraintName="queue_creator_fk"
+                                 referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint baseTableName="queue" baseColumnNames="changed_by"
+                                 constraintName="queue_changed_by_fk"
+                                 referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint baseTableName="queue" baseColumnNames="retired_by"
+                                 constraintName="queue_retired_by_fk"
+                                 referencedTableName="users" referencedColumnNames="user_id"/>
+    </changeSet>
 
     <changeSet id="add_queue_entry_20220125" author="corneliouzbett">
         <preConditions onFail="MARK_RAN" onError="WARN">
@@ -21,6 +63,9 @@
         <createTable tableName="queue_entry">
             <column name="queue_entry_id" type="int" autoIncrement="true">
                 <constraints primaryKey="true"/>
+            </column>
+            <column name="queue_id" type="int">
+                <constraints nullable="false"/>
             </column>
             <column name="patient_id" type="int">
                 <constraints nullable="false"/>
@@ -39,10 +84,6 @@
                 <constraints nullable="false"/>
             </column>
             <column name="ended_at" type="datetime"/>
-            <column name="name" type="varchar(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="description" type="varchar(255)"/>
             <column name="creator" type="int">
                 <constraints nullable="false"/>
             </column>
@@ -51,13 +92,13 @@
             </column>
             <column name="changed_by" type="int"/>
             <column name="date_changed" type="datetime"/>
-            <column name="retired" type="boolean" defaultValueBoolean="false">
+            <column name="voided" type="boolean" defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
-            <column name="retired_by" type="int"/>
-            <column name="date_retired" type="datetime"/>
-            <column name="retire_reason" type="varchar(255)" defaultValue="null"/>
-            <column name="uuid" type="varchar(38)">
+            <column name="voided_by" type="int"/>
+            <column name="date_voided" type="datetime"/>
+            <column name="void_reason" type="varchar(255)"/>
+            <column name="uuid" type="char(38)">
                 <constraints nullable="false" unique="true"/>
             </column>
         </createTable>
@@ -67,9 +108,12 @@
         <addForeignKeyConstraint baseTableName="queue_entry" baseColumnNames="changed_by"
                                  constraintName="queue_entry_changed_by_fk"
                                  referencedTableName="users" referencedColumnNames="user_id"/>
-        <addForeignKeyConstraint baseTableName="queue_entry" baseColumnNames="retired_by"
-                                 constraintName="queue_entry_retired_by_fk"
+        <addForeignKeyConstraint baseTableName="queue_entry" baseColumnNames="voided_by"
+                                 constraintName="queue_entry_voided_by_fk"
                                  referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint baseTableName="queue_entry" baseColumnNames="queue_id"
+                                 constraintName="queue_entry_queue_id_fk"
+                                 referencedTableName="queue" referencedColumnNames="queue_id"/>
         <addForeignKeyConstraint baseTableName="queue_entry" baseColumnNames="patient_id"
                                  constraintName="queue_entry_patient_id_fk"
                                  referencedTableName="patient" referencedColumnNames="patient_id"/>
@@ -101,14 +145,11 @@
             </column>
             <column name="encounter_id" type="int"/>
             <column name="encounter_type_id" type="int"/>
+            <column name="encounter_datetime" type="datetime"/>
             <column name="visit_id" type="int"/>
             <column name="status" type="int">
                 <constraints nullable="false"/>
             </column>
-            <column name="name" type="varchar(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="description" type="varchar(255)"/>
             <column name="creator" type="int">
                 <constraints nullable="false"/>
             </column>
@@ -117,13 +158,13 @@
             </column>
             <column name="changed_by" type="int"/>
             <column name="date_changed" type="datetime"/>
-            <column name="retired" type="boolean" defaultValueBoolean="false">
+            <column name="voided" type="boolean" defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
-            <column name="retired_by" type="int"/>
-            <column name="date_retired" type="datetime"/>
-            <column name="retire_reason" type="varchar(255)" defaultValue="null"/>
-            <column name="uuid" type="varchar(38)">
+            <column name="voided_by" type="int"/>
+            <column name="date_voided" type="datetime"/>
+            <column name="void_reason" type="varchar(255)"/>
+            <column name="uuid" type="char(38)">
                 <constraints nullable="false" unique="true"/>
             </column>
         </createTable>
@@ -133,8 +174,8 @@
         <addForeignKeyConstraint baseTableName="encounter_status" baseColumnNames="changed_by"
                                  constraintName="encounter_status_changed_by_fk"
                                  referencedTableName="users" referencedColumnNames="user_id"/>
-        <addForeignKeyConstraint baseTableName="encounter_status" baseColumnNames="retired_by"
-                                 constraintName="encounter_status_retired_by_fk"
+        <addForeignKeyConstraint baseTableName="encounter_status" baseColumnNames="voided_by"
+                                 constraintName="encounter_status_voided_by_fk"
                                  referencedTableName="users" referencedColumnNames="user_id"/>
         <addForeignKeyConstraint baseTableName="encounter_status" baseColumnNames="patient_id"
                                  constraintName="encounter_status_patient_id_fk"

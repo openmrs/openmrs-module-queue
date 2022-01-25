@@ -27,7 +27,7 @@ import org.openmrs.EncounterType;
 import org.openmrs.Patient;
 import org.openmrs.Visit;
 
-@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @Data
 @Entity
@@ -37,7 +37,6 @@ public class EncounterStatus extends BaseOpenmrsMetadata {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@EqualsAndHashCode.Include
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "encounter_status_id")
 	private Integer encounterStatusId;
