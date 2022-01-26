@@ -186,9 +186,6 @@
         <addForeignKeyConstraint baseTableName="encounter_status" baseColumnNames="encounter_id"
                                  constraintName="encounter_status_encounter_id_fk"
                                  referencedTableName="encounter" referencedColumnNames="encounter_id"/>
-        <addForeignKeyConstraint baseTableName="encounter_status" baseColumnNames="visit_id"
-                                 constraintName="encounter_status_visit_id_fk"
-                                 referencedTableName="visit" referencedColumnNames="visit_id"/>
         <addForeignKeyConstraint baseTableName="encounter_status" baseColumnNames="status"
                                  constraintName="encounter_status_concept_status_fk"
                                  referencedTableName="concept" referencedColumnNames="concept_id"/>
