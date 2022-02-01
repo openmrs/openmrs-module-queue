@@ -25,19 +25,19 @@ import org.openmrs.BaseChangeableOpenmrsData;
 @Entity
 @Table(name = "queue")
 public class Queue extends BaseChangeableOpenmrsData {
-
+	
 	private static final long serialVersionUID = 1L;
-
+	
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "queue_id")
 	private Integer queueId;
-
+	
 	@Override
 	public Integer getId() {
 		return getQueueId();
 	}
-
+	
 	@Override
 	public void setId(Integer id) {
 		this.setQueueId(id);

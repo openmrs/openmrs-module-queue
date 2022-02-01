@@ -15,6 +15,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+
 import java.util.Date;
 
 import lombok.Data;
@@ -33,41 +34,41 @@ import org.openmrs.Visit;
 @Entity
 @Table(name = "encounter_status")
 public class EncounterStatus extends BaseOpenmrsMetadata {
-
+	
 	private static final long serialVersionUID = 1L;
-
+	
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "encounter_status_id")
 	private Integer encounterStatusId;
-
+	
 	@Column(name = "patient_id")
 	private Patient patient;
-
+	
 	@Column(name = "encounter_type_id")
 	private EncounterType encounterType;
-
+	
 	@Column(name = "encounter_id")
 	private Encounter encounter;
-
+	
 	@Column(name = "encounter_datetime")
 	private Date encounterDatetime;
-
+	
 	/**
-	 * Note: Visit_id will be used to help unambiguously identify the encounter to which the status belongs not meant
-	 * to assign status directly to a visit.
+	 * Note: Visit_id will be used to help unambiguously identify the encounter to which the status
+	 * belongs not meant to assign status directly to a visit.
 	 */
 	@Column(name = "visit_id")
 	private Visit visit;
-
+	
 	@Column(name = "status", nullable = false)
 	private Concept status;
-
+	
 	@Override
 	public Integer getId() {
 		return getEncounterStatusId();
 	}
-
+	
 	@Override
 	public void setId(Integer id) {
 		this.setEncounterStatusId(id);

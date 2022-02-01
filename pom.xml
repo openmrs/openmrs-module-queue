@@ -1,6 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.openmrs.maven.parents</groupId>
@@ -8,75 +8,197 @@
         <version>1.1.1</version>
     </parent>
 
-	<groupId>org.openmrs.module</groupId>
-	<artifactId>queue</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
-	<packaging>pom</packaging>
-	<name>Queue</name>
-	<description>Patient Queues</description>
+    <groupId>org.openmrs.module</groupId>
+    <artifactId>queue</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>Queue</name>
+    <description>Patient Queues</description>
 
-	<url>https://wiki.openmrs.org/x/FQ4z</url>
+    <url>https://wiki.openmrs.org/x/FQ4z</url>
 
-	<scm>
-		<connection>scm:git:git@github.com:openmrs/openmrs-module-queue.git</connection>
-		<developerConnection>scm:git:git@github.com:openmrs/openmrs-module-queue.git</developerConnection>
-		<url>https://github.com/openmrs/openmrs-module-queue/</url>
-	</scm>
+    <scm>
+        <connection>scm:git:git@github.com:openmrs/openmrs-module-queue.git</connection>
+        <developerConnection>scm:git:git@github.com:openmrs/openmrs-module-queue.git</developerConnection>
+        <url>https://github.com/openmrs/openmrs-module-queue/</url>
+    </scm>
 
-	<modules>
-		<module>api</module>
-		<module>omod</module>
-	</modules>
+    <modules>
+        <module>api</module>
+        <module>omod</module>
+    </modules>
 
-	<repositories>
-		<repository>
-			<id>openmrs-repo</id>
-			<name>OpenMRS Nexus Repository</name>
-			<url>https://mavenrepo.openmrs.org/public</url>
-		</repository>
-		<repository>
-			<id>central</id>
-			<name>Maven Repository Switchboard</name>
-			<layout>default</layout>
-			<url>https://repo1.maven.org/maven2</url>
-		</repository>
-	</repositories>
-	<pluginRepositories>
-		<pluginRepository>
-			<id>openmrs-repo</id>
-			<name>OpenMRS Nexus Repository</name>
-			<url>https://mavenrepo.openmrs.org/public</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</pluginRepository>
-	</pluginRepositories>
+    <repositories>
+        <repository>
+            <id>openmrs-repo</id>
+            <name>OpenMRS Nexus Repository</name>
+            <url>https://mavenrepo.openmrs.org/public</url>
+        </repository>
+        <repository>
+            <id>central</id>
+            <name>Maven Repository Switchboard</name>
+            <layout>default</layout>
+            <url>https://repo1.maven.org/maven2</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>openmrs-repo</id>
+            <name>OpenMRS Nexus Repository</name>
+            <url>https://mavenrepo.openmrs.org/public</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
 
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.projectlombok</groupId>
-				<artifactId>lombok</artifactId>
-				<version>${lombokVersion}</version>
-				<scope>provided</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombokVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-		</dependency>
-	</dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                </plugin>
+                <plugin>
+                    <groupId>org.openmrs.maven.plugins</groupId>
+                    <artifactId>maven-openmrs-plugin</artifactId>
+                    <version>1.0.1</version>
+                    <extensions>true</extensions>
+                    <executions>
+                        <execution>
+                            <id>pack</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>package-module</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.commonjava.maven.plugins</groupId>
+                    <artifactId>directory-maven-plugin</artifactId>
+                    <version>0.1</version>
+                    <executions>
+                        <execution>
+                            <id>directories</id>
+                            <goals>
+                                <goal>highest-basedir</goal>
+                            </goals>
+                            <phase>validate</phase>
+                            <configuration>
+                                <property>main.basedir</property>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>com.mycila</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <version>3.0</version>
+                    <configuration>
+                        <header>${main.basedir}${file.separator}license-header.txt</header>
+                        <headerDefinitions>
+                            <headerDefinition>${main.basedir}${file.separator}license-format.xml</headerDefinition>
+                        </headerDefinitions>
+                        <mapping>
+                            <java>JAVA_STYLE</java>
+                            <xml>MYXML_STYLE</xml>
+                        </mapping>
+                        <includes>
+                            <include>**/*.java</include>
+                            <include>**/*.xml</include>
+                            <include>**/*.properties</include>
+                        </includes>
+                        <excludes>
+                            <exclude>license-format.xml</exclude>
+                            <exclude>**/pom.xml</exclude>
+                            <exclude>**/target/**</exclude>
+                            <exclude>.git/**</exclude>
+                            <exclude>.idea/**</exclude>
+                            <exclude>.settings/**</exclude>
+                            <exclude>.externalToolBuilders/</exclude>
+                            <exclude>nbproject/private/</exclude>
+                            <exclude>.vscode/**</exclude>
+                        </excludes>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>add-license</id>
+                            <goals>
+                                <goal>format</goal>
+                            </goals>
+                            <phase>validate</phase>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>net.revelc.code.formatter</groupId>
+                    <artifactId>formatter-maven-plugin</artifactId>
+                    <version>2.13.0</version>
+                    <configuration>
+                        <lineEnding>LF</lineEnding>
+                        <configFile>eclipse/OpenMRSFormatter.xml</configFile>
+                    </configuration>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.openmrs.tools</groupId>
+                            <artifactId>openmrs-tools</artifactId>
+                            <version>${openmrsPlatformToolsVersion}</version>
+                        </dependency>
+                    </dependencies>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>format</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>net.revelc.code</groupId>
+                    <artifactId>impsort-maven-plugin</artifactId>
+                    <version>1.5.0</version>
+                    <configuration>
+                        <groups>javax, java, *</groups>
+                        <removeUnused>true</removeUnused>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>sort</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 
     <properties>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.build.outputEncoding>UTF-8</project.build.outputEncoding>
-		<lombokVersion>1.18.20</lombokVersion>
-		<openmrsPlatformVersion>2.3.4</openmrsPlatformVersion>
-		<openmrsPlatformToolsVersion>2.4.0</openmrsPlatformToolsVersion>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
+        <lombokVersion>1.18.20</lombokVersion>
+        <openmrsPlatformVersion>2.3.4</openmrsPlatformVersion>
+        <openmrsPlatformToolsVersion>2.4.0</openmrsPlatformToolsVersion>
     </properties>
 </project>

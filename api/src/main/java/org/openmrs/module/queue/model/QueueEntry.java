@@ -18,6 +18,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+
 import java.util.Date;
 
 import lombok.Data;
@@ -35,52 +36,52 @@ import org.openmrs.Provider;
 @Entity
 @Table(name = "queue_entry")
 public class QueueEntry extends BaseChangeableOpenmrsData {
-
+	
 	private static final long serialVersionUID = 1L;
-
+	
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "queue_entry_id")
 	private Integer queueEntryId;
-
+	
 	@ManyToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "queue_id", nullable = false)
 	private Queue queue;
-
+	
 	@Column(name = "patient_id", nullable = false)
 	private Patient patient;
-
+	
 	@Column(name = "priority", nullable = false)
 	private Concept priority;
-
+	
 	@Column(name = "priority_comment")
 	private String priorityComment;
-
+	
 	@Column(nullable = false)
 	private Concept status;
-
+	
 	@Column(name = "sort_weight")
 	private double sortWeight;
-
+	
 	//The Location the patient is waiting for, if any.
 	@Column(name = "location_waiting_for")
 	private Location locationWaitingFor;
-
+	
 	//The Provider the patient is waiting for, if any.
 	@Column(name = "provider_waiting_for")
 	private Provider providerWaitingFor;
-
+	
 	@Column(name = "started_at", nullable = false)
 	private Date startedAt;
-
+	
 	@Column(name = "ended_at")
 	private Date endedAt;
-
+	
 	@Override
 	public Integer getId() {
 		return getQueueEntryId();
 	}
-
+	
 	@Override
 	public void setId(Integer id) {
 		this.setQueueEntryId(id);
