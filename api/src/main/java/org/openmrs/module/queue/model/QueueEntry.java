@@ -50,6 +50,9 @@ public class QueueEntry extends BaseChangeableOpenmrsData {
 	
 	@Column(name = "patient_id", nullable = false)
 	private Patient patient;
+
+	@Column(name = "service", nullable = false)
+	private Concept service;
 	
 	@Column(name = "priority", nullable = false)
 	private Concept priority;

@@ -80,6 +80,9 @@
             <column name="priority" type="int">
                 <constraints nullable="false"/>
             </column>
+            <column name="service" type="int">
+                <constraints nullable="false"/>
+            </column>
             <column name="priority_comment" type="varchar(255)"/>
             <column name="status" type="int">
                 <constraints nullable="false"/>
@@ -126,6 +129,9 @@
                                  referencedTableName="patient" referencedColumnNames="patient_id"/>
         <addForeignKeyConstraint baseTableName="queue_entry" baseColumnNames="priority"
                                  constraintName="queue_entry_priority_fk"
+                                 referencedTableName="concept" referencedColumnNames="concept_id"/>
+        <addForeignKeyConstraint baseTableName="queue_entry" baseColumnNames="service"
+                                 constraintName="queue_entry_service_fk"
                                  referencedTableName="concept" referencedColumnNames="concept_id"/>
         <addForeignKeyConstraint baseTableName="queue_entry" baseColumnNames="status"
                                  constraintName="queue_entry_status_fk"
@@ -196,6 +202,57 @@
         <addForeignKeyConstraint baseTableName="encounter_status" baseColumnNames="status"
                                  constraintName="encounter_status_concept_status_fk"
                                  referencedTableName="concept" referencedColumnNames="concept_id"/>
+    </changeSet>
+
+    <changeSet id="add_visit_queue_entries_20220202" author="corneliouzbett">
+        <preConditions onError="WARN" onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="visit_queue_entries"/>
+            </not>
+        </preConditions>
+        <createTable tableName="visit_queue_entries">
+            <column name="visit_queue_entry_id" type="int" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="visit_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="queue_entry_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="creator" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date_created" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="changed_by" type="int"/>
+            <column name="date_changed" type="datetime"/>
+            <column name="retired" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="retired_by" type="int"/>
+            <column name="date_retired" type="datetime"/>
+            <column name="retired_reason" type="varchar(255)"/>
+            <column name="uuid" type="char(38)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint constraintName="visit_queue_entries_creator_fk"
+                                 baseTableName="visit_queue_entries" baseColumnNames="creator"
+                                 referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint constraintName="visit_queue_entries_changed_by_fk"
+                                 baseTableName="visit_queue_entries" baseColumnNames="changed_by"
+                                 referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint constraintName="visit_queue_entries_retired_by_fk"
+                                 baseTableName="visit_queue_entries" baseColumnNames="retired_by"
+                                 referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint baseTableName="visit_queue_entries" baseColumnNames="queue_entry_id"
+                                 constraintName="visit_queue_entries_queue_entry_fk" referencedTableName="queue_entry"
+                                 referencedColumnNames="queue_entry_id" />
+        <addForeignKeyConstraint baseTableName="visit_queue_entries" baseColumnNames="visit_id"
+                                 constraintName="visit_queue_entries_visit_fk" referencedTableName="visit"
+                                 referencedColumnNames="visit_id"/>
     </changeSet>
 
 </databaseChangeLog>
