@@ -14,11 +14,14 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.openmrs.BaseChangeableOpenmrsMetadata;
+import org.openmrs.Location;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -32,6 +35,10 @@ public class Queue extends BaseChangeableOpenmrsMetadata {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "queue_id")
 	private Integer queueId;
+	
+	@ManyToOne
+	@JoinColumn(name = "location_id", nullable = false)
+	private Location location;
 	
 	@Override
 	public Integer getId() {
