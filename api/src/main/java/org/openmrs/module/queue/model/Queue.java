@@ -18,13 +18,13 @@ import javax.persistence.Table;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.openmrs.BaseChangeableOpenmrsData;
+import org.openmrs.BaseChangeableOpenmrsMetadata;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
 @Table(name = "queue")
-public class Queue extends BaseChangeableOpenmrsData {
+public class Queue extends BaseChangeableOpenmrsMetadata {
 	
 	private static final long serialVersionUID = 1L;
 	
