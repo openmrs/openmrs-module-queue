@@ -11,15 +11,20 @@ package org.openmrs.module.queue.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import java.util.List;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.Where;
 import org.openmrs.BaseChangeableOpenmrsMetadata;
 import org.openmrs.Location;
 
@@ -39,6 +44,10 @@ public class Queue extends BaseChangeableOpenmrsMetadata {
 	@ManyToOne
 	@JoinColumn(name = "location_id", nullable = false)
 	private Location location;
+	
+	@OneToMany(mappedBy = "queue", fetch = FetchType.LAZY)
+	@Where(clause = "retired = 0 and (started_at <= current_timestamp() and ended_at is null)")
+	private List<QueueEntry> queueEntries;
 	
 	@Override
 	public Integer getId() {

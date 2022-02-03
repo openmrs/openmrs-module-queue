@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    This Source Code Form is subject to the terms of the Mozilla Public License,
+    v. 2.0. If a copy of the MPL was not distributed with this file, You can
+    obtain one at http://mozilla.org/MPL/2.0/. OpenMRS is also distributed under
+    the terms of the Healthcare Disclaimer located at http://openmrs.org/license.
+
+    Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
+    graphic logo is a trademark of OpenMRS Inc.
+-->
+<dataset>
+    <patient_identifier_type patient_identifier_type_id="1" name="Test Identifier Type" description="Test description"
+                             creator="1" date_created="2022-02-02 12:34:00.0" required="false" retired="false"
+                             uuid="c5576187-9a67-43a7-9b7c-04db22851233"/>
+    <person person_id="100" gender="M" dead="false" creator="1" date_created="2022-02-02 12:34:00.0" voided="false"
+            uuid="90b38324-e2fd-4feb-95b7-9e9a2a8876fg"/>
+    <person_name person_name_id="2" preferred="true" person_id="100" given_name="nobody" middle_name="C" family_name="no-name"
+                 creator="1" date_created="2022-02-02 12:34:00.0" voided="false"
+                 uuid="7e2acadc-5073-4a39-914a-debcbec8c1c9"/>
+    <patient patient_id="100" creator="1" date_created="2022-02-02 12:34:00.0" voided="false"/>
+    <patient_identifier patient_identifier_id="1" patient_id="100" identifier="1234-5" identifier_type="1" preferred="1"
+                        location_id="1" creator="1" date_created="2022-02-02 12:34:00.0" voided="false"
+                        uuid="e887ac86-4d8a-40f3-bedb-da84d34517b7"/>
+</dataset>

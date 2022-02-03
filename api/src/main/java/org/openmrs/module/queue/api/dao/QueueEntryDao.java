@@ -7,15 +7,9 @@
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
-package org.openmrs.module.queue;
+package org.openmrs.module.queue.api.dao;
 
-import org.springframework.stereotype.Component;
+import org.openmrs.Auditable;
+import org.openmrs.OpenmrsObject;
 
-/**
- * Contains module's config.
- */
-@Component("queue.QueueConfig")
-public class QueueConfig {
-	
-	public final static String MODULE_PRIVILEGE = "Queue Privilege";
-}
+public interface QueueEntryDao<Q extends OpenmrsObject & Auditable> extends BaseQueueDao<Q> {}

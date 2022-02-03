@@ -7,9 +7,13 @@
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
-package org.openmrs.module.queue.api.dao;
+package org.openmrs.module.queue;
 
-import org.openmrs.Auditable;
-import org.openmrs.OpenmrsObject;
+import lombok.extern.slf4j.Slf4j;
+import org.openmrs.module.BaseModuleActivator;
 
-public interface QueueDao<Q extends OpenmrsObject & Auditable> extends BaseQueueDao<Q> {}
+/**
+ * This class contains the logic that is run every time this module is either started or shutdown
+ */
+@Slf4j
+public class QueueModuleActivator extends BaseModuleActivator {}

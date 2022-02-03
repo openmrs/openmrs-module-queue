@@ -22,36 +22,35 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.openmrs.module.queue.api.dao.QueueDao;
-import org.openmrs.module.queue.api.impl.QueueServiceImpl;
-import org.openmrs.module.queue.model.Queue;
+import org.openmrs.module.queue.api.dao.QueueEntryDao;
+import org.openmrs.module.queue.api.impl.QueueEntryServiceImpl;
+import org.openmrs.module.queue.model.QueueEntry;
 
 @RunWith(MockitoJUnitRunner.class)
-public class QueueServiceTest {
+public class QueueEntryServiceTest {
 	
-	private static final String QUEUE_UUID = "b5ffbb90-86f4-4d9c-8b6c-3713d748ef74";
+	private static final String QUEUE_ENTRY_UUID = "j8f0bb90-86f4-4d9c-8b6c-3713d748ef74";
 	
-	private QueueServiceImpl queueService;
+	private QueueEntryServiceImpl queueEntryService;
 	
 	@Mock
-	private QueueDao<Queue> dao;
+	private QueueEntryDao<QueueEntry> dao;
 	
 	@Before
 	public void setupMocks() {
 		MockitoAnnotations.openMocks(this);
-		queueService = new QueueServiceImpl();
-		queueService.setDao(dao);
+		queueEntryService = new QueueEntryServiceImpl();
+		queueEntryService.setDao(dao);
 	}
 	
 	@Test
-	public void shouldGetByUuid() {
-		Queue queue = mock(Queue.class);
-		when(queue.getUuid()).thenReturn(QUEUE_UUID);
-		when(dao.get(QUEUE_UUID)).thenReturn(Optional.of(queue));
+	public void shouldGetQueueEntryByUuid() {
+		QueueEntry queueEntry = mock(QueueEntry.class);
+		when(queueEntry.getUuid()).thenReturn(QUEUE_ENTRY_UUID);
+		when(dao.get(QUEUE_ENTRY_UUID)).thenReturn(Optional.of(queueEntry));
 		
-		Optional<Queue> result = queueService.getQueueByUuid(QUEUE_UUID);
+		Optional<QueueEntry> result = queueEntryService.getQueueEntryByUuid(QUEUE_ENTRY_UUID);
 		assertThat(result.isPresent(), is(true));
-		result.ifPresent(q -> assertThat(q.getUuid(), is(QUEUE_UUID)));
+		result.ifPresent(q -> assertThat(q.getUuid(), is(QUEUE_ENTRY_UUID)));
 	}
-	
 }

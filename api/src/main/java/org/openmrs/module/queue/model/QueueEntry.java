@@ -48,30 +48,36 @@ public class QueueEntry extends BaseChangeableOpenmrsData {
 	@JoinColumn(name = "queue_id", nullable = false)
 	private Queue queue;
 	
-	@Column(name = "patient_id", nullable = false)
+	@ManyToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "patient_id", nullable = false)
 	private Patient patient;
-
-	@Column(name = "service", nullable = false)
+	
+	@ManyToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "service", referencedColumnName = "concept_id", nullable = false)
 	private Concept service;
 	
-	@Column(name = "priority", nullable = false)
+	@ManyToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "priority", referencedColumnName = "concept_id", nullable = false)
 	private Concept priority;
 	
 	@Column(name = "priority_comment")
 	private String priorityComment;
 	
-	@Column(nullable = false)
+	@ManyToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "status", referencedColumnName = "concept_id", nullable = false)
 	private Concept status;
 	
 	@Column(name = "sort_weight")
 	private double sortWeight;
 	
 	//The Location the patient is waiting for, if any.
-	@Column(name = "location_waiting_for")
+	@ManyToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "location_waiting_for", referencedColumnName = "location_id")
 	private Location locationWaitingFor;
 	
 	//The Provider the patient is waiting for, if any.
-	@Column(name = "provider_waiting_for")
+	@ManyToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "provider_waiting_for", referencedColumnName = "provider_id")
 	private Provider providerWaitingFor;
 	
 	@Column(name = "started_at", nullable = false)
