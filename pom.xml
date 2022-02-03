@@ -46,6 +46,19 @@
         </pluginRepository>
     </pluginRepositories>
 
+    <distributionManagement>
+        <repository>
+            <id>openmrs-repo-modules</id>
+            <name>OpenMRS Nexus Modules</name>
+            <url>https://mavenrepo.openmrs.org/modules</url>
+        </repository>
+        <snapshotRepository>
+            <id>openmrs-repo-snapshots</id>
+            <name>OpenMRS Nexus Snapshots</name>
+            <url>https://mavenrepo.openmrs.org/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -66,6 +79,19 @@
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
                 <version>${lombokVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.openmrs.module</groupId>
+                <artifactId>webservices.rest-omod</artifactId>
+                <version>${webservicesRestVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.openmrs.module</groupId>
+                <artifactId>webservices.rest-omod-common</artifactId>
+                <version>${webservicesRestVersion}</version>
                 <scope>provided</scope>
             </dependency>
 
@@ -125,8 +151,14 @@
             </dependency>
             <dependency>
                 <groupId>org.powermock</groupId>
+                <artifactId>powermock-module-junit4</artifactId>
+                <version>${powerMockitoVersion}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
                 <artifactId>powermock-api-mockito2</artifactId>
-                <version>2.0.9</version>
+                <version>${powerMockitoVersion}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
@@ -148,6 +180,22 @@
             <type>pom</type>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito2</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -159,26 +207,14 @@
                     <version>3.8.1</version>
                 </plugin>
                 <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>3.1.2</version>
+                </plugin>
+                <plugin>
                     <groupId>org.openmrs.maven.plugins</groupId>
                     <artifactId>maven-openmrs-plugin</artifactId>
                     <version>1.0.1</version>
-                    <extensions>true</extensions>
-                    <executions>
-                        <execution>
-                            <id>init</id>
-                            <phase>initialize</phase>
-                            <goals>
-                                <goal>initialize-module</goal>
-                            </goals>
-                        </execution>
-                        <execution>
-                            <id>pack</id>
-                            <phase>package</phase>
-                            <goals>
-                                <goal>package-module</goal>
-                            </goals>
-                        </execution>
-                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.commonjava.maven.plugins</groupId>
@@ -287,6 +323,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
         <lombokVersion>1.18.20</lombokVersion>
+        <powerMockitoVersion>2.0.9</powerMockitoVersion>
+        <webservicesRestVersion>2.32.0</webservicesRestVersion>
         <openmrsPlatformVersion>2.3.4</openmrsPlatformVersion>
         <openmrsPlatformToolsVersion>2.4.0</openmrsPlatformToolsVersion>
     </properties>
