@@ -14,7 +14,7 @@ public class QueueException extends RuntimeException {
 	private static final long serialVersionUID = 12345L;
 	
 	private final Throwable clothedThrowable;
-
+	
 	public QueueException(final String exceptionMessage) {
 		super(exceptionMessage);
 		clothedThrowable = null;

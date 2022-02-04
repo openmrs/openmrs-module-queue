@@ -13,6 +13,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 import java.util.Optional;
@@ -22,8 +23,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.queue.api.QueueService;
-import org.openmrs.module.queue.model.Queue;
+import org.openmrs.module.queue.api.QueueEntryService;
+import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.webservices.rest.web.representation.CustomRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
@@ -32,43 +33,40 @@ import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-public class QueueResourceTest extends BaseQueueResourceTest<Queue, QueueResource> {
+public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, QueueEntrySubResource> {
 	
-	private static final String QUEUE_UUID = "6hje567a-fca0-11e5-9e59-08002719a7";
-	
-	private static final String QUEUE_NAME = "queue name";
+	private static final String QUEUE_ENTRY_UUID = "6hje567a-fca0-11e5-9e59-08002719a7";
 	
 	@Mock
-	private QueueService queueService;
+	private QueueEntryService queueEntryService;
 	
-	private Queue queue;
+	private QueueEntry queueEntry;
 	
 	@Before
 	public void setup() {
-		queue = new Queue();
-		queue.setUuid(QUEUE_UUID);
-		queue.setName(QUEUE_NAME);
-		
 		this.prepareMocks();
-		when(Context.getService(QueueService.class)).thenReturn(queueService);
+		queueEntry = mock(QueueEntry.class);
 		
-		this.setResource(new QueueResource());
-		this.setObject(queue);
+		when(queueEntry.getUuid()).thenReturn(QUEUE_ENTRY_UUID);
+		when(Context.getService(QueueEntryService.class)).thenReturn(queueEntryService);
+		
+		this.setResource(new QueueEntrySubResource());
+		this.setObject(queueEntry);
 	}
 	
 	@Test
-	public void shouldGetQueueService() {
-		assertThat(queueService, notNullValue());
+	public void shouldGetQueueEntryService() {
+		assertThat(queueEntryService, notNullValue());
 	}
 	
 	@Test
 	public void shouldReturnDefaultRepresentation() {
-		verifyDefaultRepresentation("name", "description", "uuid");
+		verifyDefaultRepresentation("uuid");
 	}
 	
 	@Test
 	public void shouldReturnFullRepresentation() {
-		verifyFullRepresentation("name", "description", "uuid", "auditInfo");
+		verifyFullRepresentation("queue", "status", "uuid", "display", "auditInfo");
 	}
 	
 	@Test
@@ -100,22 +98,20 @@ public class QueueResourceTest extends BaseQueueResourceTest<Queue, QueueResourc
 	
 	@Test
 	public void shouldGetResourceByUniqueUuid() {
-		when(queueService.getQueueByUuid(QUEUE_UUID)).thenReturn(Optional.of(queue));
+		when(queueEntryService.getQueueEntryByUuid(QUEUE_ENTRY_UUID)).thenReturn(Optional.of(queueEntry));
 		
-		Queue result = getResource().getByUniqueId(QUEUE_UUID);
+		QueueEntry result = getResource().getByUniqueId(QUEUE_ENTRY_UUID);
 		assertThat(result, notNullValue());
-		assertThat(result.getUuid(), is(QUEUE_UUID));
-		assertThat(result.getName(), is(QUEUE_NAME));
+		assertThat(result.getUuid(), is(QUEUE_ENTRY_UUID));
 	}
 	
 	@Test
 	public void shouldCreateNewResource() {
-		when(queueService.createQueue(getObject())).thenReturn(getObject());
+		when(queueEntryService.createQueueEntry(getObject())).thenReturn(getObject());
 		
-		Queue newlyCreatedObject = getResource().save(getObject());
+		QueueEntry newlyCreatedObject = getResource().save(getObject());
 		assertThat(newlyCreatedObject, notNullValue());
-		assertThat(newlyCreatedObject.getUuid(), is(QUEUE_UUID));
-		assertThat(newlyCreatedObject.getName(), is(QUEUE_NAME));
+		assertThat(newlyCreatedObject.getUuid(), is(QUEUE_ENTRY_UUID));
 	}
 	
 	@Test
@@ -127,5 +123,4 @@ public class QueueResourceTest extends BaseQueueResourceTest<Queue, QueueResourc
 	public void verifyResourceVersion() {
 		assertThat(getResource().getResourceVersion(), is("1.8"));
 	}
-	
 }

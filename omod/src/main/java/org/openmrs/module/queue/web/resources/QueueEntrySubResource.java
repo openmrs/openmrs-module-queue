@@ -35,25 +35,25 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 @SuppressWarnings("unused")
 @SubResource(parent = QueueResource.class, path = "entry", supportedClass = QueueEntry.class, supportedOpenmrsVersions = {
-		"2.0 - 2.*" })
+        "2.0 - 2.*" })
 public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Queue, QueueResource> {
-
+	
 	@Override
 	public Queue getParent(QueueEntry queueEntry) {
 		return queueEntry.getQueue();
 	}
-
+	
 	@Override
 	public void setParent(QueueEntry queueEntry, Queue queue) {
 		queueEntry.setQueue(queue);
 	}
-
+	
 	@Override
 	public PageableResult doGetAll(Queue queue, RequestContext requestContext) throws ResponseException {
 		Collection<QueueEntry> queueEntries = queue.getQueueEntries();
 		return new NeedsPaging<>(new ArrayList<>(queueEntries), requestContext);
 	}
-
+	
 	@Override
 	public QueueEntry getByUniqueId(@NotNull String uuid) {
 		Optional<QueueEntry> queueEntryOptional = Context.getService(QueueEntryService.class).getQueueEntryByUuid(uuid);
@@ -62,27 +62,27 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 		}
 		return queueEntryOptional.get();
 	}
-
+	
 	@Override
 	protected void delete(QueueEntry queueEntry, String voidReason, RequestContext requestContext) throws ResponseException {
 		Context.getService(QueueEntryService.class).voidQueueEntry(queueEntry.getUuid(), voidReason);
 	}
-
+	
 	@Override
 	public QueueEntry newDelegate() {
 		return new QueueEntry();
 	}
-
+	
 	@Override
 	public QueueEntry save(QueueEntry queueEntry) {
 		return Context.getService(QueueEntryService.class).createQueueEntry(queueEntry);
 	}
-
+	
 	@Override
 	public void purge(QueueEntry queueEntry, RequestContext requestContext) throws ResponseException {
 		Context.getService(QueueEntryService.class).purgeQueueEntry(queueEntry);
 	}
-
+	
 	@Override
 	public DelegatingResourceDescription getRepresentationDescription(Representation representation) {
 		DelegatingResourceDescription resourceDescription = new DelegatingResourceDescription();
@@ -106,7 +106,7 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 		}
 		return null;
 	}
-
+	
 	private void addSharedResourceDescriptionProperties(DelegatingResourceDescription resourceDescription) {
 		resourceDescription.addSelfLink();
 		resourceDescription.addProperty("uuid");
