@@ -20,6 +20,7 @@ import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
+import org.openmrs.module.webservices.rest.web.representation.CustomRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
@@ -78,19 +79,20 @@ public class QueueResource extends DelegatingCrudResource<Queue> {
 		if (representation instanceof RefRepresentation) {
 			this.addSharedResourceDescriptionProperty(resourceDescription);
 			resourceDescription.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
-			return resourceDescription;
 		} else if (representation instanceof DefaultRepresentation) {
 			this.addSharedResourceDescriptionProperty(resourceDescription);
 			resourceDescription.addProperty("location", Representation.REF);
 			resourceDescription.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
-			return resourceDescription;
 		} else if (representation instanceof FullRepresentation) {
 			this.addSharedResourceDescriptionProperty(resourceDescription);
 			resourceDescription.addProperty("location", Representation.FULL);
 			resourceDescription.addProperty("auditInfo");
-			return resourceDescription;
+		} else if (representation instanceof CustomRepresentation) {
+			//For custom representation, must be null
+			// - let the user decide which properties should be included in the response
+			resourceDescription = null;
 		}
-		return null;
+		return resourceDescription;
 	}
 	
 	private void addSharedResourceDescriptionProperty(DelegatingResourceDescription resourceDescription) {

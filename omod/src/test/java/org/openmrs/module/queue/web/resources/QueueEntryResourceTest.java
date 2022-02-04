@@ -28,7 +28,6 @@ import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.webservices.rest.web.representation.CustomRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
-import org.openmrs.module.webservices.rest.web.representation.NamedRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -61,24 +60,20 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	
 	@Test
 	public void shouldReturnDefaultRepresentation() {
-		verifyDefaultRepresentation("uuid");
+		verifyDefaultRepresentation("uuid", "priority", "priorityComment", "sortWeight", "patient", "locationWaitingFor",
+		    "providerWaitingFor", "startedAt", "endedAt", "display");
 	}
 	
 	@Test
 	public void shouldReturnFullRepresentation() {
-		verifyFullRepresentation("queue", "status", "uuid", "display", "auditInfo");
+		verifyFullRepresentation("queue", "status", "priority", "priorityComment", "sortWeight", "patient",
+		    "locationWaitingFor", "providerWaitingFor", "startedAt", "endedAt", "display", "uuid", "display", "auditInfo");
 	}
 	
 	@Test
 	public void shouldReturnNullForCustomRepresentation() {
 		CustomRepresentation customRepresentation = new CustomRepresentation("custom-representation");
 		assertThat(getResource().getRepresentationDescription(customRepresentation), is(nullValue()));
-	}
-	
-	@Test
-	public void shouldReturnNullForNamedRepresentation() {
-		NamedRepresentation namedRepresentation = new NamedRepresentation("named-representation");
-		assertThat(getResource().getRepresentationDescription(namedRepresentation), is(nullValue()));
 	}
 	
 	@Test

@@ -22,6 +22,7 @@ import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.SubResource;
+import org.openmrs.module.webservices.rest.web.representation.CustomRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
@@ -88,28 +89,50 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 		DelegatingResourceDescription resourceDescription = new DelegatingResourceDescription();
 		if (representation instanceof RefRepresentation) {
 			this.addSharedResourceDescriptionProperties(resourceDescription);
-			return resourceDescription;
-		} else if (representation instanceof DefaultRepresentation) {
-			this.addSharedResourceDescriptionProperties(resourceDescription);
 			resourceDescription.addProperty("queue", Representation.REF);
 			resourceDescription.addProperty("status", Representation.REF);
+			resourceDescription.addProperty("patient", Representation.REF);
+			resourceDescription.addProperty("service", Representation.REF);
+			resourceDescription.addProperty("priority", Representation.REF);
+			resourceDescription.addProperty("locationWaitingFor", Representation.REF);
+			resourceDescription.addProperty("providerWaitingFor", Representation.REF);
 			resourceDescription.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
-			return resourceDescription;
+		} else if (representation instanceof DefaultRepresentation) {
+			this.addSharedResourceDescriptionProperties(resourceDescription);
+			resourceDescription.addProperty("queue", Representation.DEFAULT);
+			resourceDescription.addProperty("status", Representation.DEFAULT);
+			resourceDescription.addProperty("patient", Representation.DEFAULT);
+			resourceDescription.addProperty("service", Representation.DEFAULT);
+			resourceDescription.addProperty("priority", Representation.DEFAULT);
+			resourceDescription.addProperty("locationWaitingFor", Representation.DEFAULT);
+			resourceDescription.addProperty("providerWaitingFor", Representation.DEFAULT);
+			resourceDescription.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
 		} else if (representation instanceof FullRepresentation) {
 			this.addSharedResourceDescriptionProperties(resourceDescription);
-			resourceDescription.addProperty("queue", Representation.FULL);
-			resourceDescription.addProperty("status", Representation.FULL);
 			resourceDescription.addProperty("voided");
 			resourceDescription.addProperty("voidReason");
 			resourceDescription.addProperty("auditInfo");
-			return resourceDescription;
+			resourceDescription.addProperty("queue", Representation.FULL);
+			resourceDescription.addProperty("status", Representation.FULL);
+			resourceDescription.addProperty("patient", Representation.FULL);
+			resourceDescription.addProperty("service", Representation.FULL);
+			resourceDescription.addProperty("priority", Representation.FULL);
+			resourceDescription.addProperty("locationWaitingFor", Representation.FULL);
+			resourceDescription.addProperty("providerWaitingFor", Representation.FULL);
+		} else if (representation instanceof CustomRepresentation) {
+			//Let the user decide
+			resourceDescription = null;
 		}
-		return null;
+		return resourceDescription;
 	}
 	
 	private void addSharedResourceDescriptionProperties(DelegatingResourceDescription resourceDescription) {
 		resourceDescription.addSelfLink();
 		resourceDescription.addProperty("uuid");
 		resourceDescription.addProperty("display");
+		resourceDescription.addProperty("priorityComment");
+		resourceDescription.addProperty("sortWeight");
+		resourceDescription.addProperty("startedAt");
+		resourceDescription.addProperty("endedAt");
 	}
 }
