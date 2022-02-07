@@ -116,6 +116,6 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	
 	@Test
 	public void verifyResourceVersion() {
-		assertThat(getResource().getResourceVersion(), is("1.8"));
+		assertThat(getResource().getResourceVersion(), is("2.3"));
 	}
 }

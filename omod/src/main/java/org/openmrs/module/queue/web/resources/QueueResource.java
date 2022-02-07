@@ -107,4 +107,10 @@ public class QueueResource extends DelegatingCrudResource<Queue> {
 	public String getDisplay(Queue queue) {
 		return queue.getName();
 	}
+	
+	@Override
+	public String getResourceVersion() {
+		//What determines the resource version? is it the target platform version or just 1.8
+		return "2.3";
+	}
 }

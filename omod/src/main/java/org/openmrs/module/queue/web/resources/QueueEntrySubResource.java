@@ -135,4 +135,9 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 		resourceDescription.addProperty("startedAt");
 		resourceDescription.addProperty("endedAt");
 	}
+	
+	@Override
+	public String getResourceVersion() {
+		return "2.3";
+	}
 }
