@@ -46,6 +46,8 @@ public class QueueDaoTest extends BaseModuleContextSensitiveTest {
 	
 	private static final String NEW_QUEUE_LOCATION_UUID = "d0938432-1691-11df-97a5-7038c098";
 	
+	private static final String LOCATION_UUID = "d0938432-1691-11df-97a5-7038c098";
+	
 	@Autowired
 	@Qualifier("queue.QueueDao")
 	private QueueDao<Queue> dao;
@@ -140,5 +142,23 @@ public class QueueDaoTest extends BaseModuleContextSensitiveTest {
 		Optional<Queue> result = dao.get(QUEUE_UUID);
 		//verify delete operation
 		assertThat(result.isPresent(), is(false));
+	}
+	
+	@Test
+	public void shouldFindQueuesByLocation() {
+		List<Queue> queuesByLocation = dao.getAllQueuesByLocation(LOCATION_UUID);
+		
+		assertThat(queuesByLocation, notNullValue());
+		assertThat(queuesByLocation, hasSize(1));
+		queuesByLocation.forEach(queue -> assertThat(queue.getLocation().getUuid(), is(LOCATION_UUID)));
+	}
+	
+	@Test
+	public void shouldFindAllQueuesIncludingRetiredByLocation() {
+		List<Queue> queuesByLocation = dao.getAllQueuesByLocation(LOCATION_UUID, true);
+		
+		assertThat(queuesByLocation, notNullValue());
+		assertThat(queuesByLocation, hasSize(2));
+		queuesByLocation.forEach(queue -> assertThat(queue.getLocation().getUuid(), is(LOCATION_UUID)));
 	}
 }

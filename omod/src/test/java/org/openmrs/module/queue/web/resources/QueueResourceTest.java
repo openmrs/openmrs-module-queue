@@ -13,21 +13,27 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.openmrs.Location;
+import org.openmrs.api.LocationService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueService;
 import org.openmrs.module.queue.model.Queue;
+import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.representation.CustomRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
+import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
@@ -37,8 +43,13 @@ public class QueueResourceTest extends BaseQueueResourceTest<Queue, QueueResourc
 	
 	private static final String QUEUE_NAME = "queue name";
 	
+	private static final String LOCATION_UUID = "kra567a-fca0-11e5-9e59-08002719a9";
+	
 	@Mock
 	private QueueService queueService;
+	
+	@Mock
+	private LocationService locationService;
 	
 	private Queue queue;
 	
@@ -121,4 +132,24 @@ public class QueueResourceTest extends BaseQueueResourceTest<Queue, QueueResourc
 		assertThat(getResource().getResourceVersion(), is("2.3"));
 	}
 	
+	@Test
+	@SuppressWarnings("unchecked")
+	public void shouldFindQueuesByLocation() {
+		Queue queue = mock(Queue.class);
+		Location location = mock(Location.class);
+		RequestContext context = mock(RequestContext.class);
+		
+		when(Context.getLocationService()).thenReturn(locationService);
+		when(locationService.getLocationByUuid(LOCATION_UUID)).thenReturn(location);
+		when(queue.getLocation()).thenReturn(location);
+		when(location.getUuid()).thenReturn(LOCATION_UUID);
+		when(context.getParameter("location")).thenReturn(LOCATION_UUID);
+		when(queueService.getAllQueuesByLocation(LOCATION_UUID)).thenReturn(Collections.singletonList(queue));
+		
+		NeedsPaging<Queue> result = (NeedsPaging<Queue>) getResource().doSearch(context);
+		
+		assertThat(result, notNullValue());
+		assertThat(result.getTotalCount(), is(1L));
+		result.getPageOfResults().forEach(q -> assertThat(q.getLocation().getUuid(), is(LOCATION_UUID)));
+	}
 }

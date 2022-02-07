@@ -11,8 +11,10 @@ package org.openmrs.module.queue.web.resources;
 
 import javax.validation.constraints.NotNull;
 
+import java.util.List;
 import java.util.Optional;
 
+import org.openmrs.Location;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueService;
 import org.openmrs.module.queue.model.Queue;
@@ -25,8 +27,10 @@ import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentat
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
+import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
+import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
@@ -77,14 +81,14 @@ public class QueueResource extends DelegatingCrudResource<Queue> {
 	public DelegatingResourceDescription getRepresentationDescription(Representation representation) {
 		DelegatingResourceDescription resourceDescription = new DelegatingResourceDescription();
 		if (representation instanceof RefRepresentation) {
-			this.addSharedResourceDescriptionProperty(resourceDescription);
+			this.addSharedResourceDescriptionProperties(resourceDescription);
 			resourceDescription.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
 		} else if (representation instanceof DefaultRepresentation) {
-			this.addSharedResourceDescriptionProperty(resourceDescription);
+			this.addSharedResourceDescriptionProperties(resourceDescription);
 			resourceDescription.addProperty("location", Representation.REF);
 			resourceDescription.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
 		} else if (representation instanceof FullRepresentation) {
-			this.addSharedResourceDescriptionProperty(resourceDescription);
+			this.addSharedResourceDescriptionProperties(resourceDescription);
 			resourceDescription.addProperty("location", Representation.FULL);
 			resourceDescription.addProperty("auditInfo");
 		} else if (representation instanceof CustomRepresentation) {
@@ -95,12 +99,23 @@ public class QueueResource extends DelegatingCrudResource<Queue> {
 		return resourceDescription;
 	}
 	
-	private void addSharedResourceDescriptionProperty(DelegatingResourceDescription resourceDescription) {
+	private void addSharedResourceDescriptionProperties(DelegatingResourceDescription resourceDescription) {
 		resourceDescription.addSelfLink();
 		resourceDescription.addProperty("uuid");
 		resourceDescription.addProperty("display");
 		resourceDescription.addProperty("name");
 		resourceDescription.addProperty("description");
+	}
+	
+	@Override
+	protected PageableResult doSearch(RequestContext requestContext) {
+		String locationUuid = requestContext.getParameter("location");
+		Location location = Context.getLocationService().getLocationByUuid(locationUuid);
+		if (location == null) {
+			throw new ObjectNotFoundException("could not find location with uuid " + locationUuid);
+		}
+		List<Queue> queuesByLocation = queueService.getAllQueuesByLocation(locationUuid);
+		return new NeedsPaging<>(queuesByLocation, requestContext);
 	}
 	
 	@PropertyGetter("display")

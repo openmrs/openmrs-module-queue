@@ -68,7 +68,7 @@ public class QueueServiceImpl extends BaseOpenmrsService implements QueueService
 	@Override
 	@Transactional(readOnly = true)
 	public List<Queue> getAllQueuesByLocation(@NotNull String locationUuid) {
-		return null;
+		return this.dao.getAllQueuesByLocation(locationUuid);
 	}
 	
 	/**

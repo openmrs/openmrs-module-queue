@@ -10,11 +10,14 @@
 package org.openmrs.module.queue.api;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.Before;
@@ -35,6 +38,8 @@ public class QueueServiceTest {
 	private static final String QUEUE_NAME = "Queue test name";
 	
 	private static final Integer QUEUE_ID = 123;
+	
+	private static final String LOCATION_UUID = "h6f6bb90-86f4-4d9c-8b6c-3713d748ef89";
 	
 	private QueueServiceImpl queueService;
 	
@@ -99,5 +104,15 @@ public class QueueServiceTest {
 		
 		queueService.purgeQueue(queue);
 		assertThat(queueService.getQueueByUuid(QUEUE_UUID).isPresent(), is(false));
+	}
+	
+	@Test
+	public void shouldGetAllQueuesByLocation() {
+		Queue queue = mock(Queue.class);
+		when(dao.getAllQueuesByLocation(LOCATION_UUID)).thenReturn(Collections.singletonList(queue));
+		
+		List<Queue> queuesByLocation = queueService.getAllQueuesByLocation(LOCATION_UUID);
+		assertThat(queuesByLocation, notNullValue());
+		assertThat(queuesByLocation, hasSize(1));
 	}
 }

@@ -9,7 +9,16 @@
  */
 package org.openmrs.module.queue.api.dao;
 
+import javax.validation.constraints.NotNull;
+
+import java.util.List;
+
 import org.openmrs.Auditable;
 import org.openmrs.OpenmrsObject;
 
-public interface QueueDao<Q extends OpenmrsObject & Auditable> extends BaseQueueDao<Q> {}
+public interface QueueDao<Q extends OpenmrsObject & Auditable> extends BaseQueueDao<Q> {
+	
+	List<Q> getAllQueuesByLocation(@NotNull String locationUuid);
+	
+	List<Q> getAllQueuesByLocation(@NotNull String locationUuid, boolean includeVoided);
+}
