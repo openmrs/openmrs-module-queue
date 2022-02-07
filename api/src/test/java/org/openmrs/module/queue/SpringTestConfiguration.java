@@ -9,11 +9,9 @@
  */
 package org.openmrs.module.queue;
 
-import lombok.extern.slf4j.Slf4j;
-import org.openmrs.module.BaseModuleActivator;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
 
-/**
- * This class contains the logic that is run every time this module is either started or shutdown
- */
-@Slf4j
-public class QueueActivator extends BaseModuleActivator {}
+@Configuration
+@ImportResource({ "classpath:applicationContext-service.xml", "classpath*:moduleApplicationContext.xml" })
+public class SpringTestConfiguration {}

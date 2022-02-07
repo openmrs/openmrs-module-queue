@@ -7,18 +7,13 @@
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
-package org.openmrs.module.queue.api.dao;
+package org.openmrs.module.queue;
 
-import javax.validation.constraints.NotNull;
+import lombok.extern.slf4j.Slf4j;
+import org.openmrs.module.BaseModuleActivator;
 
-import java.util.List;
-
-import org.openmrs.Auditable;
-import org.openmrs.OpenmrsObject;
-
-public interface QueueDao<Q extends OpenmrsObject & Auditable> extends BaseQueueDao<Q> {
-	
-	List<Q> getAllQueuesByLocation(@NotNull String locationUuid);
-	
-	List<Q> getAllQueuesByLocation(@NotNull String locationUuid, boolean includeVoided);
-}
+/**
+ * This class contains the logic that is run every time this module is either started or shutdown
+ */
+@Slf4j
+public class QueueModuleActivator extends BaseModuleActivator {}

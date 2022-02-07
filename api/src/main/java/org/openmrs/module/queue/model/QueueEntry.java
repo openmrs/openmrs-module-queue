@@ -9,7 +9,6 @@
  */
 package org.openmrs.module.queue.model;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -44,31 +43,40 @@ public class QueueEntry extends BaseChangeableOpenmrsData {
 	@Column(name = "queue_entry_id")
 	private Integer queueEntryId;
 	
-	@ManyToOne(cascade = CascadeType.ALL)
+	@ManyToOne
 	@JoinColumn(name = "queue_id", nullable = false)
 	private Queue queue;
 	
-	@Column(name = "patient_id", nullable = false)
+	@ManyToOne
+	@JoinColumn(name = "patient_id", nullable = false)
 	private Patient patient;
 	
-	@Column(name = "priority", nullable = false)
+	@ManyToOne
+	@JoinColumn(name = "service", referencedColumnName = "concept_id", nullable = false)
+	private Concept service;
+	
+	@ManyToOne
+	@JoinColumn(name = "priority", referencedColumnName = "concept_id", nullable = false)
 	private Concept priority;
 	
 	@Column(name = "priority_comment")
 	private String priorityComment;
 	
-	@Column(nullable = false)
+	@ManyToOne
+	@JoinColumn(name = "status", referencedColumnName = "concept_id", nullable = false)
 	private Concept status;
 	
 	@Column(name = "sort_weight")
 	private double sortWeight;
 	
 	//The Location the patient is waiting for, if any.
-	@Column(name = "location_waiting_for")
+	@ManyToOne
+	@JoinColumn(name = "location_waiting_for", referencedColumnName = "location_id")
 	private Location locationWaitingFor;
 	
 	//The Provider the patient is waiting for, if any.
-	@Column(name = "provider_waiting_for")
+	@ManyToOne
+	@JoinColumn(name = "provider_waiting_for", referencedColumnName = "provider_id")
 	private Provider providerWaitingFor;
 	
 	@Column(name = "started_at", nullable = false)

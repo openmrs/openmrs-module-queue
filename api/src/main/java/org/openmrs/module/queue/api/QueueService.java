@@ -9,10 +9,73 @@
  */
 package org.openmrs.module.queue.api;
 
-import org.openmrs.api.OpenmrsService;
+import javax.validation.constraints.NotNull;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+
+import org.openmrs.api.APIException;
+import org.openmrs.module.queue.model.Queue;
 
 /**
- * The main service of this module, which is exposed for other modules. See
- * moduleApplicationContext.xml on how it is wired up.
+ * This interface defines methods for Queue objects
  */
-public interface QueueService extends OpenmrsService {}
+public interface QueueService {
+	
+	/**
+	 * Gets a queue given UUID.
+	 *
+	 * @param uuid uuid of the queue to be returned.
+	 * @return {@link org.openmrs.module.queue.model.Queue}
+	 */
+	Optional<Queue> getQueueByUuid(@NotNull String uuid);
+	
+	/**
+	 * Gets a queue by id.
+	 *
+	 * @param id queueId - the id of the queue to retrieve.
+	 * @return {@link org.openmrs.module.queue.model.Queue}
+	 */
+	Optional<Queue> getQueueById(@NotNull Integer id);
+	
+	/**
+	 * Saves a queue
+	 *
+	 * @param queue the queue to be saved
+	 * @return saved {@link org.openmrs.module.queue.model.Queue}
+	 */
+	Queue createQueue(@NotNull Queue queue);
+	
+	/**
+	 * Gets all queues related to a specified location.
+	 *
+	 * @param locationUuid UUID of the location being queried.
+	 * @return {@link java.util.List} of {@link org.openmrs.module.queue.model.Queue}
+	 */
+	List<Queue> getAllQueuesByLocation(@NotNull String locationUuid);
+	
+	/**
+	 * Gets all queues
+	 *
+	 * @return all queues
+	 */
+	Collection<Queue> getAllQueues();
+	
+	/**
+	 * Voids a queue
+	 *
+	 * @param queueUuid uuid of the queue to be voided
+	 * @param voidReason the reason for voiding the queue
+	 */
+	void voidQueue(@NotNull String queueUuid, String voidReason);
+	
+	/**
+	 * Completely remove a queue from the database
+	 *
+	 * @param queue queue to be deleted
+	 * @throws APIException <strong>Should</strong> delete the given queue from the database
+	 */
+	void purgeQueue(@NotNull Queue queue) throws APIException;
+	
+}

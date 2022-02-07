@@ -26,6 +26,9 @@
                 <constraints nullable="false"/>
             </column>
             <column name="description" type="varchar(255)"/>
+            <column name="location_id" type="int">
+                <constraints nullable="false"/>
+            </column>
             <column name="creator" type="int">
                 <constraints nullable="false"/>
             </column>
@@ -53,6 +56,9 @@
         <addForeignKeyConstraint baseTableName="queue" baseColumnNames="retired_by"
                                  constraintName="queue_retired_by_fk"
                                  referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint baseTableName="queue" baseColumnNames="location_id"
+                                 constraintName="queue_location_id_fk"
+                                 referencedTableName="location" referencedColumnNames="location_id"/>
     </changeSet>
 
     <changeSet id="add_queue_entry_20220125" author="corneliouzbett">
@@ -72,6 +78,9 @@
                 <constraints nullable="false"/>
             </column>
             <column name="priority" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="service" type="int">
                 <constraints nullable="false"/>
             </column>
             <column name="priority_comment" type="varchar(255)"/>
@@ -121,6 +130,9 @@
         <addForeignKeyConstraint baseTableName="queue_entry" baseColumnNames="priority"
                                  constraintName="queue_entry_priority_fk"
                                  referencedTableName="concept" referencedColumnNames="concept_id"/>
+        <addForeignKeyConstraint baseTableName="queue_entry" baseColumnNames="service"
+                                 constraintName="queue_entry_service_fk"
+                                 referencedTableName="concept" referencedColumnNames="concept_id"/>
         <addForeignKeyConstraint baseTableName="queue_entry" baseColumnNames="status"
                                  constraintName="queue_entry_status_fk"
                                  referencedTableName="concept" referencedColumnNames="concept_id"/>
@@ -131,24 +143,21 @@
                                  constraintName="queue_entry_provider_waiting_for_fk"
                                  referencedTableName="provider" referencedColumnNames="provider_id"/>
     </changeSet>
-    <changeSet id="add_encounter_status_20220125" author="corneliouzbett">
-        <preConditions onFail="MARK_RAN" onError="WARN">
+
+    <changeSet id="add_visit_queue_entries_20220202" author="corneliouzbett">
+        <preConditions onError="WARN" onFail="MARK_RAN">
             <not>
-                <tableExists tableName="encounter_status"/>
+                <tableExists tableName="visit_queue_entries"/>
             </not>
         </preConditions>
-        <createTable tableName="encounter_status">
-            <column name="encounter_status_id" type="int" autoIncrement="true">
+        <createTable tableName="visit_queue_entries">
+            <column name="visit_queue_entry_id" type="int" autoIncrement="true">
                 <constraints primaryKey="true"/>
             </column>
-            <column name="patient_id" type="int">
+            <column name="visit_id" type="int">
                 <constraints nullable="false"/>
             </column>
-            <column name="encounter_id" type="int"/>
-            <column name="encounter_type_id" type="int"/>
-            <column name="encounter_datetime" type="datetime"/>
-            <column name="visit_id" type="int"/>
-            <column name="status" type="int">
+            <column name="queue_entry_id" type="int">
                 <constraints nullable="false"/>
             </column>
             <column name="creator" type="int">
@@ -169,27 +178,21 @@
                 <constraints nullable="false" unique="true"/>
             </column>
         </createTable>
-        <addForeignKeyConstraint baseTableName="encounter_status" baseColumnNames="creator"
-                                 constraintName="encounter_status_creator_fk"
+        <addForeignKeyConstraint constraintName="visit_queue_entries_creator_fk"
+                                 baseTableName="visit_queue_entries" baseColumnNames="creator"
                                  referencedTableName="users" referencedColumnNames="user_id"/>
-        <addForeignKeyConstraint baseTableName="encounter_status" baseColumnNames="changed_by"
-                                 constraintName="encounter_status_changed_by_fk"
+        <addForeignKeyConstraint constraintName="visit_queue_entries_changed_by_fk"
+                                 baseTableName="visit_queue_entries" baseColumnNames="changed_by"
                                  referencedTableName="users" referencedColumnNames="user_id"/>
-        <addForeignKeyConstraint baseTableName="encounter_status" baseColumnNames="voided_by"
-                                 constraintName="encounter_status_voided_by_fk"
+        <addForeignKeyConstraint constraintName="visit_queue_entries_voided_by_fk"
+                                 baseTableName="visit_queue_entries" baseColumnNames="voided_by"
                                  referencedTableName="users" referencedColumnNames="user_id"/>
-        <addForeignKeyConstraint baseTableName="encounter_status" baseColumnNames="patient_id"
-                                 constraintName="encounter_status_patient_id_fk"
-                                 referencedTableName="patient" referencedColumnNames="patient_id"/>
-        <addForeignKeyConstraint baseTableName="encounter_status" baseColumnNames="encounter_type_id"
-                                 constraintName="encounter_status_encounter_type_id_fk"
-                                 referencedTableName="encounter_type" referencedColumnNames="encounter_type_id"/>
-        <addForeignKeyConstraint baseTableName="encounter_status" baseColumnNames="encounter_id"
-                                 constraintName="encounter_status_encounter_id_fk"
-                                 referencedTableName="encounter" referencedColumnNames="encounter_id"/>
-        <addForeignKeyConstraint baseTableName="encounter_status" baseColumnNames="status"
-                                 constraintName="encounter_status_concept_status_fk"
-                                 referencedTableName="concept" referencedColumnNames="concept_id"/>
+        <addForeignKeyConstraint baseTableName="visit_queue_entries" baseColumnNames="queue_entry_id"
+                                 constraintName="visit_queue_entries_queue_entry_fk" referencedTableName="queue_entry"
+                                 referencedColumnNames="queue_entry_id"/>
+        <addForeignKeyConstraint baseTableName="visit_queue_entries" baseColumnNames="visit_id"
+                                 constraintName="visit_queue_entries_visit_fk" referencedTableName="visit"
+                                 referencedColumnNames="visit_id"/>
     </changeSet>
 
 </databaseChangeLog>

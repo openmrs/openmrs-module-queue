@@ -11,14 +11,30 @@ package org.openmrs.module.queue.api.dao;
 
 import javax.validation.constraints.NotNull;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.Optional;
 
 import org.openmrs.Auditable;
 import org.openmrs.OpenmrsObject;
+import org.springframework.transaction.annotation.Transactional;
 
-public interface QueueDao<Q extends OpenmrsObject & Auditable> extends BaseQueueDao<Q> {
+public interface BaseQueueDao<Q extends OpenmrsObject & Auditable> {
 	
-	List<Q> getAllQueuesByLocation(@NotNull String locationUuid);
+	@Transactional(readOnly = true)
+	Optional<Q> get(@NotNull int id);
 	
-	List<Q> getAllQueuesByLocation(@NotNull String locationUuid, boolean includeVoided);
+	@Transactional(readOnly = true)
+	Optional<Q> get(@NotNull String uuid);
+	
+	Q createOrUpdate(Q object);
+	
+	void delete(Q object);
+	
+	void delete(@NotNull String uuid);
+	
+	@Transactional(readOnly = true)
+	Collection<Q> findAll();
+	
+	@Transactional(readOnly = true)
+	Collection<Q> findAll(boolean includeVoided);
 }

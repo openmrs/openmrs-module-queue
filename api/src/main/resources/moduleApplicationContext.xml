@@ -19,6 +19,7 @@
   		    http://www.springframework.org/schema/context
   		    http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
+    <context:annotation-config/>
     <context:component-scan base-package="org.openmrs.module.queue" />
 
     <!-- Wraps QueueService methods in DB transactions and OpenMRS interceptors,
@@ -34,14 +35,31 @@
         <property name="preInterceptors" ref="serviceInterceptors"/>
         <property name="transactionAttributeSource" ref="transactionAttributeSource"/>
     </bean>
-
-    <!-- Adds QueueService to OpenMRS context so it can be accessed
-    calling Context.getService(QueueService.class) -->
     <bean parent="serviceContext">
         <property name="moduleService">
             <list>
                 <value>org.openmrs.module.queue.api.QueueService</value>
                 <ref bean="queue.QueueService" />
+            </list>
+        </property>
+    </bean>
+
+    <bean id="queue.QueueEntryService"
+          class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+        <property name="transactionManager" ref="transactionManager"/>
+        <property name="target">
+            <bean class="org.openmrs.module.queue.api.impl.QueueEntryServiceImpl">
+                <property name="dao" ref="queue.QueueEntryDao" />
+            </bean>
+        </property>
+        <property name="preInterceptors" ref="serviceInterceptors"/>
+        <property name="transactionAttributeSource" ref="transactionAttributeSource"/>
+    </bean>
+    <bean parent="serviceContext">
+        <property name="moduleService">
+            <list>
+                <value>org.openmrs.module.queue.api.QueueEntryService</value>
+                <ref bean="queue.QueueEntryService" />
             </list>
         </property>
     </bean>
