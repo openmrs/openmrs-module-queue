@@ -168,12 +168,12 @@
             </column>
             <column name="changed_by" type="int"/>
             <column name="date_changed" type="datetime"/>
-            <column name="retired" type="boolean" defaultValueBoolean="false">
+            <column name="voided" type="boolean" defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
-            <column name="retired_by" type="int"/>
-            <column name="date_retired" type="datetime"/>
-            <column name="retired_reason" type="varchar(255)"/>
+            <column name="voided_by" type="int"/>
+            <column name="date_voided" type="datetime"/>
+            <column name="void_reason" type="varchar(255)"/>
             <column name="uuid" type="char(38)">
                 <constraints nullable="false" unique="true"/>
             </column>
@@ -184,8 +184,8 @@
         <addForeignKeyConstraint constraintName="visit_queue_entries_changed_by_fk"
                                  baseTableName="visit_queue_entries" baseColumnNames="changed_by"
                                  referencedTableName="users" referencedColumnNames="user_id"/>
-        <addForeignKeyConstraint constraintName="visit_queue_entries_retired_by_fk"
-                                 baseTableName="visit_queue_entries" baseColumnNames="retired_by"
+        <addForeignKeyConstraint constraintName="visit_queue_entries_voided_by_fk"
+                                 baseTableName="visit_queue_entries" baseColumnNames="voided_by"
                                  referencedTableName="users" referencedColumnNames="user_id"/>
         <addForeignKeyConstraint baseTableName="visit_queue_entries" baseColumnNames="queue_entry_id"
                                  constraintName="visit_queue_entries_queue_entry_fk" referencedTableName="queue_entry"

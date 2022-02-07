@@ -9,7 +9,6 @@
  */
 package org.openmrs.module.queue.model;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -17,72 +16,29 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-import java.util.Date;
-import java.util.UUID;
-
 import lombok.Data;
-import org.hibernate.search.annotations.Field;
-import org.openmrs.Auditable;
-import org.openmrs.Retireable;
-import org.openmrs.User;
+import lombok.EqualsAndHashCode;
+import org.openmrs.BaseOpenmrsData;
 import org.openmrs.Visit;
 
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @Data
 @Entity
 @Table(name = "visit_queue_entries")
-public class VisitQueueEntry implements Auditable, Retireable {
+public class VisitQueueEntry extends BaseOpenmrsData {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "visit_queue_entry_id")
 	private Integer id;
 	
-	//confirm relationship
-	@OneToOne(cascade = CascadeType.ALL)
+	@ManyToOne
 	@JoinColumn(name = "visit_id", nullable = false)
 	private Visit visit;
 	
-	//confirm relationship
-	@Column(name = "queue_entry_id", nullable = false)
+	@ManyToOne
+	@JoinColumn(name = "queue_entry_id", nullable = false)
 	private QueueEntry queueEntry;
-	
-	@ManyToOne(optional = false)
-	@JoinColumn(name = "creator", updatable = false)
-	protected User creator;
-	
-	@Column(name = "date_created", nullable = false, updatable = false)
-	private Date dateCreated;
-	
-	@ManyToOne
-	@JoinColumn(name = "changed_by")
-	private User changedBy;
-	
-	@Column(name = "date_changed")
-	private Date dateChanged;
-	
-	@Column(name = "retired", nullable = false)
-	@Field
-	private Boolean retired = Boolean.FALSE;
-	
-	@Column(name = "date_retired")
-	private Date dateRetired;
-	
-	@ManyToOne
-	@JoinColumn(name = "retired_by")
-	private User retiredBy;
-	
-	@Column(name = "retire_reason")
-	private String retireReason;
-	
-	@Column(name = "uuid", unique = true, nullable = false, length = 38)
-	private String uuid = UUID.randomUUID().toString();
-	
-	@Override
-	@Deprecated
-	public Boolean isRetired() {
-		return retired;
-	}
 }
