@@ -123,4 +123,22 @@ public class QueueDaoTest extends BaseModuleContextSensitiveTest {
 		assertThat(queues.isEmpty(), is(false));
 		assertThat(queues, hasSize(2));
 	}
+	
+	@Test
+	public void shouldDeleteQueueByUuid() {
+		dao.delete(QUEUE_UUID);
+		
+		Optional<Queue> result = dao.get(QUEUE_UUID);
+		//verify delete operation
+		assertThat(result.isPresent(), is(false));
+	}
+	
+	@Test
+	public void shouldDeleteQueueByEntity() {
+		dao.get(QUEUE_UUID).ifPresent((queue) -> dao.delete(queue));
+		
+		Optional<Queue> result = dao.get(QUEUE_UUID);
+		//verify delete operation
+		assertThat(result.isPresent(), is(false));
+	}
 }

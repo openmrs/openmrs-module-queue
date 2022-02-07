@@ -9,6 +9,7 @@
  */
 package org.openmrs.module.queue.model;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -45,8 +46,8 @@ public class Queue extends BaseChangeableOpenmrsMetadata {
 	@JoinColumn(name = "location_id", nullable = false)
 	private Location location;
 	
-	@OneToMany(mappedBy = "queue", fetch = FetchType.LAZY)
-	@Where(clause = "retired = 0 and (started_at <= current_timestamp() and ended_at is null)")
+	@OneToMany(mappedBy = "queue", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@Where(clause = "voided = 0 and (started_at <= current_timestamp() and ended_at is null)")
 	private List<QueueEntry> queueEntries;
 	
 	@Override

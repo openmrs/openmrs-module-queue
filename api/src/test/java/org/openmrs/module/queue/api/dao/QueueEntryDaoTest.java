@@ -155,6 +155,24 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		assertThat(queues, hasSize(2));
 	}
 	
+	@Test
+	public void shouldDeleteQueueEntryByUuid() {
+		dao.delete(QUEUE_ENTRY_UUID);
+		
+		Optional<QueueEntry> result = dao.get(QUEUE_ENTRY_UUID);
+		//verify delete operation
+		assertThat(result.isPresent(), is(false));
+	}
+	
+	@Test
+	public void shouldDeleteQueueEntryByEntity() {
+		dao.get(QUEUE_ENTRY_UUID).ifPresent((queueEntry) -> dao.delete(queueEntry));
+		
+		Optional<QueueEntry> result = dao.get(QUEUE_ENTRY_UUID);
+		//verify delete operation
+		assertThat(result.isPresent(), is(false));
+	}
+	
 	void verifyQueueEntryPatientProperty(QueueEntry queueEntry) {
 		Patient patient = Context.getPatientService().getPatientByUuid(PATIENT_UUID);
 		assertThat(patient, notNullValue());
