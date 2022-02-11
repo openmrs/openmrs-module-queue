@@ -16,11 +16,15 @@ import java.util.Optional;
 
 import lombok.AccessLevel;
 import lombok.Setter;
+import org.openmrs.Patient;
+import org.openmrs.Visit;
 import org.openmrs.api.APIException;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
+import org.openmrs.module.queue.api.QueueEntryService;
 import org.openmrs.module.queue.api.VisitQueueEntryService;
 import org.openmrs.module.queue.api.dao.VisitQueueEntryDao;
+import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.model.VisitQueueEntry;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,7 +45,22 @@ public class VisitQueueEntryServiceImpl extends BaseOpenmrsService implements Vi
 	
 	@Override
 	public VisitQueueEntry createVisitQueueEntry(@NotNull VisitQueueEntry visitQueueEntry) {
-		return this.dao.createOrUpdate(visitQueueEntry);
+		//verify visit -patient & queue entry patient
+		//Todo more refactor
+		Visit visit = Context.getVisitService().getVisitByUuid(visitQueueEntry.getVisit().getUuid());
+		Patient visitPatient = visit.getPatient();
+		Patient queueEntryPatient = visitQueueEntry.getQueueEntry().getPatient();
+		if (visitPatient != null & queueEntryPatient != null) {
+			boolean isPatientSame = visitPatient.getUuid().equals(queueEntryPatient.getUuid());
+			if (!isPatientSame) {
+				throw new IllegalArgumentException("Patient mismatch - visit.patient does not match queueEntry.patient");
+			}
+			QueueEntry newlyCreatedQueueEntry = Context.getService(QueueEntryService.class)
+			        .createQueueEntry(visitQueueEntry.getQueueEntry());
+			visitQueueEntry.setQueueEntry(newlyCreatedQueueEntry);
+			return this.dao.createOrUpdate(visitQueueEntry);
+		}
+		return null;
 	}
 	
 	@Override
