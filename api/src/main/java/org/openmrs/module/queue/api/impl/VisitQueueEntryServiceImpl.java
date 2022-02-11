@@ -16,6 +16,7 @@ import java.util.Optional;
 
 import lombok.AccessLevel;
 import lombok.Setter;
+import org.openmrs.api.APIException;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.queue.api.VisitQueueEntryService;
@@ -52,5 +53,10 @@ public class VisitQueueEntryServiceImpl extends BaseOpenmrsService implements Vi
 			visitQueueEntry.setVoidedBy(Context.getAuthenticatedUser());
 			this.dao.createOrUpdate(visitQueueEntry);
 		});
+	}
+	
+	@Override
+	public void purgeQueueEntry(@NotNull VisitQueueEntry visitQueueEntry) throws APIException {
+		this.dao.delete(visitQueueEntry);
 	}
 }

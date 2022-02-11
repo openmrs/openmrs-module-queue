@@ -72,7 +72,7 @@ public class VisitQueueEntryResource extends DelegatingCrudResource<VisitQueueEn
 	
 	@Override
 	public void purge(VisitQueueEntry visitQueueEntry, RequestContext requestContext) throws ResponseException {
-		
+		this.visitQueueEntryService.purgeQueueEntry(visitQueueEntry);
 	}
 	
 	@Override

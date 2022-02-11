@@ -13,6 +13,7 @@ import javax.validation.constraints.NotNull;
 
 import java.util.Optional;
 
+import org.openmrs.api.APIException;
 import org.openmrs.module.queue.model.VisitQueueEntry;
 
 public interface VisitQueueEntryService {
@@ -40,4 +41,12 @@ public interface VisitQueueEntryService {
 	 * @param voidReason the reason for voiding the queue entry
 	 */
 	void voidVisitQueueEntry(@NotNull String visitQueueEntryUuid, String voidReason);
+	
+	/**
+	 * Completely remove a visit queue entry from the database
+	 *
+	 * @param visitQueueEntry visit queue entry to be deleted
+	 * @throws org.openmrs.api.APIException
+	 */
+	void purgeQueueEntry(@NotNull VisitQueueEntry visitQueueEntry) throws APIException;
 }
