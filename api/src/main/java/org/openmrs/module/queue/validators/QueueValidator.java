@@ -9,6 +9,8 @@
  */
 package org.openmrs.module.queue.validators;
 
+import javax.validation.constraints.NotNull;
+
 import lombok.extern.slf4j.Slf4j;
 import org.openmrs.Location;
 import org.openmrs.annotation.Handler;
@@ -38,17 +40,25 @@ public class QueueValidator implements Validator {
 			throw new IllegalArgumentException("The parameter target should not be null & must be of type" + Queue.class);
 		}
 		Queue queue = (Queue) target;
-		Location location = queue.getLocation();
-		if (location == null) {
-			errors.rejectValue("location", "queue.location.null", "Location is null");
-		} else {
-			//Is the location valid? consider tagging locations
-			Location isExistentLocation = Context.getLocationService().getLocationByUuid(location.getUuid());
-			if (isExistentLocation == null) {
-				errors.rejectValue("location", "queue.location.non-existent",
-				    "Could not find location with uuid " + location.getUuid());
-			}
-		}
 		ValidationUtils.rejectIfEmptyOrWhitespace(errors, "name", "queue.name.null", "Queue name can't be null");
+		ValidationUtils.rejectIfEmptyOrWhitespace(errors, "location", "queue.location.null", "Location can't be null");
+		
+		if (!isValidLocation(queue.getLocation())) {
+			errors.rejectValue("location", "queue.location.null", "Location is null or doesn't exists");
+		}
+	}
+	
+	/**
+	 * For now checks for existence
+	 * 
+	 * @param location location to check if it exists
+	 * @return true or false if the location exists
+	 */
+	public boolean isValidLocation(@NotNull Location location) {
+		if (location == null) {
+			return false;
+		}
+		Location isExistentLocation = Context.getLocationService().getLocationByUuid(location.getUuid());
+		return isExistentLocation != null;
 	}
 }
