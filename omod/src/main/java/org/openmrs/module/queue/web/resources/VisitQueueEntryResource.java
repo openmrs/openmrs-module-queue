@@ -27,11 +27,16 @@ import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
+import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
+/**
+ * By convention, resource names should use exclusively lowercase letters. Similarly, dashes (-) are
+ * conventionally used in place of underscores (_).
+ */
 @SuppressWarnings("unused")
 @Resource(name = RestConstants.VERSION_1
-        + "/visit_queue_entry", supportedClass = VisitQueueEntry.class, supportedOpenmrsVersions = { "2.0 - 2.*" })
+        + "/visit-queue-entry", supportedClass = VisitQueueEntry.class, supportedOpenmrsVersions = { "2.0 - 2.*" })
 public class VisitQueueEntryResource extends DelegatingCrudResource<VisitQueueEntry> {
 	
 	private final VisitQueueEntryService visitQueueEntryService;
@@ -68,6 +73,14 @@ public class VisitQueueEntryResource extends DelegatingCrudResource<VisitQueueEn
 	@Override
 	public void purge(VisitQueueEntry visitQueueEntry, RequestContext requestContext) throws ResponseException {
 		
+	}
+	
+	@Override
+	public DelegatingResourceDescription getCreatableProperties() throws ResourceDoesNotSupportOperationException {
+		DelegatingResourceDescription resourceDescription = new DelegatingResourceDescription();
+		resourceDescription.addProperty("visit");
+		resourceDescription.addProperty("queueEntry");
+		return resourceDescription;
 	}
 	
 	@Override

@@ -96,7 +96,7 @@ public class QueueEntry extends BaseChangeableOpenmrsData {
 	public void setId(Integer id) {
 		this.setQueueEntryId(id);
 	}
-
+	
 	//Break the cyclic dependency
 	@Override
 	public String toString() {
