@@ -11,6 +11,7 @@ package org.openmrs.module.queue.api;
 
 import javax.validation.constraints.NotNull;
 
+import java.util.Collection;
 import java.util.Optional;
 
 import org.openmrs.api.APIException;
@@ -57,4 +58,13 @@ public interface QueueEntryService {
 	 * @throws org.openmrs.api.APIException
 	 */
 	void purgeQueueEntry(@NotNull QueueEntry queueEntry) throws APIException;
+	
+	/**
+	 * Search for queue entries by status
+	 *
+	 * @param status queue entry status
+	 * @param includeVoided include/exclude voided queue entries
+	 * @return {@link java.util.Collection} of queue entries with the specified statuses
+	 */
+	Collection<QueueEntry> searchQueueEntries(@NotNull String status, boolean includeVoided);
 }

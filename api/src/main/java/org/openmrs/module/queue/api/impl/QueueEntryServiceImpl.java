@@ -11,6 +11,7 @@ package org.openmrs.module.queue.api.impl;
 
 import javax.validation.constraints.NotNull;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.Optional;
 
@@ -81,5 +82,13 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	@Override
 	public void purgeQueueEntry(QueueEntry queueEntry) throws APIException {
 		this.dao.delete(queueEntry);
+	}
+	
+	/**
+	 * @see org.openmrs.module.queue.api.QueueEntryService#searchQueueEntries(String, boolean)
+	 */
+	@Override
+	public Collection<QueueEntry> searchQueueEntries(String status, boolean includeVoided) {
+		return this.dao.SearchQueueEntries(status, includeVoided);
 	}
 }

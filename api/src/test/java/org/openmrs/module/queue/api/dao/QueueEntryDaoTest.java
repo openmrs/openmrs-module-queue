@@ -60,6 +60,8 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	    "org/openmrs/module/queue/api/dao/QueueEntryDaoTest_conceptsInitialDataset.xml",
 	    "org/openmrs/module/queue/api/dao/QueueEntryDaoTest_initialDataset.xml");
 	
+	private static final String QUEUE_ENTRY_STATUS = "Waiting for service";
+	
 	@Autowired
 	@Qualifier("queue.QueueEntryDao")
 	private QueueEntryDao<QueueEntry> dao;
@@ -199,5 +201,29 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		assertThat(conceptQueueService, notNullValue());
 		assertThat(conceptQueueService.getUuid(), is(QUEUE_SERVICE_CONCEPT_UUID));
 		queueEntry.setService(conceptQueueService);
+	}
+	
+	@Test
+	public void shouldSearchQueueEntriesByStatus() {
+		Collection<QueueEntry> queueEntries = dao.SearchQueueEntries(QUEUE_ENTRY_STATUS, false);
+		
+		assertThat(queueEntries.isEmpty(), is(false));
+		assertThat(queueEntries, hasSize(1));
+		queueEntries.forEach(queueEntry -> {
+			assertThat(queueEntry.getStatus(), notNullValue());
+			assertThat(queueEntry.getStatus().getName().getName(), is(QUEUE_ENTRY_STATUS));
+		});
+	}
+	
+	@Test
+	public void shouldSearchQueueEntriesByStatusIncludingVoidedQueueEntries() {
+		Collection<QueueEntry> queueEntries = dao.SearchQueueEntries(QUEUE_ENTRY_STATUS, true);
+		
+		assertThat(queueEntries.isEmpty(), is(false));
+		assertThat(queueEntries, hasSize(2));
+		queueEntries.forEach(queueEntry -> {
+			assertThat(queueEntry.getStatus(), notNullValue());
+			assertThat(queueEntry.getStatus().getName().getName(), is(QUEUE_ENTRY_STATUS));
+		});
 	}
 }
