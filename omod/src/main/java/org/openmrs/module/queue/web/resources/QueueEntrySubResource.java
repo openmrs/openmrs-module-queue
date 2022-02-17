@@ -21,6 +21,7 @@ import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
+import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
 import org.openmrs.module.webservices.rest.web.annotation.SubResource;
 import org.openmrs.module.webservices.rest.web.representation.CustomRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
@@ -32,6 +33,7 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceD
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingSubResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
+import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 @SuppressWarnings("unused")
@@ -85,6 +87,30 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 	}
 	
 	@Override
+	public DelegatingResourceDescription getCreatableProperties() throws ResourceDoesNotSupportOperationException {
+		DelegatingResourceDescription description = new DelegatingResourceDescription();
+		description.addProperty("status");
+		description.addProperty("priority");
+		description.addProperty("priorityComment");
+		description.addProperty("service");
+		description.addProperty("patient");
+		description.addProperty("sortWeight");
+		description.addProperty("startedAt");
+		description.addProperty("locationWaitingFor");
+		description.addProperty("providerWaitingFor");
+		return description;
+	}
+	
+	@Override
+	public DelegatingResourceDescription getUpdatableProperties() throws ResourceDoesNotSupportOperationException {
+		DelegatingResourceDescription description = new DelegatingResourceDescription();
+		description.addProperty("priorityComment");
+		description.addProperty("sortWeight");
+		description.addProperty("endedAt");
+		return description;
+	}
+	
+	@Override
 	public DelegatingResourceDescription getRepresentationDescription(Representation representation) {
 		DelegatingResourceDescription resourceDescription = new DelegatingResourceDescription();
 		if (representation instanceof RefRepresentation) {
@@ -134,6 +160,12 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 		resourceDescription.addProperty("sortWeight");
 		resourceDescription.addProperty("startedAt");
 		resourceDescription.addProperty("endedAt");
+	}
+	
+	@PropertyGetter("display")
+	public String getDisplay(QueueEntry queueEntry) {
+		//Display patient name
+		return queueEntry.getPatient().getPerson().getPersonName().getFullName();
 	}
 	
 	@Override

@@ -20,9 +20,10 @@ import javax.persistence.Table;
 
 import java.util.Date;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.openmrs.BaseChangeableOpenmrsData;
 import org.openmrs.Concept;
 import org.openmrs.Location;
@@ -31,7 +32,8 @@ import org.openmrs.Provider;
 
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-@Data
+@Setter
+@Getter
 @Entity
 @Table(name = "queue_entry")
 public class QueueEntry extends BaseChangeableOpenmrsData {
@@ -93,5 +95,14 @@ public class QueueEntry extends BaseChangeableOpenmrsData {
 	@Override
 	public void setId(Integer id) {
 		this.setQueueEntryId(id);
+	}
+	
+	//Break the cyclic dependency
+	@Override
+	public String toString() {
+		return "QueueEntry{" + "queueEntryId=" + queueEntryId + ", patient=" + patient + ", service=" + service
+		        + ", priority=" + priority + ", priorityComment='" + priorityComment + '\'' + ", status=" + status
+		        + ", sortWeight=" + sortWeight + ", locationWaitingFor=" + locationWaitingFor + ", providerWaitingFor="
+		        + providerWaitingFor + ", startedAt=" + startedAt + ", endedAt=" + endedAt + '}';
 	}
 }

@@ -32,6 +32,7 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResou
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
+import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 @SuppressWarnings("unused")
@@ -105,6 +106,20 @@ public class QueueResource extends DelegatingCrudResource<Queue> {
 		resourceDescription.addProperty("display");
 		resourceDescription.addProperty("name");
 		resourceDescription.addProperty("description");
+	}
+	
+	@Override
+	public DelegatingResourceDescription getCreatableProperties() throws ResourceDoesNotSupportOperationException {
+		DelegatingResourceDescription resourceDescription = new DelegatingResourceDescription();
+		resourceDescription.addProperty("name");
+		resourceDescription.addProperty("description");
+		resourceDescription.addProperty("location");
+		return resourceDescription;
+	}
+	
+	@Override
+	public DelegatingResourceDescription getUpdatableProperties() throws ResourceDoesNotSupportOperationException {
+		return this.getCreatableProperties();
 	}
 	
 	@Override

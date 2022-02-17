@@ -63,4 +63,24 @@
             </list>
         </property>
     </bean>
+
+    <bean id="queue.VisitQueueEntryService"
+          class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+        <property name="transactionManager" ref="transactionManager"/>
+        <property name="target">
+            <bean class="org.openmrs.module.queue.api.impl.VisitQueueEntryServiceImpl">
+                <property name="dao" ref="queue.VisitQueueEntryDao" />
+            </bean>
+        </property>
+        <property name="preInterceptors" ref="serviceInterceptors"/>
+        <property name="transactionAttributeSource" ref="transactionAttributeSource"/>
+    </bean>
+    <bean parent="serviceContext">
+        <property name="moduleService">
+            <list>
+                <value>org.openmrs.module.queue.api.VisitQueueEntryService</value>
+                <ref bean="queue.VisitQueueEntryService" />
+            </list>
+        </property>
+    </bean>
 </beans>
