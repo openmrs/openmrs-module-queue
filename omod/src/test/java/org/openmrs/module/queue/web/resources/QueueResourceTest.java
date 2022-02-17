@@ -78,7 +78,7 @@ public class QueueResourceTest extends BaseQueueResourceTest<Queue, QueueResourc
 	
 	@Test
 	public void shouldReturnFullRepresentation() {
-		verifyFullRepresentation("name", "display", "description", "uuid", "auditInfo");
+		verifyFullRepresentation("name", "location", "service", "display", "description", "uuid", "auditInfo");
 	}
 	
 	@Test

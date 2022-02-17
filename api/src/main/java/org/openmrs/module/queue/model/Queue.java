@@ -27,6 +27,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.Where;
 import org.openmrs.BaseChangeableOpenmrsMetadata;
+import org.openmrs.Concept;
 import org.openmrs.Location;
 
 @EqualsAndHashCode(callSuper = true)
@@ -45,6 +46,10 @@ public class Queue extends BaseChangeableOpenmrsMetadata {
 	@ManyToOne
 	@JoinColumn(name = "location_id", nullable = false)
 	private Location location;
+	
+	@ManyToOne
+	@JoinColumn(name = "service", referencedColumnName = "concept_id", nullable = false)
+	private Concept service;
 	
 	@OneToMany(mappedBy = "queue", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@Where(clause = "voided = 0 and (started_at <= current_timestamp() and ended_at is null)")

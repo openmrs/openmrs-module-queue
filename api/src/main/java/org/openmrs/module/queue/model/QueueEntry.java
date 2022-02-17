@@ -24,6 +24,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.openmrs.BaseChangeableOpenmrsData;
 import org.openmrs.Concept;
 import org.openmrs.Location;
@@ -34,6 +35,7 @@ import org.openmrs.Provider;
 @NoArgsConstructor
 @Setter
 @Getter
+@ToString
 @Entity
 @Table(name = "queue_entry")
 public class QueueEntry extends BaseChangeableOpenmrsData {
@@ -45,6 +47,7 @@ public class QueueEntry extends BaseChangeableOpenmrsData {
 	@Column(name = "queue_entry_id")
 	private Integer queueEntryId;
 	
+	@ToString.Exclude
 	@ManyToOne
 	@JoinColumn(name = "queue_id", nullable = false)
 	private Queue queue;
@@ -52,10 +55,6 @@ public class QueueEntry extends BaseChangeableOpenmrsData {
 	@ManyToOne
 	@JoinColumn(name = "patient_id", nullable = false)
 	private Patient patient;
-	
-	@ManyToOne
-	@JoinColumn(name = "service", referencedColumnName = "concept_id", nullable = false)
-	private Concept service;
 	
 	@ManyToOne
 	@JoinColumn(name = "priority", referencedColumnName = "concept_id", nullable = false)
@@ -95,14 +94,5 @@ public class QueueEntry extends BaseChangeableOpenmrsData {
 	@Override
 	public void setId(Integer id) {
 		this.setQueueEntryId(id);
-	}
-	
-	//Break the cyclic dependency
-	@Override
-	public String toString() {
-		return "QueueEntry{" + "queueEntryId=" + queueEntryId + ", patient=" + patient + ", service=" + service
-		        + ", priority=" + priority + ", priorityComment='" + priorityComment + '\'' + ", status=" + status
-		        + ", sortWeight=" + sortWeight + ", locationWaitingFor=" + locationWaitingFor + ", providerWaitingFor="
-		        + providerWaitingFor + ", startedAt=" + startedAt + ", endedAt=" + endedAt + '}';
 	}
 }

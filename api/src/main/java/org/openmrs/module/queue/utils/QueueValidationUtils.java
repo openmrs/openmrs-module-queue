@@ -56,15 +56,6 @@ public class QueueValidationUtils {
 				    "The property priority should be a member of configured queue priority conceptSet.");
 			}
 		}
-		if (queueEntry.getService() == null) {
-			errors.rejectValue("service", "QueueEntry.service.null", "The property service should not be null");
-		} else {
-			if (!isValidService(queueEntry.getService())) {
-				errors.rejectValue("service", "QueueEntry.service.invalid",
-				    "The property service should be a member of configured queue service conceptSet.");
-			}
-		}
-		
 	}
 	
 	public static boolean isValidStatus(@NotNull Concept concept) {

@@ -35,10 +35,6 @@ public class QueueEntryValidatorTest extends BaseModuleContextSensitiveTest {
 	
 	private static final String INVALID_STATUS_CONCEPT_UUID = "67b910bd-298c-4ecf-a632-661ae2f446op";
 	
-	private static final String VALID_SERVICE_CONCEPT = "67b910bd-298c-4ecf-a632-661ae2f446op";
-	
-	private static final String INVALID_SERVICE_CONCEPT_UUID = "91b910bd-298c-4ecf-a632-661ae2f909ut";
-	
 	private static final List<String> INITIAL_CONCEPTS_DATASETS = Arrays.asList(
 	    "org/openmrs/module/queue/api/dao/QueueEntryDaoTest_conceptsInitialDataset.xml",
 	    "org/openmrs/module/queue/validators/QueueEntryValidatorTest_globalPropertyInitialDataset.xml");
@@ -68,20 +64,6 @@ public class QueueEntryValidatorTest extends BaseModuleContextSensitiveTest {
 		Concept concept = Context.getConceptService().getConceptByUuid(INVALID_STATUS_CONCEPT_UUID);
 		assertThat(concept, notNullValue());
 		assertFalse(QueueValidationUtils.isValidStatus(concept));
-	}
-	
-	@Test
-	public void shouldReturnTrueForValidServiceConcept() {
-		Concept concept = Context.getConceptService().getConceptByUuid(VALID_SERVICE_CONCEPT);
-		assertThat(concept, notNullValue());
-		assertTrue(QueueValidationUtils.isValidService(concept));
-	}
-	
-	@Test
-	public void shouldReturnFalseForInvalidServiceConcept() {
-		Concept concept = Context.getConceptService().getConceptByUuid(INVALID_SERVICE_CONCEPT_UUID);
-		assertThat(concept, notNullValue());
-		assertFalse(QueueValidationUtils.isValidService(concept));
 	}
 	
 }

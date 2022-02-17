@@ -87,10 +87,12 @@ public class QueueResource extends DelegatingCrudResource<Queue> {
 		} else if (representation instanceof DefaultRepresentation) {
 			this.addSharedResourceDescriptionProperties(resourceDescription);
 			resourceDescription.addProperty("location", Representation.REF);
+			resourceDescription.addProperty("service", Representation.REF);
 			resourceDescription.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
 		} else if (representation instanceof FullRepresentation) {
 			this.addSharedResourceDescriptionProperties(resourceDescription);
 			resourceDescription.addProperty("location", Representation.FULL);
+			resourceDescription.addProperty("service", Representation.FULL);
 			resourceDescription.addProperty("auditInfo");
 		} else if (representation instanceof CustomRepresentation) {
 			//For custom representation, must be null
@@ -114,6 +116,7 @@ public class QueueResource extends DelegatingCrudResource<Queue> {
 		resourceDescription.addProperty("name");
 		resourceDescription.addProperty("description");
 		resourceDescription.addProperty("location");
+		resourceDescription.addProperty("service");
 		return resourceDescription;
 	}
 	

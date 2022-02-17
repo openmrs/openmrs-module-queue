@@ -49,15 +49,13 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	
 	private static final String QUEUE_STATUS_CONCEPT_UUID = "31b910bd-298c-4ecf-a632-661ae2f4460y";
 	
-	private static final String QUEUE_SERVICE_CONCEPT_UUID = "67b910bd-298c-4ecf-a632-661ae2f446op";
-	
 	private static final String QUEUE_PRIORITY_CONCEPT_UUID = "90b910bd-298c-4ecf-a632-661ae2f446op";
 	
 	private static final List<String> QUEUE_INITIAL_DATASET_XML = Arrays.asList(
 	    "org/openmrs/module/queue/api/dao/QueueDaoTest_locationInitialDataset.xml",
+	    "org/openmrs/module/queue/api/dao/QueueEntryDaoTest_conceptsInitialDataset.xml",
 	    "org/openmrs/module/queue/api/dao/QueueDaoTest_initialDataset.xml",
 	    "org/openmrs/module/queue/api/dao/QueueEntryDaoTest_patientInitialDataset.xml",
-	    "org/openmrs/module/queue/api/dao/QueueEntryDaoTest_conceptsInitialDataset.xml",
 	    "org/openmrs/module/queue/api/dao/QueueEntryDaoTest_initialDataset.xml");
 	
 	private static final String QUEUE_ENTRY_STATUS = "Waiting for service";
@@ -107,7 +105,6 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		verifyQueueEntryPatientProperty(queueEntry);
 		verifyQueueEntryConceptStatusProperty(queueEntry);
 		verifyQueueEntryConceptPriorityProperty(queueEntry);
-		verifyQueueEntryConceptServiceProperty(queueEntry);
 		
 		QueueEntry result = dao.createOrUpdate(queueEntry);
 		assertThat(result, notNullValue());
@@ -196,13 +193,6 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		assertThat(conceptQueuePriority, notNullValue());
 		assertThat(conceptQueuePriority.getUuid(), is(QUEUE_PRIORITY_CONCEPT_UUID));
 		queueEntry.setPriority(conceptQueuePriority);
-	}
-	
-	void verifyQueueEntryConceptServiceProperty(QueueEntry queueEntry) {
-		Concept conceptQueueService = Context.getConceptService().getConceptByUuid(QUEUE_SERVICE_CONCEPT_UUID);
-		assertThat(conceptQueueService, notNullValue());
-		assertThat(conceptQueueService.getUuid(), is(QUEUE_SERVICE_CONCEPT_UUID));
-		queueEntry.setService(conceptQueueService);
 	}
 	
 	@Test

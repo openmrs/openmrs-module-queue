@@ -16,6 +16,7 @@ import org.openmrs.Location;
 import org.openmrs.annotation.Handler;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.model.Queue;
+import org.openmrs.module.queue.utils.QueueValidationUtils;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
@@ -46,6 +47,15 @@ public class QueueValidator implements Validator {
 		if (!isValidLocation(queue.getLocation())) {
 			errors.rejectValue("location", "queue.location.null", "Location is null or doesn't exists");
 		}
+		
+		if (queue.getService() == null) {
+			errors.rejectValue("service", "QueueEntry.service.null", "The property service should not be null");
+		} else {
+			if (!QueueValidationUtils.isValidService(queue.getService())) {
+				errors.rejectValue("service", "Queue.service.invalid",
+				    "The property service should be a member of configured queue service conceptSet.");
+			}
+		}
 	}
 	
 	/**
@@ -61,4 +71,5 @@ public class QueueValidator implements Validator {
 		Location isExistentLocation = Context.getLocationService().getLocationByUuid(location.getUuid());
 		return isExistentLocation != null;
 	}
+	
 }
