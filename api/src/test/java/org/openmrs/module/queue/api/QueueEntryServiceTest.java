@@ -82,7 +82,6 @@ public class QueueEntryServiceTest {
 		
 		when(queueEntry.getQueueEntryId()).thenReturn(QUEUE_ENTRY_ID);
 		when(queueEntry.getStatus()).thenReturn(conceptStatus);
-		when(queueEntry.getService()).thenReturn(conceptService);
 		when(queueEntry.getPriority()).thenReturn(conceptPriority);
 		when(dao.createOrUpdate(queueEntry)).thenReturn(queueEntry);
 		
@@ -90,7 +89,6 @@ public class QueueEntryServiceTest {
 		assertThat(result, notNullValue());
 		assertThat(result.getQueueEntryId(), is(QUEUE_ENTRY_ID));
 		assertThat(result.getStatus(), is(conceptStatus));
-		assertThat(result.getService(), is(conceptService));
 		assertThat(result.getPriority(), is(conceptPriority));
 	}
 	

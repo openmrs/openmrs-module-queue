@@ -9,10 +9,10 @@
     graphic logo is a trademark of OpenMRS Inc.
 -->
 <dataset>
-    <queue queue_id="1" name="Triage Test Queue" description="This is description" location_id="1" creator="1"
+    <queue queue_id="1" name="Triage Test Queue" description="This is description" location_id="1" service="2001" creator="1"
            date_created="2022-01-31 00:00:00.0" retired="false" uuid="3eb7fe43-2813-4kbc-80dc-2e5d30252bb5"/>
     <!--Retired Queue -->
-    <queue queue_id="2" name="Retired Test Queue" description="This is description" location_id="1" creator="1"
+    <queue queue_id="2" name="Retired Test Queue" service="2001" description="This is description" location_id="1" creator="1"
            date_created="2022-01-31 00:00:00.0" retired="true" date_retired="2022-02-02 16:00:00.0"
            uuid="4eb8fe43-2813-4kbc-80dc-2e5d30252bb9"/>
 </dataset>

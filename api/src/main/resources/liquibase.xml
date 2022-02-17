@@ -29,6 +29,9 @@
             <column name="location_id" type="int">
                 <constraints nullable="false"/>
             </column>
+            <column name="service" type="int">
+                <constraints nullable="false"/>
+            </column>
             <column name="creator" type="int">
                 <constraints nullable="false"/>
             </column>
@@ -59,6 +62,9 @@
         <addForeignKeyConstraint baseTableName="queue" baseColumnNames="location_id"
                                  constraintName="queue_location_id_fk"
                                  referencedTableName="location" referencedColumnNames="location_id"/>
+        <addForeignKeyConstraint baseTableName="queue" baseColumnNames="service"
+                                 constraintName="queue_service_fk"
+                                 referencedTableName="concept" referencedColumnNames="concept_id"/>
     </changeSet>
 
     <changeSet id="add_queue_entry_20220125" author="corneliouzbett">
@@ -78,9 +84,6 @@
                 <constraints nullable="false"/>
             </column>
             <column name="priority" type="int">
-                <constraints nullable="false"/>
-            </column>
-            <column name="service" type="int">
                 <constraints nullable="false"/>
             </column>
             <column name="priority_comment" type="varchar(255)"/>
@@ -129,9 +132,6 @@
                                  referencedTableName="patient" referencedColumnNames="patient_id"/>
         <addForeignKeyConstraint baseTableName="queue_entry" baseColumnNames="priority"
                                  constraintName="queue_entry_priority_fk"
-                                 referencedTableName="concept" referencedColumnNames="concept_id"/>
-        <addForeignKeyConstraint baseTableName="queue_entry" baseColumnNames="service"
-                                 constraintName="queue_entry_service_fk"
                                  referencedTableName="concept" referencedColumnNames="concept_id"/>
         <addForeignKeyConstraint baseTableName="queue_entry" baseColumnNames="status"
                                  constraintName="queue_entry_status_fk"

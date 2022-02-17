@@ -15,13 +15,10 @@ import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.web.resources.custom.response.GenericSingleObjectResult;
 import org.openmrs.module.queue.web.resources.custom.response.PropValue;
+import org.openmrs.module.queue.web.resources.custom.response.QueueEntryCount;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
 import org.openmrs.module.webservices.rest.web.annotation.SubResource;
-import org.openmrs.module.webservices.rest.web.representation.CustomRepresentation;
-import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
-import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
-import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
@@ -38,17 +35,17 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
  * For Service&v=custom:(count) -returns only the count.
  */
 @SuppressWarnings("unused")
-@SubResource(parent = QueueResource.class, path = "count", supportedClass = QueueEntry.class, supportedOpenmrsVersions = {
-        "2.0 - 2.*" })
-public class QueueEntryCountSubResource extends DelegatingSubResource<QueueEntry, Queue, QueueResource> {
+@SubResource(parent = QueueResource.class, path = "count", supportedClass = QueueEntryCount.class, supportedOpenmrsVersions = {
+        "2.0 - 2.*" }, order = 12)
+public class QueueEntryCountSubResource extends DelegatingSubResource<QueueEntryCount, Queue, QueueResource> {
 	
 	@Override
-	public Queue getParent(QueueEntry queueEntryCount) {
+	public Queue getParent(QueueEntryCount queueEntryCount) {
 		return queueEntryCount.getQueue();
 	}
 	
 	@Override
-	public void setParent(QueueEntry queueEntryCount, Queue queue) {
+	public void setParent(QueueEntryCount queueEntryCount, Queue queue) {
 		queueEntryCount.setQueue(queue);
 	}
 	
@@ -59,48 +56,34 @@ public class QueueEntryCountSubResource extends DelegatingSubResource<QueueEntry
 	}
 	
 	@Override
-	public QueueEntry getByUniqueId(String s) {
+	public QueueEntryCount getByUniqueId(String s) {
 		throw new ResourceDoesNotSupportOperationException();
 	}
 	
 	@Override
-	protected void delete(QueueEntry queueEntryCount, String s, RequestContext requestContext) throws ResponseException {
+	protected void delete(QueueEntryCount queueEntryCount, String s, RequestContext requestContext)
+	        throws ResponseException {
 		throw new ResourceDoesNotSupportOperationException();
 	}
 	
 	@Override
-	public QueueEntry newDelegate() {
-		return new QueueEntry();
+	public QueueEntryCount newDelegate() {
+		return new QueueEntryCount();
 	}
 	
 	@Override
-	public QueueEntry save(QueueEntry queueEntry) {
+	public QueueEntryCount save(QueueEntryCount queueEntryCount) {
 		throw new ResourceDoesNotSupportOperationException();
 	}
 	
 	@Override
-	public void purge(QueueEntry queueEntry, RequestContext requestContext) throws ResponseException {
+	public void purge(QueueEntryCount queueEntryCount, RequestContext requestContext) throws ResponseException {
 		throw new ResourceDoesNotSupportOperationException();
 	}
 	
 	@Override
 	public DelegatingResourceDescription getRepresentationDescription(Representation representation) {
-		DelegatingResourceDescription resourceDescription = new DelegatingResourceDescription();
-		if (representation instanceof CustomRepresentation) {
-			resourceDescription = null;
-		} else if (representation instanceof DefaultRepresentation) {
-			resourceDescription.addProperty("count");
-			resourceDescription.addProperty("display");
-		} else if (representation instanceof RefRepresentation) {
-			resourceDescription.addProperty("count");
-			resourceDescription.addProperty("display");
-			resourceDescription.addProperty("queue", Representation.REF);
-		} else if (representation instanceof FullRepresentation) {
-			resourceDescription.addProperty("count");
-			resourceDescription.addProperty("display");
-			resourceDescription.addProperty("queue", Representation.FULL);
-		}
-		return resourceDescription;
+		return null;
 	}
 	
 	@PropertyGetter("display")

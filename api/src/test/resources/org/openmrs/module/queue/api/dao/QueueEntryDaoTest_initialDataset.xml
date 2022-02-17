@@ -9,10 +9,10 @@
     graphic logo is a trademark of OpenMRS Inc.
 -->
 <dataset>
-    <queue_entry queue_entry_id="1"  queue_id="1" patient_id="100" creator="1" priority="1001" service="2001" status="3001" sort_weight="0"
+    <queue_entry queue_entry_id="1"  queue_id="1" patient_id="100" creator="1" priority="1001" status="3001" sort_weight="0"
            date_created="2022-02-02 16:38:56.0" started_at="2022-02-02 16:40:56.0" voided="false" uuid="4eb8fe43-2813-4kbc-80dc-2e5d30252cc6"/>
 
     <!--Voided Queue entry -->
-    <queue_entry queue_entry_id="2"  queue_id="2" patient_id="100" creator="1" priority="1001" service="2001" status="3001" sort_weight="0"
+    <queue_entry queue_entry_id="2"  queue_id="2" patient_id="100" creator="1" priority="1001" status="3001" sort_weight="0"
                  date_created="2022-02-02 16:38:56.0" started_at="2022-02-02 16:40:56.0" date_voided="2022-02-02 17:40:56.0" voided="true" uuid="4gb8fe43-2813-4kbc-80dc-2e5d30252ff0"/>
 </dataset>

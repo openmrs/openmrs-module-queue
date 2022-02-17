@@ -34,7 +34,6 @@ public class QueueEntryValidator implements Validator {
 		rejectIfEmptyOrWhitespace(errors, "startedAt", "queueEntry.startedAt.null",
 		    "The property startedAt should not be null");
 		
-		QueueEntry queueEntry = (QueueEntry) target;
-		QueueValidationUtils.validateQueueEntry(queueEntry, errors);
+		QueueValidationUtils.validateQueueEntry((QueueEntry) target, errors);
 	}
 }

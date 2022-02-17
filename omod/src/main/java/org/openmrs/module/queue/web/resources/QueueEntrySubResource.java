@@ -38,7 +38,7 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 @SuppressWarnings("unused")
 @SubResource(parent = QueueResource.class, path = "entry", supportedClass = QueueEntry.class, supportedOpenmrsVersions = {
-        "2.0 - 2.*" })
+        "2.0 - 2.*" }, order = 10)
 public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Queue, QueueResource> {
 	
 	@Override
@@ -92,7 +92,6 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 		description.addProperty("status");
 		description.addProperty("priority");
 		description.addProperty("priorityComment");
-		description.addProperty("service");
 		description.addProperty("patient");
 		description.addProperty("sortWeight");
 		description.addProperty("startedAt");
@@ -118,7 +117,6 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 			resourceDescription.addProperty("queue", Representation.REF);
 			resourceDescription.addProperty("status", Representation.REF);
 			resourceDescription.addProperty("patient", Representation.REF);
-			resourceDescription.addProperty("service", Representation.REF);
 			resourceDescription.addProperty("priority", Representation.REF);
 			resourceDescription.addProperty("locationWaitingFor", Representation.REF);
 			resourceDescription.addProperty("providerWaitingFor", Representation.REF);
@@ -128,7 +126,6 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 			resourceDescription.addProperty("queue", Representation.DEFAULT);
 			resourceDescription.addProperty("status", Representation.DEFAULT);
 			resourceDescription.addProperty("patient", Representation.DEFAULT);
-			resourceDescription.addProperty("service", Representation.DEFAULT);
 			resourceDescription.addProperty("priority", Representation.DEFAULT);
 			resourceDescription.addProperty("locationWaitingFor", Representation.DEFAULT);
 			resourceDescription.addProperty("providerWaitingFor", Representation.DEFAULT);
@@ -141,7 +138,6 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 			resourceDescription.addProperty("queue", Representation.FULL);
 			resourceDescription.addProperty("status", Representation.FULL);
 			resourceDescription.addProperty("patient", Representation.FULL);
-			resourceDescription.addProperty("service", Representation.FULL);
 			resourceDescription.addProperty("priority", Representation.FULL);
 			resourceDescription.addProperty("locationWaitingFor", Representation.FULL);
 			resourceDescription.addProperty("providerWaitingFor", Representation.FULL);

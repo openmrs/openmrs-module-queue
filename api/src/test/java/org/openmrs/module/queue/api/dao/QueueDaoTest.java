@@ -34,6 +34,7 @@ public class QueueDaoTest extends BaseModuleContextSensitiveTest {
 	
 	private static final List<String> QUEUE_INITIAL_DATASET_XML = Arrays.asList(
 	    "org/openmrs/module/queue/api/dao/QueueDaoTest_locationInitialDataset.xml",
+	    "org/openmrs/module/queue/api/dao/QueueEntryDaoTest_conceptsInitialDataset.xml",
 	    "org/openmrs/module/queue/api/dao/QueueDaoTest_initialDataset.xml");
 	
 	private static final String QUEUE_UUID = "3eb7fe43-2813-4kbc-80dc-2e5d30252bb5";
@@ -47,6 +48,8 @@ public class QueueDaoTest extends BaseModuleContextSensitiveTest {
 	private static final String NEW_QUEUE_LOCATION_UUID = "d0938432-1691-11df-97a5-7038c098";
 	
 	private static final String LOCATION_UUID = "d0938432-1691-11df-97a5-7038c098";
+	
+	private static final String CONCEPT_UUID = "67b910bd-298c-4ecf-a632-661ae2f446op";
 	
 	@Autowired
 	@Qualifier("queue.QueueDao")
@@ -77,6 +80,7 @@ public class QueueDaoTest extends BaseModuleContextSensitiveTest {
 		Queue queue = new Queue();
 		queue.setUuid(NEW_QUEUE_UUID);
 		queue.setName(NEW_QUEUE_NAME);
+		queue.setService(Context.getConceptService().getConceptByUuid(CONCEPT_UUID));
 		queue.setLocation(Context.getLocationService().getLocationByUuid(NEW_QUEUE_LOCATION_UUID));
 		
 		Queue result = dao.createOrUpdate(queue);
