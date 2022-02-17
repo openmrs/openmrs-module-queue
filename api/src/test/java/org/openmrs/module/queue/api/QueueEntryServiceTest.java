@@ -35,6 +35,10 @@ public class QueueEntryServiceTest {
 	
 	private static final Integer QUEUE_ENTRY_ID = 14;
 	
+	private static final String QUEUE_ENTRY_STATUS = "Waiting for Service";
+	
+	private static final String BAD_QUEUE_ENTRY_STATUS = "Waiting for Service";
+	
 	private QueueEntryServiceImpl queueEntryService;
 	
 	@Mock
@@ -106,5 +110,19 @@ public class QueueEntryServiceTest {
 		
 		queueEntryService.purgeQueueEntry(queueEntry);
 		assertThat(queueEntryService.getQueueEntryByUuid(QUEUE_ENTRY_UUID).isPresent(), is(false));
+	}
+	
+	@Test
+	public void shouldReturnCountOfQueueEntriesByStatus() {
+		when(dao.getQueueEntriesCountByStatus(QUEUE_ENTRY_STATUS)).thenReturn(1L);
+		
+		assertThat(queueEntryService.getQueueEntriesCountByStatus(QUEUE_ENTRY_STATUS), is(1L));
+	}
+	
+	@Test
+	public void shouldReturnZeroForBadGivenStatus() {
+		when(dao.getQueueEntriesCountByStatus(BAD_QUEUE_ENTRY_STATUS)).thenReturn(0L);
+		
+		assertThat(queueEntryService.getQueueEntriesCountByStatus(QUEUE_ENTRY_STATUS), is(0L));
 	}
 }

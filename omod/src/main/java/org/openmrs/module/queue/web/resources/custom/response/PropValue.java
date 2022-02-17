@@ -7,32 +7,23 @@
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
-package org.openmrs.module.queue.web.resources.response;
+package org.openmrs.module.queue.web.resources.custom.response;
 
 import java.io.Serializable;
-import java.util.UUID;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.openmrs.module.queue.model.Queue;
 
+/**
+ * Wrapper data class for property & value
+ */
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class QueueCount implements Serializable {
+public class PropValue implements Serializable {
 	
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 45L;
 	
-	private String uuid;
+	private String property;
 	
-	private Queue queue;
-	
-	private int count;
-	
-	public QueueCount(Queue queue, int count) {
-		this.uuid = String.valueOf(UUID.randomUUID());
-		this.queue = queue;
-		this.count = count;
-	}
+	private Object value;
 }

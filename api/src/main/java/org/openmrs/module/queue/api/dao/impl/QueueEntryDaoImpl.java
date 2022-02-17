@@ -40,15 +40,30 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 	 */
 	@Override
 	public Collection<QueueEntry> SearchQueueEntries(@NotNull String status, boolean includeVoided) {
-		//subQuery
-		DetachedCriteria subQuery = DetachedCriteria.forClass(ConceptName.class, "cn")
-		        .add(Restrictions.eq("cn.name", status)).setProjection(Projections.property("cn.concept"));
-		
 		Criteria criteria = getCurrentSession().createCriteria(QueueEntry.class, "qe");
 		//Include/exclude retired queues
 		includeVoidedObjects(criteria, includeVoided);
-		criteria.add(Property.forName("qe.status").in(subQuery));
+		criteria.add(Property.forName("qe.status").in(conceptStatusDetachedCriteria(status)));
 		
 		return criteria.list();
+	}
+	
+	/**
+	 * @see org.openmrs.module.queue.api.dao.QueueEntryDao#getQueueEntriesCountByStatus(String)
+	 */
+	@Override
+	public Long getQueueEntriesCountByStatus(@NotNull String status) {
+		Criteria criteria = getCurrentSession().createCriteria(QueueEntry.class, "qe");
+		//Include/exclude retired queues
+		includeVoidedObjects(criteria, false);
+		criteria.add(Property.forName("qe.status").in(conceptStatusDetachedCriteria(status)));
+		criteria.setProjection(Projections.rowCount());
+		
+		return (Long) criteria.uniqueResult();
+	}
+	
+	private DetachedCriteria conceptStatusDetachedCriteria(@NotNull String status) {
+		return DetachedCriteria.forClass(ConceptName.class, "cn").add(Restrictions.eq("cn.name", status))
+		        .setProjection(Projections.property("cn.concept"));
 	}
 }

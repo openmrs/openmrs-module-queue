@@ -9,20 +9,14 @@
  */
 package org.openmrs.module.queue.web.resources.search.handlers;
 
-import javax.validation.constraints.NotNull;
-
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueEntryService;
-import org.openmrs.module.queue.api.QueueService;
-import org.openmrs.module.queue.model.Queue;
-import org.openmrs.module.queue.model.QueueEntry;
-import org.openmrs.module.queue.web.resources.response.QueueCount;
+import org.openmrs.module.queue.web.resources.custom.response.GenericSingleObjectResult;
+import org.openmrs.module.queue.web.resources.custom.response.PropValue;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
@@ -30,7 +24,6 @@ import org.openmrs.module.webservices.rest.web.resource.api.SearchConfig;
 import org.openmrs.module.webservices.rest.web.resource.api.SearchQuery;
 import org.openmrs.module.webservices.rest.web.resource.api.SubResourceSearchHandler;
 import org.openmrs.module.webservices.rest.web.resource.impl.EmptySearchResult;
-import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 import org.springframework.stereotype.Component;
 
@@ -48,10 +41,11 @@ public class QueueCountSearchHandler implements SubResourceSearchHandler {
 		if (StringUtils.isBlank(queueEntryStatus) || StringUtils.isBlank(parentUuid)) {
 			return new EmptySearchResult();
 		}
-		Collection<QueueEntry> queueEntries = Context.getService(QueueEntryService.class)
-		        .searchQueueEntries(queueEntryStatus, false);
-		QueueCount queueCount = new QueueCount(getParentQueue(parentUuid), queueEntries.size());
-		return new NeedsPaging<>(new ArrayList<>(Collections.singletonList(queueCount)), requestContext);
+		Long queueCount = Context.getService(QueueEntryService.class).getQueueEntriesCountByStatus(queueEntryStatus);
+		
+		//Customize results response
+		return new GenericSingleObjectResult(
+		        Arrays.asList(new PropValue("count", queueCount), new PropValue("queueEntryStatus", queueEntryStatus)));
 	}
 	
 	@Override
@@ -63,10 +57,4 @@ public class QueueCountSearchHandler implements SubResourceSearchHandler {
 	public PageableResult search(RequestContext requestContext) throws ResponseException {
 		throw new UnsupportedOperationException("Cannot search for queue entries without parent queue");
 	}
-	
-	private Queue getParentQueue(@NotNull String parentUuid) {
-		Optional<Queue> queue = Context.getService(QueueService.class).getQueueByUuid(parentUuid);
-		return queue.orElse(null);
-	}
-	
 }

@@ -9,10 +9,12 @@
  */
 package org.openmrs.module.queue.web.resources;
 
-import java.util.Collections;
+import java.util.Arrays;
 
 import org.openmrs.module.queue.model.Queue;
-import org.openmrs.module.queue.web.resources.response.QueueCount;
+import org.openmrs.module.queue.model.QueueEntry;
+import org.openmrs.module.queue.web.resources.custom.response.GenericSingleObjectResult;
+import org.openmrs.module.queue.web.resources.custom.response.PropValue;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
 import org.openmrs.module.webservices.rest.web.annotation.SubResource;
@@ -24,7 +26,6 @@ import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingSubResource;
-import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
@@ -37,48 +38,48 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
  * For Service&v=custom:(count) -returns only the count.
  */
 @SuppressWarnings("unused")
-@SubResource(parent = QueueResource.class, path = "count", supportedClass = QueueCount.class, supportedOpenmrsVersions = {
+@SubResource(parent = QueueResource.class, path = "count", supportedClass = QueueEntry.class, supportedOpenmrsVersions = {
         "2.0 - 2.*" })
-public class QueueCountSubResource extends DelegatingSubResource<QueueCount, Queue, QueueResource> {
+public class QueueEntryCountSubResource extends DelegatingSubResource<QueueEntry, Queue, QueueResource> {
 	
 	@Override
-	public Queue getParent(QueueCount queueCount) {
-		return queueCount.getQueue();
+	public Queue getParent(QueueEntry queueEntryCount) {
+		return queueEntryCount.getQueue();
 	}
 	
 	@Override
-	public void setParent(QueueCount queueCount, Queue queue) {
-		queueCount.setQueue(queue);
+	public void setParent(QueueEntry queueEntryCount, Queue queue) {
+		queueEntryCount.setQueue(queue);
 	}
 	
 	@Override
 	public PageableResult doGetAll(Queue queue, RequestContext requestContext) throws ResponseException {
-		return new NeedsPaging<>(Collections.singletonList(new QueueCount(queue, queue.getQueueEntries().size())),
-		        requestContext);
+		return new GenericSingleObjectResult(Arrays.asList(new PropValue("queueName", queue.getName()),
+		    new PropValue("queueEntriesCount", queue.getQueueEntries().size())));
 	}
 	
 	@Override
-	public QueueCount getByUniqueId(String s) {
+	public QueueEntry getByUniqueId(String s) {
 		throw new ResourceDoesNotSupportOperationException();
 	}
 	
 	@Override
-	protected void delete(QueueCount queueCount, String s, RequestContext requestContext) throws ResponseException {
+	protected void delete(QueueEntry queueEntryCount, String s, RequestContext requestContext) throws ResponseException {
 		throw new ResourceDoesNotSupportOperationException();
 	}
 	
 	@Override
-	public QueueCount newDelegate() {
-		return new QueueCount();
+	public QueueEntry newDelegate() {
+		return new QueueEntry();
 	}
 	
 	@Override
-	public QueueCount save(QueueCount queueCount) {
+	public QueueEntry save(QueueEntry queueEntry) {
 		throw new ResourceDoesNotSupportOperationException();
 	}
 	
 	@Override
-	public void purge(QueueCount queueCount, RequestContext requestContext) throws ResponseException {
+	public void purge(QueueEntry queueEntry, RequestContext requestContext) throws ResponseException {
 		throw new ResourceDoesNotSupportOperationException();
 	}
 	
@@ -103,9 +104,9 @@ public class QueueCountSubResource extends DelegatingSubResource<QueueCount, Que
 	}
 	
 	@PropertyGetter("display")
-	public String getDisplay(QueueCount queueCount) {
+	public String getDisplay(QueueEntry queueEntry) {
 		//Display queue name
-		return queueCount.getQueue().getName();
+		return queueEntry.getQueue().getName();
 	}
 	
 	@Override

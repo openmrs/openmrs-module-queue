@@ -91,4 +91,12 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	public Collection<QueueEntry> searchQueueEntries(String status, boolean includeVoided) {
 		return this.dao.SearchQueueEntries(status, includeVoided);
 	}
+	
+	/**
+	 * @see org.openmrs.module.queue.api.QueueEntryService#getQueueEntriesCountByStatus(String)
+	 */
+	@Override
+	public Long getQueueEntriesCountByStatus(@NotNull String status) {
+		return this.dao.getQueueEntriesCountByStatus(status);
+	}
 }

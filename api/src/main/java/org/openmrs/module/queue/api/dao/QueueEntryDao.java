@@ -27,4 +27,12 @@ public interface QueueEntryDao<Q extends OpenmrsObject & Auditable> extends Base
 	 * @return {@link java.util.Collection} of queue entries with the specified status
 	 */
 	Collection<QueueEntry> SearchQueueEntries(@NotNull String status, boolean includeVoided);
+	
+	/**
+	 * Gets count of queue entries by given status
+	 *
+	 * @param status the queue entry status
+	 * @return {@link java.lang.Long} count of queue entries by status
+	 */
+	Long getQueueEntriesCountByStatus(@NotNull String status);
 }

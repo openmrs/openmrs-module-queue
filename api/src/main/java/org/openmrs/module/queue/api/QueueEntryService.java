@@ -67,4 +67,12 @@ public interface QueueEntryService {
 	 * @return {@link java.util.Collection} of queue entries with the specified statuses
 	 */
 	Collection<QueueEntry> searchQueueEntries(@NotNull String status, boolean includeVoided);
+	
+	/**
+	 * Gets count of queue entries by status
+	 *
+	 * @param status the queue entry status
+	 * @return {@link java.lang.Long} count of queue entries by specified status
+	 */
+	Long getQueueEntriesCountByStatus(@NotNull String status);
 }
