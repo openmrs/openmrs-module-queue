@@ -39,7 +39,7 @@ public class QueueEntryValidator implements Validator {
 			//queueEntry.endedAt >= queueEntry.startedAt
 			if (queueEntry.getStartedAt().after(queueEntry.getEndedAt()) {
 				errors.rejectValue("endedAt", "queueEntry.endedAt.invalid",
-				    "Queue entry endedAt should be greater than or equal to startedAt date (endedAt >= startedAt)");
+				    "Queue entry endedAt should after the startedAt date");
 			}
 		}
 		
