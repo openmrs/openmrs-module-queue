@@ -136,7 +136,7 @@ public class QueueEntryValidatorTest extends BaseModuleContextSensitiveTest {
 		assertNotNull(queueEntryStatusFieldError);
 		assertThat(queueEntryStatusFieldError.getCode(), is("queueEntry.endedAt.invalid"));
 		assertThat(queueEntryStatusFieldError.getDefaultMessage(),
-		    is("Queue entry endedAt should be greater than or equal to startedAt date (endedAt >= startedAt)"));
+		    is("Queue entry endedAt should after the startedAt date"));
 	}
 	
 	private Date yesterday() {
