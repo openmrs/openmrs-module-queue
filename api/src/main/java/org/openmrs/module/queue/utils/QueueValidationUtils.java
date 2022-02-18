@@ -41,18 +41,18 @@ public class QueueValidationUtils {
 	
 	public static void validateQueueEntry(QueueEntry queueEntry, Errors errors) {
 		if (queueEntry.getStatus() == null) {
-			errors.rejectValue("status", "QueueEntry.status.null", "The property status should not be null");
+			errors.rejectValue("status", "queueEntry.status.null", "The property status should not be null");
 		} else {
 			if (!isValidStatus(queueEntry.getStatus())) {
-				errors.rejectValue("status", "QueueEntry.status.invalid",
+				errors.rejectValue("status", "queueEntry.status.invalid",
 				    "The property status should be a member of configured queue status conceptSet.");
 			}
 		}
 		if (queueEntry.getPriority() == null) {
-			errors.rejectValue("priority", "QueueEntry.priority.null", "The property priority should not be null");
+			errors.rejectValue("priority", "queueEntry.priority.null", "The property priority should not be null");
 		} else {
 			if (!isValidPriority(queueEntry.getPriority())) {
-				errors.rejectValue("priority", "QueueEntry.priority.invalid",
+				errors.rejectValue("priority", "queueEntry.priority.invalid",
 				    "The property priority should be a member of configured queue priority conceptSet.");
 			}
 		}

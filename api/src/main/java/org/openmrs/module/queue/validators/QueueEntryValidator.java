@@ -34,6 +34,15 @@ public class QueueEntryValidator implements Validator {
 		rejectIfEmptyOrWhitespace(errors, "startedAt", "queueEntry.startedAt.null",
 		    "The property startedAt should not be null");
 		
+		QueueEntry queueEntry = (QueueEntry) target;
+		if (queueEntry.getEndedAt() != null) {
+			//queueEntry.endedAt >= queueEntry.startedAt
+			if (queueEntry.getStartedAt().after(queueEntry.getEndedAt())) {
+				errors.rejectValue("endedAt", "queueEntry.endedAt.invalid",
+				    "Queue entry endedAt should after the startedAt date");
+			}
+		}
+		
 		QueueValidationUtils.validateQueueEntry((QueueEntry) target, errors);
 	}
 }
