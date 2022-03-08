@@ -11,6 +11,7 @@ package org.openmrs.module.queue.api;
 
 import javax.validation.constraints.NotNull;
 
+import java.util.Collection;
 import java.util.Optional;
 
 import org.openmrs.api.APIException;
@@ -33,6 +34,13 @@ public interface VisitQueueEntryService {
 	 * @return saved {@link org.openmrs.module.queue.model.VisitQueueEntry}
 	 */
 	VisitQueueEntry createVisitQueueEntry(@NotNull VisitQueueEntry visitQueueEntry);
+	
+	/**
+	 * Finds all {@link VisitQueueEntry} in the database
+	 *
+	 * @return {@link Collection} of all visit queue entries in the db
+	 */
+	Collection<VisitQueueEntry> findAllVisitQueueEntries();
 	
 	/**
 	 * Voids a visit queue entry record

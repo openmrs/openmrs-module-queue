@@ -10,9 +10,7 @@
 package org.openmrs.module.queue.api.dao;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -155,5 +153,13 @@ public class VisitQueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		Optional<VisitQueueEntry> result = dao.get(VISIT_QUEUE_ENTRY_UUID);
 		//verify delete operation
 		assertThat(result.isPresent(), is(false));
+	}
+	
+	@Test
+	public void shouldGetAllVisitQueueEntries() {
+		Collection<VisitQueueEntry> result = dao.findAll();
+		assertThat(result, notNullValue());
+		assertThat(result, hasSize(1));
+		assertThat(result, hasItem(hasProperty("uuid", is(VISIT_QUEUE_ENTRY_UUID))));
 	}
 }

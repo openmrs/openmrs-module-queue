@@ -11,6 +11,7 @@ package org.openmrs.module.queue.api.impl;
 
 import javax.validation.constraints.NotNull;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.Optional;
 
@@ -61,6 +62,14 @@ public class VisitQueueEntryServiceImpl extends BaseOpenmrsService implements Vi
 			return this.dao.createOrUpdate(visitQueueEntry);
 		}
 		return null;
+	}
+	
+	/**
+	 * @see VisitQueueEntryService#findAllVisitQueueEntries()
+	 */
+	@Override
+	public Collection<VisitQueueEntry> findAllVisitQueueEntries() {
+		return dao.findAll();
 	}
 	
 	@Override

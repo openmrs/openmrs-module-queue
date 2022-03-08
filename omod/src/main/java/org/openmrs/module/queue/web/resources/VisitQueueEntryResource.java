@@ -11,6 +11,7 @@ package org.openmrs.module.queue.web.resources;
 
 import javax.validation.constraints.NotNull;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 import org.openmrs.api.context.Context;
@@ -24,8 +25,10 @@ import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentat
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
+import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
+import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
@@ -73,6 +76,11 @@ public class VisitQueueEntryResource extends DelegatingCrudResource<VisitQueueEn
 	@Override
 	public void purge(VisitQueueEntry visitQueueEntry, RequestContext requestContext) throws ResponseException {
 		this.visitQueueEntryService.purgeQueueEntry(visitQueueEntry);
+	}
+	
+	@Override
+	protected PageableResult doGetAll(RequestContext requestContext) throws ResponseException {
+		return new NeedsPaging<>(new ArrayList<>(this.visitQueueEntryService.findAllVisitQueueEntries()), requestContext);
 	}
 	
 	@Override

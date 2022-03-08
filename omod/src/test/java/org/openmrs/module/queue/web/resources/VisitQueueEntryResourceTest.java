@@ -10,11 +10,11 @@
 package org.openmrs.module.queue.web.resources;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import org.junit.Before;
@@ -24,6 +24,8 @@ import org.mockito.Mock;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.VisitQueueEntryService;
 import org.openmrs.module.queue.model.VisitQueueEntry;
+import org.openmrs.module.webservices.rest.web.RequestContext;
+import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
@@ -75,5 +77,16 @@ public class VisitQueueEntryResourceTest extends BaseQueueResourceTest<VisitQueu
 	@Test
 	public void shouldInstantiateNewDelegate() {
 		assertThat(getResource().newDelegate(), notNullValue());
+	}
+	
+	@Test
+	public void shouldReturnAllVisitQueueEntriesFromDb() {
+		RequestContext requestContext = mock(RequestContext.class);
+		when(visitQueueEntryService.findAllVisitQueueEntries()).thenReturn(Collections.singletonList(getObject()));
+		
+		NeedsPaging<VisitQueueEntry> result = (NeedsPaging<VisitQueueEntry>) getResource().doGetAll(requestContext);
+		
+		assertThat(result, notNullValue());
+		assertThat(result.getTotalCount(), is(1L));
 	}
 }
