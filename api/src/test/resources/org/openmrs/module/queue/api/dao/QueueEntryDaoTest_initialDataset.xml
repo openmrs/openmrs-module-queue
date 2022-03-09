@@ -11,6 +11,8 @@
 <dataset>
     <queue_entry queue_entry_id="1"  queue_id="1" patient_id="100" creator="1" priority="1001" status="3001" sort_weight="0"
            date_created="2022-02-02 16:38:56.0" started_at="2022-02-02 16:40:56.0" voided="false" uuid="4eb8fe43-2813-4kbc-80dc-2e5d30252cc6"/>
+    <queue_entry queue_entry_id="3"  queue_id="3" patient_id="100" creator="1" priority="1001" status="3002" sort_weight="0"
+                 date_created="2022-02-02 16:38:56.0" started_at="2022-02-02 16:40:56.0" voided="false" uuid="7ub8fe43-2813-4kbc-80dc-2e5d30252cc5"/>
 
     <!--Voided Queue entry -->
     <queue_entry queue_entry_id="2"  queue_id="2" patient_id="100" creator="1" priority="1001" status="3001" sort_weight="0"

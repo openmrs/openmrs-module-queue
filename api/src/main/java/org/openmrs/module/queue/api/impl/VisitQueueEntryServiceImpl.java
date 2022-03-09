@@ -73,6 +73,11 @@ public class VisitQueueEntryServiceImpl extends BaseOpenmrsService implements Vi
 	}
 	
 	@Override
+	public Collection<VisitQueueEntry> findVisitQueueEntries(String status, String service) {
+		return dao.findVisitQueueEntriesByStatusAndService(status, service);
+	}
+	
+	@Override
 	public void voidVisitQueueEntry(@NotNull String visitQueueEntryUuid, String voidReason) {
 		this.dao.get(visitQueueEntryUuid).ifPresent(visitQueueEntry -> {
 			visitQueueEntry.setVoided(true);

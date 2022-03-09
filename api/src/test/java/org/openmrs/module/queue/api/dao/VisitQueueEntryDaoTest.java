@@ -18,6 +18,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Visit;
@@ -27,10 +28,12 @@ import org.openmrs.module.queue.api.QueueEntryService;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.model.VisitQueueEntry;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
+import org.openmrs.test.SkipBaseSetup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 
+@Slf4j
 @ContextConfiguration(classes = SpringTestConfiguration.class, inheritLocations = false)
 public class VisitQueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	
@@ -43,6 +46,14 @@ public class VisitQueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	private static final String QUEUE_ENTRY_UUID = "4eb8fe43-2813-4kbc-80dc-2e5d30252cc6";
 	
 	private static final String VISIT_UUID = "j848b0c0-1ade-11e1-9c71-00248140a6eb";
+	
+	private static final String WAITING_FOR_STATUS = "Waiting for service";
+	
+	private static final String IN_SERVICE_STATUS = "In service";
+	
+	private static final String TRIAGE_SERVICE = "Triage";
+	
+	private static final String CONSULTATION_SERVICE = "Consultation";
 	
 	@Autowired
 	@Qualifier("queue.VisitQueueEntryDao")
@@ -59,6 +70,7 @@ public class VisitQueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	    "org/openmrs/module/queue/api/dao/visitQueueEntryDaoTest_initialDataset.xml");
 	
 	@Before
+	@SkipBaseSetup
 	public void setup() {
 		VISIT_QUEUE_ENTRY_INITIAL_DATASET_XML.forEach(this::executeDataSet);
 	}
@@ -127,14 +139,14 @@ public class VisitQueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	public void shouldFindAllVisitQueueEntries() {
 		Collection<VisitQueueEntry> visitQueueEntries = dao.findAll();
 		assertThat(visitQueueEntries.isEmpty(), is(false));
-		assertThat(visitQueueEntries, hasSize(1));
+		assertThat(visitQueueEntries, hasSize(2));
 	}
 	
 	@Test
 	public void shouldFindAllVisitQueueEntriesIncludingRetired() {
 		Collection<VisitQueueEntry> visitQueueEntries = dao.findAll(true);
 		assertThat(visitQueueEntries.isEmpty(), is(false));
-		assertThat(visitQueueEntries, hasSize(2));
+		assertThat(visitQueueEntries, hasSize(3));
 	}
 	
 	@Test
@@ -156,10 +168,44 @@ public class VisitQueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	}
 	
 	@Test
-	public void shouldGetAllVisitQueueEntries() {
-		Collection<VisitQueueEntry> result = dao.findAll();
+	public void shouldFindVisitQueueEntriesByWaitingForStatusAndService() {
+		Collection<VisitQueueEntry> result = dao.findVisitQueueEntriesByStatusAndService(WAITING_FOR_STATUS, TRIAGE_SERVICE);
+		
 		assertThat(result, notNullValue());
 		assertThat(result, hasSize(1));
-		assertThat(result, hasItem(hasProperty("uuid", is(VISIT_QUEUE_ENTRY_UUID))));
 	}
+	
+	@Test
+	public void shouldFindVisitQueueEntriesByInServiceStatusAndService() {
+		Collection<VisitQueueEntry> result = dao.findVisitQueueEntriesByStatusAndService(IN_SERVICE_STATUS,
+		    CONSULTATION_SERVICE);
+		
+		assertThat(result, notNullValue());
+		assertThat(result, hasSize(1));
+	}
+	
+	@Test
+	public void shouldFilterVisitQueueEntriesByInServiceStatus() {
+		Collection<VisitQueueEntry> result = dao.findVisitQueueEntriesByStatusAndService(IN_SERVICE_STATUS, null);
+		
+		assertThat(result, notNullValue());
+		assertThat(result, hasSize(1));
+	}
+	
+	@Test
+	public void shouldFilterVisitQueueEntriesByConsultationService() {
+		Collection<VisitQueueEntry> result = dao.findVisitQueueEntriesByStatusAndService(null, CONSULTATION_SERVICE);
+		
+		assertThat(result, notNullValue());
+		assertThat(result, hasSize(1));
+	}
+	
+	@Test
+	public void shouldNotFilterVisitQueueEntriesByServiceAndStatusIfBothAreNull() {
+		Collection<VisitQueueEntry> result = dao.findVisitQueueEntriesByStatusAndService(null, null);
+		
+		assertThat(result, notNullValue());
+		assertThat(result, hasSize(2));
+	}
+	
 }

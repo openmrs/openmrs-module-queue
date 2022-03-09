@@ -12,6 +12,7 @@ package org.openmrs.module.queue.web.resources;
 import javax.validation.constraints.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Optional;
 
 import org.openmrs.api.context.Context;
@@ -81,6 +82,15 @@ public class VisitQueueEntryResource extends DelegatingCrudResource<VisitQueueEn
 	@Override
 	protected PageableResult doGetAll(RequestContext requestContext) throws ResponseException {
 		return new NeedsPaging<>(new ArrayList<>(this.visitQueueEntryService.findAllVisitQueueEntries()), requestContext);
+	}
+	
+	@Override
+	protected PageableResult doSearch(RequestContext requestContext) {
+		String status = requestContext.getParameter("status");
+		String service = requestContext.getParameter("service");
+		//Both status & service are nullable
+		Collection<VisitQueueEntry> visitQueueEntries = this.visitQueueEntryService.findVisitQueueEntries(status, service);
+		return new NeedsPaging<>(new ArrayList<>(visitQueueEntries), requestContext);
 	}
 	
 	@Override

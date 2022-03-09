@@ -146,14 +146,14 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	public void shouldFindAllQueueEntries() {
 		Collection<QueueEntry> queues = dao.findAll();
 		assertThat(queues.isEmpty(), is(false));
-		assertThat(queues, hasSize(1));
+		assertThat(queues, hasSize(2));
 	}
 	
 	@Test
 	public void shouldFindAllQueueEntriesIncludingRetired() {
 		Collection<QueueEntry> queues = dao.findAll(true);
 		assertThat(queues.isEmpty(), is(false));
-		assertThat(queues, hasSize(2));
+		assertThat(queues, hasSize(3));
 	}
 	
 	@Test

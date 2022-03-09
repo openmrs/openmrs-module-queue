@@ -24,7 +24,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
 import org.openmrs.Auditable;
+import org.openmrs.ConceptName;
 import org.openmrs.OpenmrsObject;
 import org.openmrs.Retireable;
 import org.openmrs.Voidable;
@@ -114,5 +118,16 @@ public class AbstractBaseQueueDaoImpl<Q extends OpenmrsObject & Auditable> imple
 				handleRetireable(criteria);
 			}
 		}
+	}
+	
+	/**
+	 * Creates concept names subQuery
+	 *
+	 * @param conceptName Concept name
+	 * @return {@link DetachedCriteria} conceptName subQuery
+	 */
+	protected DetachedCriteria conceptByNameDetachedCriteria(@NotNull String conceptName) {
+		return DetachedCriteria.forClass(ConceptName.class, "cn").add(Restrictions.eq("cn.name", conceptName))
+		        .setProjection(Projections.property("cn.concept"));
 	}
 }

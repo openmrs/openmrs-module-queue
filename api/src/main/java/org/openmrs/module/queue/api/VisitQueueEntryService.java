@@ -43,6 +43,16 @@ public interface VisitQueueEntryService {
 	Collection<VisitQueueEntry> findAllVisitQueueEntries();
 	
 	/**
+	 * Find visitQueueEntries by service and status i.e. Find patients waiting for(status) certain
+	 * service
+	 *
+	 * @param status concept name for queueEntry status
+	 * @param service concept name for queue service
+	 * @return {@link Collection} visitQueueEntries matching specified parameters
+	 */
+	Collection<VisitQueueEntry> findVisitQueueEntries(String status, String service);
+	
+	/**
 	 * Voids a visit queue entry record
 	 *
 	 * @param visitQueueEntryUuid uuid of the queue entry to be voided

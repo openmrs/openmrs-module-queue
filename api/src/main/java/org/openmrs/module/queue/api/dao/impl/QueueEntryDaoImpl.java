@@ -15,11 +15,8 @@ import java.util.Collection;
 
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Property;
-import org.hibernate.criterion.Restrictions;
-import org.openmrs.ConceptName;
 import org.openmrs.module.queue.api.dao.QueueEntryDao;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +40,7 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 		Criteria criteria = getCurrentSession().createCriteria(QueueEntry.class, "qe");
 		//Include/exclude retired queues
 		includeVoidedObjects(criteria, includeVoided);
-		criteria.add(Property.forName("qe.status").in(conceptStatusDetachedCriteria(status)));
+		criteria.add(Property.forName("qe.status").in(conceptByNameDetachedCriteria(status)));
 		
 		return criteria.list();
 	}
@@ -56,14 +53,9 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 		Criteria criteria = getCurrentSession().createCriteria(QueueEntry.class, "qe");
 		//Include/exclude retired queues
 		includeVoidedObjects(criteria, false);
-		criteria.add(Property.forName("qe.status").in(conceptStatusDetachedCriteria(status)));
+		criteria.add(Property.forName("qe.status").in(conceptByNameDetachedCriteria(status)));
 		criteria.setProjection(Projections.rowCount());
 		
 		return (Long) criteria.uniqueResult();
-	}
-	
-	private DetachedCriteria conceptStatusDetachedCriteria(@NotNull String status) {
-		return DetachedCriteria.forClass(ConceptName.class, "cn").add(Restrictions.eq("cn.name", status))
-		        .setProjection(Projections.property("cn.concept"));
 	}
 }
