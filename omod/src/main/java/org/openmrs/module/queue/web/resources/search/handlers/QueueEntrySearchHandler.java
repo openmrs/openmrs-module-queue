@@ -42,7 +42,8 @@ public class QueueEntrySearchHandler implements SubResourceSearchHandler {
 		if (StringUtils.isBlank(status) || StringUtils.isBlank(parentUuid)) {
 			return new EmptySearchResult();
 		}
-		Collection<QueueEntry> queueEntries = Context.getService(QueueEntryService.class).searchQueueEntries(status, false);
+		Collection<QueueEntry> queueEntries = Context.getService(QueueEntryService.class)
+		        .searchQueueEntriesByConceptStatus(status, false);
 		return new NeedsPaging<>(new ArrayList<>(queueEntries), requestContext);
 	}
 	

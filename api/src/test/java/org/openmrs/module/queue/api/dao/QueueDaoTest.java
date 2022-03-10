@@ -120,14 +120,14 @@ public class QueueDaoTest extends BaseModuleContextSensitiveTest {
 	public void shouldFindAllQueues() {
 		Collection<Queue> queues = dao.findAll();
 		assertThat(queues.isEmpty(), is(false));
-		assertThat(queues, hasSize(1));
+		assertThat(queues, hasSize(2));
 	}
 	
 	@Test
 	public void shouldFindAllQueuesIncludingRetired() {
 		Collection<Queue> queues = dao.findAll(true);
 		assertThat(queues.isEmpty(), is(false));
-		assertThat(queues, hasSize(2));
+		assertThat(queues, hasSize(3));
 	}
 	
 	@Test
@@ -153,7 +153,7 @@ public class QueueDaoTest extends BaseModuleContextSensitiveTest {
 		List<Queue> queuesByLocation = dao.getAllQueuesByLocation(LOCATION_UUID);
 		
 		assertThat(queuesByLocation, notNullValue());
-		assertThat(queuesByLocation, hasSize(1));
+		assertThat(queuesByLocation, hasSize(2));
 		queuesByLocation.forEach(queue -> assertThat(queue.getLocation().getUuid(), is(LOCATION_UUID)));
 	}
 	
@@ -162,7 +162,7 @@ public class QueueDaoTest extends BaseModuleContextSensitiveTest {
 		List<Queue> queuesByLocation = dao.getAllQueuesByLocation(LOCATION_UUID, true);
 		
 		assertThat(queuesByLocation, notNullValue());
-		assertThat(queuesByLocation, hasSize(2));
+		assertThat(queuesByLocation, hasSize(3));
 		queuesByLocation.forEach(queue -> assertThat(queue.getLocation().getUuid(), is(LOCATION_UUID)));
 	}
 }

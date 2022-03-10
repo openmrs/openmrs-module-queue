@@ -25,6 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Concept;
 import org.openmrs.Patient;
+import org.openmrs.api.ConceptNameType;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.SpringTestConfiguration;
 import org.openmrs.module.queue.model.Queue;
@@ -146,14 +147,14 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	public void shouldFindAllQueueEntries() {
 		Collection<QueueEntry> queues = dao.findAll();
 		assertThat(queues.isEmpty(), is(false));
-		assertThat(queues, hasSize(1));
+		assertThat(queues, hasSize(2));
 	}
 	
 	@Test
 	public void shouldFindAllQueueEntriesIncludingRetired() {
 		Collection<QueueEntry> queues = dao.findAll(true);
 		assertThat(queues.isEmpty(), is(false));
-		assertThat(queues, hasSize(2));
+		assertThat(queues, hasSize(3));
 	}
 	
 	@Test
@@ -197,7 +198,8 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	
 	@Test
 	public void shouldSearchQueueEntriesByStatus() {
-		Collection<QueueEntry> queueEntries = dao.SearchQueueEntries(QUEUE_ENTRY_STATUS, false);
+		Collection<QueueEntry> queueEntries = dao.SearchQueueEntriesByConceptStatus(QUEUE_ENTRY_STATUS,
+		    ConceptNameType.FULLY_SPECIFIED, false, false);
 		
 		assertThat(queueEntries.isEmpty(), is(false));
 		assertThat(queueEntries, hasSize(1));
@@ -209,7 +211,8 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	
 	@Test
 	public void shouldSearchQueueEntriesByStatusIncludingVoidedQueueEntries() {
-		Collection<QueueEntry> queueEntries = dao.SearchQueueEntries(QUEUE_ENTRY_STATUS, true);
+		Collection<QueueEntry> queueEntries = dao.SearchQueueEntriesByConceptStatus(QUEUE_ENTRY_STATUS,
+		    ConceptNameType.FULLY_SPECIFIED, false, true);
 		
 		assertThat(queueEntries.isEmpty(), is(false));
 		assertThat(queueEntries, hasSize(2));
@@ -221,7 +224,8 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	
 	@Test
 	public void shouldCountQueueEntriesByStatus() {
-		Long queueEntriesCountByStatusCount = dao.getQueueEntriesCountByStatus(QUEUE_ENTRY_STATUS);
+		Long queueEntriesCountByStatusCount = dao.getQueueEntriesCountByConceptStatus(QUEUE_ENTRY_STATUS,
+		    ConceptNameType.FULLY_SPECIFIED, false);
 		
 		assertThat(queueEntriesCountByStatusCount, notNullValue());
 		assertThat(queueEntriesCountByStatusCount, is(1L));
@@ -229,7 +233,8 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	
 	@Test
 	public void shouldZeroCountQueueEntriesByBadStatus() {
-		Long queueEntriesCountByStatusCount = dao.getQueueEntriesCountByStatus(BAD_QUEUE_ENTRY_STATUS);
+		Long queueEntriesCountByStatusCount = dao.getQueueEntriesCountByConceptStatus(BAD_QUEUE_ENTRY_STATUS,
+		    ConceptNameType.FULLY_SPECIFIED, false);
 		
 		assertThat(queueEntriesCountByStatusCount, notNullValue());
 		assertThat(queueEntriesCountByStatusCount, is(0L));

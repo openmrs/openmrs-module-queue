@@ -19,6 +19,7 @@ import lombok.AccessLevel;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.openmrs.api.APIException;
+import org.openmrs.api.ConceptNameType;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.queue.api.QueueEntryService;
@@ -85,11 +86,13 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	}
 	
 	/**
-	 * @see org.openmrs.module.queue.api.QueueEntryService#searchQueueEntries(String, boolean)
+	 * @see org.openmrs.module.queue.api.QueueEntryService#searchQueueEntriesByConceptStatus(String,
+	 *      boolean)
 	 */
 	@Override
-	public Collection<QueueEntry> searchQueueEntries(String status, boolean includeVoided) {
-		return this.dao.SearchQueueEntries(status, includeVoided);
+	public Collection<QueueEntry> searchQueueEntriesByConceptStatus(String conceptStatus, boolean includeVoided) {
+		return this.dao.SearchQueueEntriesByConceptStatus(conceptStatus, ConceptNameType.FULLY_SPECIFIED, false,
+		    includeVoided);
 	}
 	
 	/**
@@ -97,6 +100,6 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	 */
 	@Override
 	public Long getQueueEntriesCountByStatus(@NotNull String status) {
-		return this.dao.getQueueEntriesCountByStatus(status);
+		return this.dao.getQueueEntriesCountByConceptStatus(status, ConceptNameType.FULLY_SPECIFIED, false);
 	}
 }

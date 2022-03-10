@@ -9,7 +9,22 @@
  */
 package org.openmrs.module.queue.api.dao;
 
+import java.util.Collection;
+
 import org.openmrs.Auditable;
 import org.openmrs.OpenmrsObject;
+import org.openmrs.api.ConceptNameType;
+import org.openmrs.module.queue.model.VisitQueueEntry;
 
-public interface VisitQueueEntryDao<Q extends OpenmrsObject & Auditable> extends BaseQueueDao<Q> {}
+public interface VisitQueueEntryDao<Q extends OpenmrsObject & Auditable> extends BaseQueueDao<Q> {
+	
+	/**
+	 * Finds {@link VisitQueueEntry} by conceptStatus and conceptService.
+	 *
+	 * @param conceptStatus conceptName for queueEntry conceptStatus concept.
+	 * @param conceptService conceptName for queue conceptService concept.
+	 * @return {@link Collection} of visitQueueEntries matching specified parameters.
+	 */
+	Collection<VisitQueueEntry> findVisitQueueEntriesByConceptStatusAndConceptService(String conceptStatus,
+	        String conceptService, ConceptNameType conceptNameType, boolean localePreferred);
+}

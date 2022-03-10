@@ -11,6 +11,9 @@
 <dataset>
     <queue queue_id="1" name="Triage Test Queue" description="This is description" location_id="1" service="2001" creator="1"
            date_created="2022-01-31 00:00:00.0" retired="false" uuid="3eb7fe43-2813-4kbc-80dc-2e5d30252bb5"/>
+    <!-- Consultation queue -->
+    <queue queue_id="3" name="Consultation Queue" description="This is consultation queue description" location_id="1" service="2002" creator="1"
+           date_created="2022-01-31 00:00:00.0" retired="false" uuid="5ob7fe43-2813-4kbc-80dc-2e5d30252bb3"/>
     <!--Retired Queue -->
     <queue queue_id="2" name="Retired Test Queue" service="2001" description="This is description" location_id="1" creator="1"
            date_created="2022-01-31 00:00:00.0" retired="true" date_retired="2022-02-02 16:00:00.0"

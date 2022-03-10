@@ -15,24 +15,29 @@ import java.util.Collection;
 
 import org.openmrs.Auditable;
 import org.openmrs.OpenmrsObject;
+import org.openmrs.api.ConceptNameType;
 import org.openmrs.module.queue.model.QueueEntry;
 
 public interface QueueEntryDao<Q extends OpenmrsObject & Auditable> extends BaseQueueDao<Q> {
 	
 	/**
-	 * Searches queue entries by status
+	 * Searches queue entries by conceptStatus
 	 *
-	 * @param status the queueEntry status
+	 * @param conceptStatus the queueEntry conceptStatus
 	 * @param includeVoided Include/exclude voided queue entries
-	 * @return {@link java.util.Collection} of queue entries with the specified status
+	 * @return {@link java.util.Collection} of queue entries with the specified conceptStatus
 	 */
-	Collection<QueueEntry> SearchQueueEntries(@NotNull String status, boolean includeVoided);
+	Collection<QueueEntry> SearchQueueEntriesByConceptStatus(@NotNull String conceptStatus, ConceptNameType conceptNameType,
+	        boolean localePreferred, boolean includeVoided);
 	
 	/**
 	 * Gets count of queue entries by given status
 	 *
-	 * @param status the queue entry status
+	 * @param conceptStatus the queue entry status
+	 * @param conceptNameType the conceptNameType e.g. FULLY_SPECIFIED
+	 * @param localePreferred locale preferred either true or false
 	 * @return {@link java.lang.Long} count of queue entries by status
 	 */
-	Long getQueueEntriesCountByStatus(@NotNull String status);
+	Long getQueueEntriesCountByConceptStatus(@NotNull String conceptStatus, ConceptNameType conceptNameType,
+	        boolean localePreferred);
 }
