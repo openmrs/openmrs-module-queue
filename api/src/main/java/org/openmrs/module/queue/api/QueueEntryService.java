@@ -60,13 +60,13 @@ public interface QueueEntryService {
 	void purgeQueueEntry(@NotNull QueueEntry queueEntry) throws APIException;
 	
 	/**
-	 * Search for queue entries by status
+	 * Search for queue entries by conceptStatus
 	 *
-	 * @param status queue entry status
+	 * @param conceptStatus queue entry conceptStatus
 	 * @param includeVoided include/exclude voided queue entries
 	 * @return {@link java.util.Collection} of queue entries with the specified statuses
 	 */
-	Collection<QueueEntry> searchQueueEntries(@NotNull String status, boolean includeVoided);
+	Collection<QueueEntry> searchQueueEntriesByConceptStatus(@NotNull String conceptStatus, boolean includeVoided);
 	
 	/**
 	 * Gets count of queue entries by status

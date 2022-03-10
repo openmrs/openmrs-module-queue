@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
@@ -32,6 +33,7 @@ import org.openmrs.ConceptName;
 import org.openmrs.OpenmrsObject;
 import org.openmrs.Retireable;
 import org.openmrs.Voidable;
+import org.openmrs.api.ConceptNameType;
 import org.openmrs.module.queue.api.dao.BaseQueueDao;
 
 @Slf4j
@@ -126,8 +128,17 @@ public class AbstractBaseQueueDaoImpl<Q extends OpenmrsObject & Auditable> imple
 	 * @param conceptName Concept name
 	 * @return {@link DetachedCriteria} conceptName subQuery
 	 */
-	protected DetachedCriteria conceptByNameDetachedCriteria(@NotNull String conceptName) {
-		return DetachedCriteria.forClass(ConceptName.class, "cn").add(Restrictions.eq("cn.name", conceptName))
-		        .setProjection(Projections.property("cn.concept"));
+	protected DetachedCriteria conceptByNameDetachedCriteria(@NotNull String conceptName, boolean localePreferred,
+	        ConceptNameType conceptNameType) {
+		DetachedCriteria detachedCriteria = DetachedCriteria.forClass(ConceptName.class, "cn");
+		Conjunction and = Restrictions.conjunction();
+		and.add(Restrictions.eq("cn.name", conceptName));
+		//An option to restrict by localePreferred
+		and.add(Restrictions.eq("cn.localePreferred", localePreferred));
+		and.add(Restrictions.eq("cn.conceptNameType", conceptNameType));
+		
+		detachedCriteria.add(and);
+		detachedCriteria.setProjection(Projections.property("cn.concept"));
+		return detachedCriteria;
 	}
 }

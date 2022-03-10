@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Subqueries;
+import org.openmrs.api.ConceptNameType;
 import org.openmrs.module.queue.api.dao.VisitQueueEntryDao;
 import org.openmrs.module.queue.model.VisitQueueEntry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,24 +35,29 @@ public class VisitQueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<VisitQueueE
 	}
 	
 	/**
-	 * @see VisitQueueEntryDao#findVisitQueueEntriesByStatusAndService(String, String)
+	 * @see VisitQueueEntryDao#findVisitQueueEntriesByConceptStatusAndConceptService(String, String,
+	 *      ConceptNameType, boolean)
 	 */
 	@Override
-	public Collection<VisitQueueEntry> findVisitQueueEntriesByStatusAndService(String status, String service) {
+	public Collection<VisitQueueEntry> findVisitQueueEntriesByConceptStatusAndConceptService(String conceptStatus,
+	        String conceptService, ConceptNameType conceptNameType, boolean localePreferred) {
 		Criteria criteriaVisitQueueEntries = getCurrentSession().createCriteria(VisitQueueEntry.class, "_vqe");
 		includeVoidedObjects(criteriaVisitQueueEntries, false);
 		Criteria criteriaQueueEntries = criteriaVisitQueueEntries.createCriteria("_vqe.queueEntry", "_qe");
 		Criteria criteriaQueue = criteriaQueueEntries.createCriteria("_qe.queue", "_q");
 		
-		if (status != null && service != null) {
-			criteriaQueue
-			        .add(and(Subqueries.propertiesIn(new String[] { "_qe.status" }, conceptByNameDetachedCriteria(status)),
-			            Subqueries.propertiesIn(new String[] { "_q.service" }, conceptByNameDetachedCriteria(service))));
-		} else if (status != null) {
-			criteriaQueue.add(Subqueries.propertiesIn(new String[] { "_qe.status" }, conceptByNameDetachedCriteria(status)));
-		} else if (service != null) {
-			criteriaQueue
-			        .add(Subqueries.propertiesIn(new String[] { "_q.service" }, conceptByNameDetachedCriteria(service)));
+		if (conceptStatus != null && conceptService != null) {
+			criteriaQueue.add(and(
+			    Subqueries.propertiesIn(new String[] { "_qe.status" },
+			        conceptByNameDetachedCriteria(conceptStatus, localePreferred, conceptNameType)),
+			    Subqueries.propertiesIn(new String[] { "_q.service" },
+			        conceptByNameDetachedCriteria(conceptService, localePreferred, conceptNameType))));
+		} else if (conceptStatus != null) {
+			criteriaQueue.add(Subqueries.propertiesIn(new String[] { "_qe.status" },
+			    conceptByNameDetachedCriteria(conceptStatus, localePreferred, conceptNameType)));
+		} else if (conceptService != null) {
+			criteriaQueue.add(Subqueries.propertiesIn(new String[] { "_q.service" },
+			    conceptByNameDetachedCriteria(conceptService, localePreferred, conceptNameType)));
 		}
 		
 		return criteriaQueue.list();

@@ -24,6 +24,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.openmrs.Concept;
+import org.openmrs.api.ConceptNameType;
 import org.openmrs.module.queue.api.dao.QueueEntryDao;
 import org.openmrs.module.queue.api.impl.QueueEntryServiceImpl;
 import org.openmrs.module.queue.model.QueueEntry;
@@ -77,7 +78,6 @@ public class QueueEntryServiceTest {
 	public void shouldCreateNewQueueEntryRecord() {
 		QueueEntry queueEntry = mock(QueueEntry.class);
 		Concept conceptStatus = mock(Concept.class);
-		Concept conceptService = mock(Concept.class);
 		Concept conceptPriority = mock(Concept.class);
 		
 		when(queueEntry.getQueueEntryId()).thenReturn(QUEUE_ENTRY_ID);
@@ -112,14 +112,16 @@ public class QueueEntryServiceTest {
 	
 	@Test
 	public void shouldReturnCountOfQueueEntriesByStatus() {
-		when(dao.getQueueEntriesCountByStatus(QUEUE_ENTRY_STATUS)).thenReturn(1L);
+		when(dao.getQueueEntriesCountByConceptStatus(QUEUE_ENTRY_STATUS, ConceptNameType.FULLY_SPECIFIED, false))
+		        .thenReturn(1L);
 		
 		assertThat(queueEntryService.getQueueEntriesCountByStatus(QUEUE_ENTRY_STATUS), is(1L));
 	}
 	
 	@Test
 	public void shouldReturnZeroForBadGivenStatus() {
-		when(dao.getQueueEntriesCountByStatus(BAD_QUEUE_ENTRY_STATUS)).thenReturn(0L);
+		when(dao.getQueueEntriesCountByConceptStatus(BAD_QUEUE_ENTRY_STATUS, ConceptNameType.FULLY_SPECIFIED, false))
+		        .thenReturn(0L);
 		
 		assertThat(queueEntryService.getQueueEntriesCountByStatus(QUEUE_ENTRY_STATUS), is(0L));
 	}

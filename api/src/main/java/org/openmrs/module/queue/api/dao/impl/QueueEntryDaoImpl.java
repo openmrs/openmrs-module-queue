@@ -17,6 +17,7 @@ import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Property;
+import org.openmrs.api.ConceptNameType;
 import org.openmrs.module.queue.api.dao.QueueEntryDao;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,27 +34,32 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 	}
 	
 	/**
-	 * @see org.openmrs.module.queue.api.dao.QueueEntryDao#SearchQueueEntries(String, boolean)
+	 * @see QueueEntryDao#SearchQueueEntriesByConceptStatus(String, ConceptNameType, boolean, boolean)
 	 */
 	@Override
-	public Collection<QueueEntry> SearchQueueEntries(@NotNull String status, boolean includeVoided) {
+	public Collection<QueueEntry> SearchQueueEntriesByConceptStatus(@NotNull String status, ConceptNameType conceptNameType,
+	        boolean localePreferred, boolean includeVoided) {
 		Criteria criteria = getCurrentSession().createCriteria(QueueEntry.class, "qe");
 		//Include/exclude retired queues
 		includeVoidedObjects(criteria, includeVoided);
-		criteria.add(Property.forName("qe.status").in(conceptByNameDetachedCriteria(status)));
+		criteria.add(
+		    Property.forName("qe.status").in(conceptByNameDetachedCriteria(status, localePreferred, conceptNameType)));
 		
 		return criteria.list();
 	}
 	
 	/**
-	 * @see org.openmrs.module.queue.api.dao.QueueEntryDao#getQueueEntriesCountByStatus(String)
+	 * @see org.openmrs.module.queue.api.dao.QueueEntryDao#getQueueEntriesCountByConceptStatus(String,
+	 *      ConceptNameType, boolean)
 	 */
 	@Override
-	public Long getQueueEntriesCountByStatus(@NotNull String status) {
+	public Long getQueueEntriesCountByConceptStatus(@NotNull String conceptStatus, ConceptNameType conceptNameType,
+	        boolean localePreferred) {
 		Criteria criteria = getCurrentSession().createCriteria(QueueEntry.class, "qe");
 		//Include/exclude retired queues
 		includeVoidedObjects(criteria, false);
-		criteria.add(Property.forName("qe.status").in(conceptByNameDetachedCriteria(status)));
+		criteria.add(Property.forName("qe.status")
+		        .in(conceptByNameDetachedCriteria(conceptStatus, localePreferred, conceptNameType)));
 		criteria.setProjection(Projections.rowCount());
 		
 		return (Long) criteria.uniqueResult();

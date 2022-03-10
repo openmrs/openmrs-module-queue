@@ -20,6 +20,7 @@ import lombok.Setter;
 import org.openmrs.Patient;
 import org.openmrs.Visit;
 import org.openmrs.api.APIException;
+import org.openmrs.api.ConceptNameType;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.queue.api.QueueEntryService;
@@ -74,7 +75,9 @@ public class VisitQueueEntryServiceImpl extends BaseOpenmrsService implements Vi
 	
 	@Override
 	public Collection<VisitQueueEntry> findVisitQueueEntries(String status, String service) {
-		return dao.findVisitQueueEntriesByStatusAndService(status, service);
+		//Restrict to fully_specified concept names
+		return dao.findVisitQueueEntriesByConceptStatusAndConceptService(status, service, ConceptNameType.FULLY_SPECIFIED,
+		    false);
 	}
 	
 	@Override
