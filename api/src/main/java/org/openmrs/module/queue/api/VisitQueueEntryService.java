@@ -67,4 +67,29 @@ public interface VisitQueueEntryService {
 	 * @throws org.openmrs.api.APIException
 	 */
 	void purgeQueueEntry(@NotNull VisitQueueEntry visitQueueEntry) throws APIException;
+	
+	/**
+	 * Gets count of visit queue entries filtered by status
+	 *
+	 * @param status concept status name
+	 * @return {@link Long} count of visit queue entries
+	 */
+	Long getVisitQueueEntriesCountByStatus(@NotNull String status);
+	
+	/**
+	 * Gets count of visit queue entries filtered by service
+	 *
+	 * @param service concept service name
+	 * @return {@link Long} count of visit queue entries
+	 */
+	Long getVisitQueueEntriesCountByService(@NotNull String service);
+	
+	/**
+	 * Gets count of visit queue entries filtered by service and status
+	 *
+	 * @param service concept service name
+	 * @param status concept status name
+	 * @return {@link Long} count of visit queue entries
+	 */
+	Long getVisitQueueEntriesCountByStatusAndService(@NotNull String status, String service);
 }

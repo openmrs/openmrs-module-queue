@@ -95,4 +95,28 @@ public class VisitQueueEntryServiceImpl extends BaseOpenmrsService implements Vi
 	public void purgeQueueEntry(@NotNull VisitQueueEntry visitQueueEntry) throws APIException {
 		this.dao.delete(visitQueueEntry);
 	}
+	
+	/**
+	 * @see VisitQueueEntryService#getVisitQueueEntriesCountByStatus(String)
+	 */
+	@Override
+	public Long getVisitQueueEntriesCountByStatus(String status) {
+		return dao.getVisitQueueEntriesCountByStatusAndService(status, null, ConceptNameType.FULLY_SPECIFIED, false);
+	}
+	
+	/**
+	 * @see VisitQueueEntryService#getVisitQueueEntriesCountByService(String)
+	 */
+	@Override
+	public Long getVisitQueueEntriesCountByService(String service) {
+		return dao.getVisitQueueEntriesCountByStatusAndService(null, service, ConceptNameType.FULLY_SPECIFIED, false);
+	}
+	
+	/**
+	 * @see VisitQueueEntryService#getVisitQueueEntriesCountByStatusAndService(String, String)
+	 */
+	@Override
+	public Long getVisitQueueEntriesCountByStatusAndService(String status, String service) {
+		return dao.getVisitQueueEntriesCountByStatusAndService(status, service, ConceptNameType.FULLY_SPECIFIED, false);
+	}
 }
