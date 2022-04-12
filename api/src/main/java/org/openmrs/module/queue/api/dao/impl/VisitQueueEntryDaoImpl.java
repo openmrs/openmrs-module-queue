@@ -16,6 +16,7 @@ import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Subqueries;
 import org.openmrs.api.ConceptNameType;
 import org.openmrs.module.queue.api.dao.VisitQueueEntryDao;
@@ -41,6 +42,21 @@ public class VisitQueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<VisitQueueE
 	@Override
 	public Collection<VisitQueueEntry> findVisitQueueEntriesByConceptStatusAndConceptService(String conceptStatus,
 	        String conceptService, ConceptNameType conceptNameType, boolean localePreferred) {
+		return handleVisitQueueEntriesByStatusAndServiceCriteria(conceptStatus, conceptService, conceptNameType,
+		    localePreferred).list();
+	}
+	
+	@Override
+	public Long getVisitQueueEntriesCountByStatusAndService(String conceptStatus, String conceptService,
+	        ConceptNameType conceptNameType, boolean localePreferred) {
+		Criteria criteria = handleVisitQueueEntriesByStatusAndServiceCriteria(conceptStatus, conceptService, conceptNameType,
+		    localePreferred);
+		criteria.setProjection(Projections.rowCount());
+		return (Long) criteria.uniqueResult();
+	}
+	
+	private Criteria handleVisitQueueEntriesByStatusAndServiceCriteria(String conceptStatus, String conceptService,
+	        ConceptNameType conceptNameType, boolean localePreferred) {
 		Criteria criteriaVisitQueueEntries = getCurrentSession().createCriteria(VisitQueueEntry.class, "_vqe");
 		includeVoidedObjects(criteriaVisitQueueEntries, false);
 		Criteria criteriaQueueEntries = criteriaVisitQueueEntries.createCriteria("_vqe.queueEntry", "_qe");
@@ -60,6 +76,6 @@ public class VisitQueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<VisitQueueE
 			    conceptByNameDetachedCriteria(conceptService, localePreferred, conceptNameType)));
 		}
 		
-		return criteriaQueue.list();
+		return criteriaQueue;
 	}
 }
