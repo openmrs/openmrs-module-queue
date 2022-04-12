@@ -43,6 +43,13 @@ public interface VisitQueueEntryService {
 	Collection<VisitQueueEntry> findAllVisitQueueEntries();
 	
 	/**
+	 * Gets only active queue entries (If endDate is null & not voided)
+	 * 
+	 * @return {@link Collection} of queue entries
+	 */
+	Collection<VisitQueueEntry> getActiveVisitQueueEntries();
+	
+	/**
 	 * Find visitQueueEntries by service and status i.e. Find patients waiting for(status) certain
 	 * service
 	 *
@@ -92,4 +99,5 @@ public interface VisitQueueEntryService {
 	 * @return {@link Long} count of visit queue entries
 	 */
 	Long getVisitQueueEntriesCountByStatusAndService(@NotNull String status, String service);
+	
 }

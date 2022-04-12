@@ -74,6 +74,14 @@ public class VisitQueueEntryServiceImpl extends BaseOpenmrsService implements Vi
 	}
 	
 	@Override
+	public Collection<VisitQueueEntry> getActiveVisitQueueEntries() {
+		Collection<VisitQueueEntry> queueEntries = this.dao.findAll(false);
+		//Remove inactive queue entries
+		queueEntries.removeIf((vqe -> vqe.getQueueEntry().getEndedAt() != null));
+		return queueEntries;
+	}
+	
+	@Override
 	public Collection<VisitQueueEntry> findVisitQueueEntries(String status, String service) {
 		//Restrict to fully_specified concept names
 		return dao.findVisitQueueEntriesByConceptStatusAndConceptService(status, service, ConceptNameType.FULLY_SPECIFIED,

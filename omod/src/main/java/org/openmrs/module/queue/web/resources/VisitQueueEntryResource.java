@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 
+import lombok.extern.slf4j.Slf4j;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.VisitQueueEntryService;
 import org.openmrs.module.queue.model.VisitQueueEntry;
@@ -38,6 +39,7 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
  * By convention, resource names should use exclusively lowercase letters. Similarly, dashes (-) are
  * conventionally used in place of underscores (_).
  */
+@Slf4j
 @SuppressWarnings("unused")
 @Resource(name = RestConstants.VERSION_1
         + "/visit-queue-entry", supportedClass = VisitQueueEntry.class, supportedOpenmrsVersions = { "2.0 - 2.*" })
@@ -81,6 +83,18 @@ public class VisitQueueEntryResource extends DelegatingCrudResource<VisitQueueEn
 	
 	@Override
 	protected PageableResult doGetAll(RequestContext requestContext) throws ResponseException {
+		String includeInactive = requestContext.getParameter("includeInactive");
+		if (includeInactive != null) {
+			try {
+				if (!Boolean.parseBoolean(includeInactive)) {
+					return new NeedsPaging<>(new ArrayList<>(visitQueueEntryService.getActiveVisitQueueEntries()),
+					        requestContext);
+				}
+			}
+			catch (Exception exception) {
+				log.error("Unable to parse string {} " + includeInactive, exception.getMessage(), exception);
+			}
+		}
 		return new NeedsPaging<>(new ArrayList<>(this.visitQueueEntryService.findAllVisitQueueEntries()), requestContext);
 	}
 	
