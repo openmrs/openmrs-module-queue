@@ -20,16 +20,16 @@
   		    http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
     <context:annotation-config/>
-    <context:component-scan base-package="org.openmrs.module.queue" />
+    <context:component-scan base-package="org.openmrs.module.queue"/>
 
     <!-- Wraps QueueService methods in DB transactions and OpenMRS interceptors,
     which set audit info like dateCreated, changedBy, etc.-->
     <bean id="queue.QueueService"
-            class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+          class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
         <property name="transactionManager" ref="transactionManager"/>
         <property name="target">
             <bean class="org.openmrs.module.queue.api.impl.QueueServiceImpl">
-                <property name="dao" ref="queue.QueueDao" />
+                <property name="dao" ref="queueDao"/>
             </bean>
         </property>
         <property name="preInterceptors" ref="serviceInterceptors"/>
@@ -39,7 +39,7 @@
         <property name="moduleService">
             <list>
                 <value>org.openmrs.module.queue.api.QueueService</value>
-                <ref bean="queue.QueueService" />
+                <ref bean="queue.QueueService"/>
             </list>
         </property>
     </bean>
@@ -49,7 +49,7 @@
         <property name="transactionManager" ref="transactionManager"/>
         <property name="target">
             <bean class="org.openmrs.module.queue.api.impl.QueueEntryServiceImpl">
-                <property name="dao" ref="queue.QueueEntryDao" />
+                <property name="dao" ref="queueEntryDao"/>
             </bean>
         </property>
         <property name="preInterceptors" ref="serviceInterceptors"/>
@@ -59,7 +59,7 @@
         <property name="moduleService">
             <list>
                 <value>org.openmrs.module.queue.api.QueueEntryService</value>
-                <ref bean="queue.QueueEntryService" />
+                <ref bean="queue.QueueEntryService"/>
             </list>
         </property>
     </bean>
@@ -69,7 +69,7 @@
         <property name="transactionManager" ref="transactionManager"/>
         <property name="target">
             <bean class="org.openmrs.module.queue.api.impl.VisitQueueEntryServiceImpl">
-                <property name="dao" ref="queue.VisitQueueEntryDao" />
+                <property name="dao" ref="visitQueueEntryDao"/>
             </bean>
         </property>
         <property name="preInterceptors" ref="serviceInterceptors"/>
@@ -79,8 +79,17 @@
         <property name="moduleService">
             <list>
                 <value>org.openmrs.module.queue.api.VisitQueueEntryService</value>
-                <ref bean="queue.VisitQueueEntryService" />
+                <ref bean="queue.VisitQueueEntryService"/>
             </list>
         </property>
+    </bean>
+    <bean id="queueDao" class="org.openmrs.module.queue.api.dao.impl.QueueDaoImpl">
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+    <bean id="queueEntryDao" class="org.openmrs.module.queue.api.dao.impl.QueueEntryDaoImpl">
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+    <bean id="visitQueueEntryDao" class="org.openmrs.module.queue.api.dao.impl.VisitQueueEntryDaoImpl">
+        <constructor-arg ref="sessionFactory"/>
     </bean>
 </beans>

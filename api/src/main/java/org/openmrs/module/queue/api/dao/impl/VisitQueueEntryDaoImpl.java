@@ -21,16 +21,12 @@ import org.hibernate.criterion.Subqueries;
 import org.openmrs.api.ConceptNameType;
 import org.openmrs.module.queue.api.dao.VisitQueueEntryDao;
 import org.openmrs.module.queue.model.VisitQueueEntry;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Repository;
 
 @Slf4j
 @SuppressWarnings("unchecked")
-@Repository("queue.VisitQueueEntryDao")
 public class VisitQueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<VisitQueueEntry> implements VisitQueueEntryDao<VisitQueueEntry> {
 	
-	@Autowired
 	public VisitQueueEntryDaoImpl(@Qualifier("sessionFactory") SessionFactory sessionFactory) {
 		super(sessionFactory);
 	}

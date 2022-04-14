@@ -57,7 +57,7 @@ public class VisitQueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	private static final String CONSULTATION_SERVICE = "Consultation";
 	
 	@Autowired
-	@Qualifier("queue.VisitQueueEntryDao")
+	@Qualifier("visitQueueEntryDao")
 	private VisitQueueEntryDao<VisitQueueEntry> dao;
 	
 	//the order of the list is important!

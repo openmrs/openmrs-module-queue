@@ -18,15 +18,11 @@ import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
 import org.openmrs.module.queue.api.dao.QueueDao;
 import org.openmrs.module.queue.model.Queue;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Repository;
 
 @SuppressWarnings("unchecked")
-@Repository("queue.QueueDao")
 public class QueueDaoImpl extends AbstractBaseQueueDaoImpl<Queue> implements QueueDao<Queue> {
 	
-	@Autowired
 	public QueueDaoImpl(@Qualifier(value = "sessionFactory") SessionFactory sessionFactory) {
 		super(sessionFactory);
 	}

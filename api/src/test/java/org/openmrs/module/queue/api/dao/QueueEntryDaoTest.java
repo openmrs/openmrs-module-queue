@@ -64,11 +64,11 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	private static final String BAD_QUEUE_ENTRY_STATUS = "Bad Waiting for service";
 	
 	@Autowired
-	@Qualifier("queue.QueueEntryDao")
+	@Qualifier("queueEntryDao")
 	private QueueEntryDao<QueueEntry> dao;
 	
 	@Autowired
-	@Qualifier("queue.QueueDao")
+	@Qualifier("queueDao")
 	private QueueDao<Queue> queueDao;
 	
 	@Before

@@ -52,7 +52,7 @@ public class QueueDaoTest extends BaseModuleContextSensitiveTest {
 	private static final String CONCEPT_UUID = "67b910bd-298c-4ecf-a632-661ae2f446op";
 	
 	@Autowired
-	@Qualifier("queue.QueueDao")
+	@Qualifier("queueDao")
 	private QueueDao<Queue> dao;
 	
 	@Before
