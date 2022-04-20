@@ -83,19 +83,7 @@ public class VisitQueueEntryResource extends DelegatingCrudResource<VisitQueueEn
 	
 	@Override
 	protected PageableResult doGetAll(RequestContext requestContext) throws ResponseException {
-		String includeInactive = requestContext.getParameter("includeInactive");
-		if (includeInactive != null) {
-			try {
-				if (!Boolean.parseBoolean(includeInactive)) {
-					return new NeedsPaging<>(new ArrayList<>(visitQueueEntryService.getActiveVisitQueueEntries()),
-					        requestContext);
-				}
-			}
-			catch (Exception exception) {
-				log.error("Unable to parse string {} " + includeInactive, exception.getMessage(), exception);
-			}
-		}
-		return new NeedsPaging<>(new ArrayList<>(this.visitQueueEntryService.findAllVisitQueueEntries()), requestContext);
+		return new NeedsPaging<>(new ArrayList<>(this.visitQueueEntryService.getActiveVisitQueueEntries()), requestContext);
 	}
 	
 	@Override

@@ -28,6 +28,7 @@ import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+@SuppressWarnings("unchecked")
 @RunWith(PowerMockRunner.class)
 public class VisitQueueEntryResourceTest extends BaseQueueResourceTest<VisitQueueEntry, VisitQueueEntryResource> {
 	
@@ -82,7 +83,7 @@ public class VisitQueueEntryResourceTest extends BaseQueueResourceTest<VisitQueu
 	@Test
 	public void shouldReturnAllVisitQueueEntriesFromDb() {
 		RequestContext requestContext = mock(RequestContext.class);
-		when(visitQueueEntryService.findAllVisitQueueEntries()).thenReturn(Collections.singletonList(getObject()));
+		when(visitQueueEntryService.getActiveVisitQueueEntries()).thenReturn(Collections.singletonList(getObject()));
 		
 		NeedsPaging<VisitQueueEntry> result = (NeedsPaging<VisitQueueEntry>) getResource().doGetAll(requestContext);
 		
