@@ -14,9 +14,11 @@ import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import lombok.AccessLevel;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.openmrs.Patient;
 import org.openmrs.Visit;
 import org.openmrs.api.APIException;
@@ -30,6 +32,7 @@ import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.model.VisitQueueEntry;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Transactional
 @Setter(AccessLevel.MODULE)
 public class VisitQueueEntryServiceImpl extends BaseOpenmrsService implements VisitQueueEntryService {
@@ -76,16 +79,18 @@ public class VisitQueueEntryServiceImpl extends BaseOpenmrsService implements Vi
 	@Override
 	public Collection<VisitQueueEntry> getActiveVisitQueueEntries() {
 		Collection<VisitQueueEntry> queueEntries = this.dao.findAll(false);
+		
 		//Remove inactive queue entries
-		queueEntries.removeIf((vqe -> vqe.getQueueEntry().getEndedAt() != null));
-		return queueEntries;
+		//queueEntries.removeIf((vqe -> vqe.getQueueEntry().getEndedAt() != null));
+		return queueEntries.stream().filter(visitQueueEntry -> visitQueueEntry.getQueueEntry().getEndedAt() == null)
+		        .collect(Collectors.toList());
 	}
 	
 	@Override
 	public Collection<VisitQueueEntry> findVisitQueueEntries(String status, String service) {
 		//Restrict to fully_specified concept names
 		return dao.findVisitQueueEntriesByConceptStatusAndConceptService(status, service, ConceptNameType.FULLY_SPECIFIED,
-		    false);
+		    true);
 	}
 	
 	@Override
@@ -109,7 +114,7 @@ public class VisitQueueEntryServiceImpl extends BaseOpenmrsService implements Vi
 	 */
 	@Override
 	public Long getVisitQueueEntriesCountByStatus(String status) {
-		return dao.getVisitQueueEntriesCountByStatusAndService(status, null, ConceptNameType.FULLY_SPECIFIED, false);
+		return dao.getVisitQueueEntriesCountByStatusAndService(status, null, ConceptNameType.FULLY_SPECIFIED, true);
 	}
 	
 	/**
@@ -117,7 +122,7 @@ public class VisitQueueEntryServiceImpl extends BaseOpenmrsService implements Vi
 	 */
 	@Override
 	public Long getVisitQueueEntriesCountByService(String service) {
-		return dao.getVisitQueueEntriesCountByStatusAndService(null, service, ConceptNameType.FULLY_SPECIFIED, false);
+		return dao.getVisitQueueEntriesCountByStatusAndService(null, service, ConceptNameType.FULLY_SPECIFIED, true);
 	}
 	
 	/**
@@ -125,6 +130,6 @@ public class VisitQueueEntryServiceImpl extends BaseOpenmrsService implements Vi
 	 */
 	@Override
 	public Long getVisitQueueEntriesCountByStatusAndService(String status, String service) {
-		return dao.getVisitQueueEntriesCountByStatusAndService(status, service, ConceptNameType.FULLY_SPECIFIED, false);
+		return dao.getVisitQueueEntriesCountByStatusAndService(status, service, ConceptNameType.FULLY_SPECIFIED, true);
 	}
 }
