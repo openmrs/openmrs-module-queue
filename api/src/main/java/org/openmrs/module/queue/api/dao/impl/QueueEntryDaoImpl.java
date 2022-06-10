@@ -17,6 +17,7 @@ import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Property;
+import org.hibernate.criterion.Restrictions;
 import org.openmrs.api.ConceptNameType;
 import org.openmrs.module.queue.api.dao.QueueEntryDao;
 import org.openmrs.module.queue.model.QueueEntry;
@@ -54,6 +55,7 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 		Criteria criteria = getCurrentSession().createCriteria(QueueEntry.class, "qe");
 		//Include/exclude retired queues
 		includeVoidedObjects(criteria, false);
+		criteria.add(Restrictions.and(Restrictions.isNull("qe.endedAt"), Restrictions.isNotNull("qe.startedAt")));
 		criteria.add(Property.forName("qe.status")
 		        .in(conceptByNameDetachedCriteria(conceptStatus, localePreferred, conceptNameType)));
 		criteria.setProjection(Projections.rowCount());
