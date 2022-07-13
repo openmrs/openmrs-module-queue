@@ -14,7 +14,7 @@ Openmrs-module-queue
 - Webservices rest module -(Always bundled with the platform)
 
 ## Docker development environment
-To prepare environment for development of the module, execute the following command;
+Prepare the docker development environment by executing the following command;
 
 ```bash
 sh prepare-docker-env.sh
@@ -40,7 +40,7 @@ OPENMRS_DB_REPLICAS=1
 OMOD_TARGET="queue-1.0.0-SNAPSHOT.omod"
 
 ```
-Now, you can spin up an OpenMRS instance with the `required_modules` by executing the following command;
+Now, spin up an OpenMRS instance with`required_modules` by executing the following command;
 
 ```bash
 docker-compose up -d
@@ -51,12 +51,12 @@ To deploy module changes, run the following command;
 ```bash
  docker run --rm -w="/module" -v ${PWD}:/module openmrs/openmrs-core:dev-m1 mvn clean install
 ```
-Or if you already have maven installed on your system, you can use the following command;
+Or if you already have maven installed on your system, use the following command;
 
 ```bash
 mvn clean install
 ```
-Then, you can restart the container(OpenMRS instance) by executing the following command;
+Then, restart the container(OpenMRS instance) by executing the following command;
 
 ```bash
 docker-compose restart
