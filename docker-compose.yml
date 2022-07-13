@@ -18,8 +18,8 @@ services:
       MYSQL_PASSWORD: ${OPENMRS_DB_PASSWORD:-openmrs}
       MYSQL_ROOT_PASSWORD: ${OPENMRS_DB_ROOT_PASSWORD:-openmrs}
     deploy:
-      #replicas: ${OPENMRS_DB_REPLICAS}
-      replicas: 0
+      replicas: '${OPENMRS_DB_REPLICAS}'
+      #replicas: 0
       restart_policy:
         max_attempts: 3
     volumes:

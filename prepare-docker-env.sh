@@ -23,21 +23,26 @@ echo "Current version: $OMOD_NAME-$OMOD_VERSION"
 
 installMaven() {
   # Linux/unix
-  # TODO: Find a better way to do this
+  # TODO: Find a better way to do this (No mvn install needed)
   sh install-maven.sh
 }
 
 createEnvironmentVariablesFile() {
   cat <<EOF >.env
+# OpenMRS core platform version.
 OPENMRS_CORE_VERSION=dev
 
+# To use an existing database, set the following variables.
 OPENMRS_DB=localhost
 OPENMRS_DB_NAME=openmrs
 OPENMRS_DB_USER=openmrs
 OPENMRS_DB_PASSWORD=openmrs
-OPENMRS_DB_REPLICAS=0
 
-#Omod file name
+# To use an existing database, set this variable to 0
+# To create a new database, set this variable to 1
+OPENMRS_DB_REPLICAS=1
+
+# OMOD file name
 OMOD_TARGET="$OMOD_NAME-$OMOD_VERSION.omod"
 EOF
 }
@@ -49,10 +54,10 @@ setupOpenmrsSDK() {
 }
 
 downloadArtifacts() {
-  #prepare the dir
+  # Prepare the modules dir
   if [ -d "${MODULES_DIR}" ]; then
     echo "${MODULES_DIR} dir is already exists."
-    #Remove contents
+    # Remove contents
     rm -rf "${MODULES_DIR:?}/"*
   else
     echo "Creating ${MODULES_DIR} directory..."
@@ -73,8 +78,8 @@ if [ -x "$(command -v docker)" ]; then
   echo "Installed ${installed_docker_version}"
   echo "configuring openmrs sdk..."
 
-  #docker run openmrs/openmrs-core:dev
-  #docker run openmrs/openmrs-core:dev mvn
+  # docker run openmrs/openmrs-core:dev
+  # docker run openmrs/openmrs-core:dev mvn
 
   if ! command -v mvn -v &>/dev/null; then
     echo "Installing maven..."
@@ -85,5 +90,5 @@ if [ -x "$(command -v docker)" ]; then
   downloadArtifacts
   createEnvironmentVariablesFile
 else
-  printf "Please install Docker and re-run setup script.\n"
+  printf "Please install Docker and re-run prepare script.\n"
 fi

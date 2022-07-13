@@ -13,6 +13,55 @@ Openmrs-module-queue
 - Java 8 or higher
 - Webservices rest module -(Always bundled with the platform)
 
+## Docker development environment
+To prepare environment for development of the module, execute the following command;
+
+```bash
+sh prepare-docker-env.sh
+```
+The above command will create a directory named `required_modules` in the current directory and install all required modules.
+Also, it will create an environment file named `.env` in the current directory and populate it with the following variables:
+
+```
+# OpenMRS core platform version.
+OPENMRS_CORE_VERSION=dev
+
+# To use an existing database, set the following variables.
+OPENMRS_DB=localhost
+OPENMRS_DB_NAME=openmrs
+OPENMRS_DB_USER=openmrs
+OPENMRS_DB_PASSWORD=openmrs
+
+# To use an existing database, set this variable to 0
+# To create a new database, set this variable to 1
+OPENMRS_DB_REPLICAS=1
+
+# OMOD file name
+OMOD_TARGET="queue-1.0.0-SNAPSHOT.omod"
+
+```
+Now, you can spin up an OpenMRS instance with the `required_modules` by executing the following command;
+
+```bash
+docker-compose up -d
+```
+
+To deploy module changes, run the following command;
+
+```bash
+ docker run --rm -w="/module" -v ${PWD}:/module openmrs/openmrs-core:dev-m1 mvn clean install
+```
+Or if you already have maven installed on your system, you can use the following command;
+
+```bash
+mvn clean install
+```
+Then, you can restart the container(OpenMRS instance) by executing the following command;
+
+```bash
+docker-compose restart
+```
+
 ## Configurations
 
 After installing the queue module, configure the following GPs according to your implementation needs. Note that this is a
