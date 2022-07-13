@@ -77,3 +77,10 @@ nb-configuration.xml
 ## OS X
 ##############################
 .DS_Store
+
+##############################
+## ENV Variables and .omod
+##############################
+.env
+required_modules
+.omod
