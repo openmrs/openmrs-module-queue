@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
 import org.openmrs.api.ConceptNameType;
 import org.openmrs.module.queue.api.dao.VisitQueueEntryDao;
@@ -57,6 +58,7 @@ public class VisitQueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<VisitQueueE
 		includeVoidedObjects(criteriaVisitQueueEntries, false);
 		Criteria criteriaQueueEntries = criteriaVisitQueueEntries.createCriteria("_vqe.queueEntry", "_qe");
 		Criteria criteriaQueue = criteriaQueueEntries.createCriteria("_qe.queue", "_q");
+		criteriaQueue.add(Restrictions.and(Restrictions.isNull("_qe.endedAt"), Restrictions.isNotNull("_qe.startedAt")));
 		
 		if (conceptStatus != null && conceptService != null) {
 			criteriaQueue.add(and(
