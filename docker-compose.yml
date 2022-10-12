@@ -18,15 +18,14 @@ services:
       MYSQL_PASSWORD: ${OPENMRS_DB_PASSWORD:-openmrs}
       MYSQL_ROOT_PASSWORD: ${OPENMRS_DB_ROOT_PASSWORD:-openmrs}
     deploy:
-      replicas: '${OPENMRS_DB_REPLICAS}'
-      #replicas: 0
+      replicas: '${OPENMRS_DB_REPLICAS:-1}'
       restart_policy:
         max_attempts: 3
     volumes:
       - db-data:/var/lib/mysql
 
   openmrs-core:
-    image: openmrs/openmrs-core:${OPENMRS_CORE_VERSION:-dev}
+    image: openmrs-core:dev
     ports:
       - "8080:8080"
       - "8000:8000"
@@ -35,16 +34,16 @@ services:
       OMRS_CONFIG_MODULE_WEB_ADMIN: "true"
       OMRS_CONFIG_AUTO_UPDATE_DATABASE: "true"
       OMRS_CONFIG_CREATE_TABLES: "true"
-      OMRS_CONFIG_CONNECTION_SERVER: ${OPENMRS_DB:-openmrs}
+      OMRS_CONFIG_CONNECTION_SERVER: ${OPENMRS_DB_SERVER:-db}
       OMRS_CONFIG_CONNECTION_DATABASE: ${OPENMRS_DB_NAME:-openmrs}
       OMRS_CONFIG_CONNECTION_USERNAME: ${OPENMRS_DB_USER:-openmrs}
       OMRS_CONFIG_CONNECTION_PASSWORD: ${OPENMRS_DB_PASSWORD:-openmrs}
+      OMRS_REFRESH_MODULES: ${OMRS_REFRESH_MODULES:-false}
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080/openmrs" ]
       timeout: 5s
     volumes:
-      - ${PWD}/omod/target/${OMOD_TARGET}:/root/.OpenMRS/modules/${OMOD_TARGET}
-      - ${PWD}/required_modules:/root/.OpenMRS/modules
-
+      - ${PWD}:/openmrs/module/source
+     # - ~/.m2:/root/.m2
 volumes:
   db-data:
