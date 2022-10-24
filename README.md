@@ -1,22 +1,22 @@
 [![Build with Maven](https://github.com/openmrs/openmrs-module-queue/actions/workflows/maven.yml/badge.svg)](https://github.com/openmrs/openmrs-module-queue/actions/workflows/maven.yml)
 
-Openmrs-module-queue
+OpenMRS Queue Module (backend)
 ==========================
 
-> Outpatient queue management
+> OpenMRS backend module for outpatient queue management.
 
 > https://talk.openmrs.org/t/backend-support-for-service-delivery-queues-workflows/35247
 
 ## Prerequisites
 
-- Openmrs platform version >= 2.3.x
+- OpenMRS Platform ≥ 2.3.x
+  - Specifically REST web services
 - Java 8 or higher
-- Webservices rest module -(Always bundled with the platform)
 
 ## Configurations
 
 After installing the queue module, configure the following GPs according to your implementation needs. Note that this is a
-necessary step, no defaults provided.
+necessary step, no defaults are provided.
 
 |Property   | Default value   | Description
 |:---|---|---|
