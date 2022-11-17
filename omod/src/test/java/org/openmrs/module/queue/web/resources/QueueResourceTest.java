@@ -152,4 +152,14 @@ public class QueueResourceTest extends BaseQueueResourceTest<Queue, QueueResourc
 		assertThat(result.getTotalCount(), is(1L));
 		result.getPageOfResults().forEach(q -> assertThat(q.getLocation().getUuid(), is(LOCATION_UUID)));
 	}
+
+	@Test
+	public void shouldGetAllQueues() {
+		Queue queueMock = mock(Queue.class);
+
+		when(queueService.getAllQueues()).thenReturn(Collections.singletonList(queueMock));
+		Collection<Queue> result = queueService.getAllQueues();
+		assertThat(result, hasSize(1));
+		assertThat(result, hasItem(queueMock));
+	}
 }
