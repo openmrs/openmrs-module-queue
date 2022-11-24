@@ -11,12 +11,15 @@ package org.openmrs.module.queue.web.resources;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 
 import java.util.Collections;
+import java.util.Collection;
 import java.util.Optional;
 
 import org.junit.Before;
