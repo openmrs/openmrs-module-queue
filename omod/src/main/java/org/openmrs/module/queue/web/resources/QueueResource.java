@@ -11,6 +11,7 @@ package org.openmrs.module.queue.web.resources;
 
 import javax.validation.constraints.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,6 +45,12 @@ public class QueueResource extends DelegatingCrudResource<Queue> {
 	
 	public QueueResource() {
 		this.queueService = Context.getService(QueueService.class);
+	}
+
+	@Override
+	public NeedsPaging<Queue> doGetAll(RequestContext requestContext) throws ResponseException {
+		return new NeedsPaging<Queue>(new ArrayList<Queue>(Context.getService(QueueService.class).getAllQueues()),
+				requestContext);
 	}
 	
 	@Override
