@@ -195,4 +195,22 @@
                                  referencedColumnNames="visit_id"/>
     </changeSet>
 
+    <changeSet id="queue_202301161833" author="makombe">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM location_tag where name='Queue Location';
+            </sqlCheck>
+        </preConditions>
+        <comment>Add Queue Location Tag if not already added.</comment>
+        <sql>
+
+            INSERT INTO location_tag (name, description, creator, date_created, uuid) VALUES
+            ('Queue Location',
+            'When a user creates a queue service and chooses a location, they may only choose one with this tag',
+            1,
+            now(),
+            uuid());
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
