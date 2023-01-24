@@ -55,9 +55,10 @@ public interface VisitQueueEntryService {
 	 *
 	 * @param status concept name for queueEntry status
 	 * @param service concept name for queue service
+	 * @param locationUuid location uuid for the queue location
 	 * @return {@link Collection} visitQueueEntries matching specified parameters
 	 */
-	Collection<VisitQueueEntry> findVisitQueueEntries(String status, String service);
+	Collection<VisitQueueEntry> findVisitQueueEntries(String status, String service, String locationUuid);
 	
 	/**
 	 * Voids a visit queue entry record
@@ -92,12 +93,21 @@ public interface VisitQueueEntryService {
 	Long getVisitQueueEntriesCountByService(@NotNull String service);
 	
 	/**
-	 * Gets count of visit queue entries filtered by service and status
+	 * Gets count of visit queue entries filtered by location
+	 *
+	 * @param locationUuid location uuid
+	 * @return {@link Long} count of visit queue entries
+	 */
+	Long getVisitQueueEntriesCountByLocation(@NotNull String locationUuid);
+	
+	/**
+	 * Gets count of visit queue entries filtered by location, service and status
 	 *
 	 * @param service concept service name
 	 * @param status concept status name
+	 * @param locaitonUuid location uuid
 	 * @return {@link Long} count of visit queue entries
 	 */
-	Long getVisitQueueEntriesCountByStatusAndService(@NotNull String status, String service);
+	Long getVisitQueueEntriesCountByLocationStatusAndService(@NotNull String status, String service, String locationUUid);
 	
 }

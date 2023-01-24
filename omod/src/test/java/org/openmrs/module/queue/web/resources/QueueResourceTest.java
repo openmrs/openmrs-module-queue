@@ -10,16 +10,16 @@
 package org.openmrs.module.queue.web.resources;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 
-import java.util.Collections;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 
 import org.junit.Before;
@@ -155,11 +155,11 @@ public class QueueResourceTest extends BaseQueueResourceTest<Queue, QueueResourc
 		assertThat(result.getTotalCount(), is(1L));
 		result.getPageOfResults().forEach(q -> assertThat(q.getLocation().getUuid(), is(LOCATION_UUID)));
 	}
-
+	
 	@Test
 	public void shouldGetAllQueues() {
 		Queue queueMock = mock(Queue.class);
-
+		
 		when(queueService.getAllQueues()).thenReturn(Collections.singletonList(queueMock));
 		Collection<Queue> result = queueService.getAllQueues();
 		assertThat(result, hasSize(1));

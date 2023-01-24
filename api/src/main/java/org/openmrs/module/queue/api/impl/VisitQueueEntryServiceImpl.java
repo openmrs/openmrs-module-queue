@@ -87,10 +87,10 @@ public class VisitQueueEntryServiceImpl extends BaseOpenmrsService implements Vi
 	}
 	
 	@Override
-	public Collection<VisitQueueEntry> findVisitQueueEntries(String status, String service) {
+	public Collection<VisitQueueEntry> findVisitQueueEntries(String status, String service, String locationUuid) {
 		//Restrict to fully_specified concept names
 		return dao.findVisitQueueEntriesByConceptStatusAndConceptService(status, service, ConceptNameType.FULLY_SPECIFIED,
-		    true);
+		    true, locationUuid);
 	}
 	
 	@Override
@@ -114,7 +114,8 @@ public class VisitQueueEntryServiceImpl extends BaseOpenmrsService implements Vi
 	 */
 	@Override
 	public Long getVisitQueueEntriesCountByStatus(String status) {
-		return dao.getVisitQueueEntriesCountByStatusAndService(status, null, ConceptNameType.FULLY_SPECIFIED, true);
+		return dao.getVisitQueueEntriesCountByLocationStatusAndService(status, null, ConceptNameType.FULLY_SPECIFIED, true,
+		    null);
 	}
 	
 	/**
@@ -122,14 +123,25 @@ public class VisitQueueEntryServiceImpl extends BaseOpenmrsService implements Vi
 	 */
 	@Override
 	public Long getVisitQueueEntriesCountByService(String service) {
-		return dao.getVisitQueueEntriesCountByStatusAndService(null, service, ConceptNameType.FULLY_SPECIFIED, true);
+		return dao.getVisitQueueEntriesCountByLocationStatusAndService(null, service, ConceptNameType.FULLY_SPECIFIED, true,
+		    null);
 	}
 	
 	/**
-	 * @see VisitQueueEntryService#getVisitQueueEntriesCountByStatusAndService(String, String)
+	 * @see VisitQueueEntryService#getVisitQueueEntriesCountByLocation(String)
 	 */
 	@Override
-	public Long getVisitQueueEntriesCountByStatusAndService(String status, String service) {
-		return dao.getVisitQueueEntriesCountByStatusAndService(status, service, ConceptNameType.FULLY_SPECIFIED, true);
+	public Long getVisitQueueEntriesCountByLocation(String locaitonUuid) {
+		return dao.getVisitQueueEntriesCountByLocationStatusAndService(null, null, null, false, locaitonUuid);
+	}
+	
+	/**
+	 * @see VisitQueueEntryService#getVisitQueueEntriesCountByLocationStatusAndService(String, String,
+	 *      String)
+	 */
+	@Override
+	public Long getVisitQueueEntriesCountByLocationStatusAndService(String status, String service, String locationUuid) {
+		return dao.getVisitQueueEntriesCountByLocationStatusAndService(status, service, ConceptNameType.FULLY_SPECIFIED,
+		    true, locationUuid);
 	}
 }

@@ -70,10 +70,11 @@ public class QueueEntryMetricsResource extends DelegatingCrudResource<SimpleObje
 	protected PageableResult doSearch(RequestContext requestContext) {
 		String status = requestContext.getParameter("status");
 		String service = requestContext.getParameter("service");
+		String locationUuid = requestContext.getParameter("location");
 		
-		if (service != null && status != null) {
+		if (service != null && status != null && locationUuid != null) {
 			Long patientsCount = Context.getService(VisitQueueEntryService.class)
-			        .getVisitQueueEntriesCountByStatusAndService(status, service);
+			        .getVisitQueueEntriesCountByLocationStatusAndService(status, service, locationUuid);
 			
 			return new GenericSingleObjectResult(
 			        Arrays.asList(new PropValue("metric", status + " " + service), new PropValue("count", patientsCount)));
@@ -88,6 +89,13 @@ public class QueueEntryMetricsResource extends DelegatingCrudResource<SimpleObje
 				Long count = Context.getService(VisitQueueEntryService.class).getVisitQueueEntriesCountByStatus(status);
 				return new GenericSingleObjectResult(
 				        Arrays.asList(new PropValue("metric", status), new PropValue("count", count)));
+			}
+		} else if (locationUuid != null) {
+			if (!locationUuid.isEmpty()) {
+				Long count = Context.getService(VisitQueueEntryService.class)
+				        .getVisitQueueEntriesCountByLocation(locationUuid);
+				return new GenericSingleObjectResult(
+				        Arrays.asList(new PropValue("metric", locationUuid), new PropValue("count", count)));
 			}
 		}
 		
