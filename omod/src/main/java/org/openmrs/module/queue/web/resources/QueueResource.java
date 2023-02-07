@@ -46,11 +46,11 @@ public class QueueResource extends DelegatingCrudResource<Queue> {
 	public QueueResource() {
 		this.queueService = Context.getService(QueueService.class);
 	}
-
+	
 	@Override
 	public NeedsPaging<Queue> doGetAll(RequestContext requestContext) throws ResponseException {
 		return new NeedsPaging<Queue>(new ArrayList<Queue>(Context.getService(QueueService.class).getAllQueues()),
-				requestContext);
+		        requestContext);
 	}
 	
 	@Override
