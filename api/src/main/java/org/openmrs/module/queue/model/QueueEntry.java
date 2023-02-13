@@ -68,7 +68,7 @@ public class QueueEntry extends BaseChangeableOpenmrsData {
 	private Concept status;
 	
 	@Column(name = "sort_weight")
-	private double sortWeight;
+	private Double sortWeight;
 	
 	//The Location the patient is waiting for, if any.
 	@ManyToOne
