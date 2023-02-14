@@ -17,6 +17,7 @@ import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
@@ -57,7 +58,8 @@ public class VisitQueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<VisitQueueE
 	        ConceptNameType conceptNameType, boolean localePreferred, String locationUuid) {
 		Criteria criteriaVisitQueueEntries = getCurrentSession().createCriteria(VisitQueueEntry.class, "_vqe");
 		includeVoidedObjects(criteriaVisitQueueEntries, false);
-		Criteria criteriaQueueEntries = criteriaVisitQueueEntries.createCriteria("_vqe.queueEntry", "_qe");
+		Criteria criteriaQueueEntries = criteriaVisitQueueEntries.createCriteria("_vqe.queueEntry", "_qe")
+		        .addOrder(Order.desc("_qe.sortWeight")).addOrder(Order.asc("_qe.startedAt"));
 		Criteria criteriaQueue = criteriaQueueEntries.createCriteria("_qe.queue", "_q");
 		Criteria criteriaQueueLocation = criteriaQueue.createCriteria("_q.location", "_ql");
 		criteriaQueueLocation

@@ -226,11 +226,11 @@ public class VisitQueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	
 	@Test
 	public void shouldGetCountOfVisitQueueEntriesByInServiceStatus() {
-		Long result = dao.getVisitQueueEntriesCountByLocationStatusAndService(null, IN_SERVICE_STATUS,
+		Long result = dao.getVisitQueueEntriesCountByLocationStatusAndService(IN_SERVICE_STATUS, null,
 		    ConceptNameType.FULLY_SPECIFIED, false, null);
 		
 		assertThat(result, notNullValue());
-		assertThat(result, is(0L));
+		assertThat(result, is(1L));
 	}
 	
 	@Test
