@@ -9,16 +9,17 @@
  */
 package org.openmrs.module.queue.api.impl;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import lombok.AccessLevel;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.openmrs.Concept;
+import org.openmrs.Location;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.queue.api.QueueRoomService;
 import org.openmrs.module.queue.api.dao.QueueRoomDao;
+import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueRoom;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,8 +50,8 @@ public class QueueRoomServiceImpl extends BaseOpenmrsService implements QueueRoo
 	}
 	
 	@Override
-	public Collection<QueueRoom> getQueueRoomsByQueue(Concept concept) {
-		return null;
+	public List<QueueRoom> getQueueRoomsByServiceAndLocation(Queue queue, Location location) {
+		return this.dao.getQueueRoomsByServiceAndLocation(queue, location);
 	}
 	
 }

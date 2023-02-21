@@ -9,11 +9,14 @@
  */
 package org.openmrs.module.queue.api.dao.impl;
 
-import java.util.Collection;
+import java.util.List;
 
+import org.hibernate.Query;
 import org.hibernate.SessionFactory;
-import org.openmrs.Concept;
+import org.openmrs.Location;
+import org.openmrs.api.APIException;
 import org.openmrs.module.queue.api.dao.QueueRoomDao;
+import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueRoom;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -24,8 +27,27 @@ public class QueueRoomDaoImpl extends AbstractBaseQueueDaoImpl<QueueRoom> implem
 	}
 	
 	@Override
-	public Collection<QueueRoom> getQueueRoomsByQueue(Concept concept) {
-		return null;
+	public List<QueueRoom> getQueueRoomsByServiceAndLocation(Queue queue, Location location) {
+		if (queue == null && location == null) {
+			throw new APIException("Both Queue and Location cannot be null");
+		}
+		String stringQuery = "Select queueRoom from QueueRoom as queueRoom WHERE retired = 0 ";
+		if (queue != null) {
+			stringQuery += "AND queueRoom.queue = :queue ";
+		}
+		if (location != null) {
+			stringQuery += "AND queueRoom.queue.location = :location ";
+		}
+		
+		Query query = super.getSessionFactory().getCurrentSession().createQuery(stringQuery);
+		if (queue != null) {
+			query.setParameter("queue", queue);
+		}
+		if (location != null) {
+			query.setParameter("location", location);
+		}
+		
+		return query.list();
 	}
 	
 }

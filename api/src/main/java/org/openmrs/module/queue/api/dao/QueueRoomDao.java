@@ -9,15 +9,13 @@
  */
 package org.openmrs.module.queue.api.dao;
 
-import javax.validation.constraints.NotNull;
+import java.util.List;
 
-import java.util.Collection;
-
-import org.openmrs.Concept;
+import org.openmrs.Location;
+import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueRoom;
 
 public interface QueueRoomDao extends BaseQueueDao<QueueRoom> {
 	
-	Collection<QueueRoom> getQueueRoomsByQueue(@NotNull Concept concept);
-	
+	List<QueueRoom> getQueueRoomsByServiceAndLocation(Queue queue, Location location);
 }

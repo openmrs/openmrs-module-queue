@@ -11,10 +11,11 @@ package org.openmrs.module.queue.api;
 
 import javax.validation.constraints.NotNull;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
-import org.openmrs.Concept;
+import org.openmrs.Location;
+import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueRoom;
 
 public interface QueueRoomService {
@@ -25,5 +26,5 @@ public interface QueueRoomService {
 	
 	QueueRoom createQueueRoom(@NotNull QueueRoom queueRoom);
 	
-	Collection<QueueRoom> getQueueRoomsByQueue(@NotNull Concept concept);
+	List<QueueRoom> getQueueRoomsByServiceAndLocation(Queue queue, Location location);
 }
