@@ -83,6 +83,25 @@
             </list>
         </property>
     </bean>
+    <bean id="queue.QueueRoomService"
+          class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+        <property name="transactionManager" ref="transactionManager"/>
+        <property name="target">
+            <bean class="org.openmrs.module.queue.api.impl.QueueRoomServiceImpl">
+                <property name="dao" ref="queueRoomDao"/>
+            </bean>
+        </property>
+        <property name="preInterceptors" ref="serviceInterceptors"/>
+        <property name="transactionAttributeSource" ref="transactionAttributeSource"/>
+    </bean>
+    <bean parent="serviceContext">
+        <property name="moduleService">
+            <list>
+                <value>org.openmrs.module.queue.api.QueueRoomService</value>
+                <ref bean="queue.QueueRoomService"/>
+            </list>
+        </property>
+    </bean>
     <bean id="queueDao" class="org.openmrs.module.queue.api.dao.impl.QueueDaoImpl">
         <constructor-arg ref="sessionFactory"/>
     </bean>
@@ -90,6 +109,9 @@
         <constructor-arg ref="sessionFactory"/>
     </bean>
     <bean id="visitQueueEntryDao" class="org.openmrs.module.queue.api.dao.impl.VisitQueueEntryDaoImpl">
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+    <bean id="queueRoomDao" class="org.openmrs.module.queue.api.dao.impl.QueueRoomDaoImpl">
         <constructor-arg ref="sessionFactory"/>
     </bean>
 </beans>

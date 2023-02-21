@@ -9,63 +9,47 @@
  */
 package org.openmrs.module.queue.model;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import java.util.List;
-
-import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.Where;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.openmrs.BaseChangeableOpenmrsMetadata;
-import org.openmrs.Concept;
-import org.openmrs.Location;
 
 @EqualsAndHashCode(callSuper = true)
-@Data
+@NoArgsConstructor
+@Setter
+@Getter
 @Entity
-@Table(name = "queue")
-public class Queue extends BaseChangeableOpenmrsMetadata {
+@Table(name = "queue_room")
+public class QueueRoom extends BaseChangeableOpenmrsMetadata {
 	
 	private static final long serialVersionUID = 1L;
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name = "queue_id")
-	private Integer queueId;
+	@Column(name = "queue_room_id")
+	private Integer queueRoom;
 	
 	@ManyToOne
-	@JoinColumn(name = "location_id", nullable = false)
-	private Location location;
-	
-	@ManyToOne
-	@JoinColumn(name = "service", referencedColumnName = "concept_id", nullable = false)
-	private Concept service;
-	
-	@OneToMany(mappedBy = "queue", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	@Where(clause = "voided = 0 and (started_at <= current_timestamp() and ended_at is null)")
-	private List<QueueEntry> queueEntries;
-	
-	@OneToMany(mappedBy = "queue", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-	@Where(clause = "retired = 0")
-	private List<QueueRoom> queueRooms;
+	@JoinColumn(name = "queue_id", nullable = false)
+	private Queue queue;
 	
 	@Override
 	public Integer getId() {
-		return getQueueId();
+		return getQueueRoom();
 	}
 	
 	@Override
-	public void setId(Integer id) {
-		this.setQueueId(id);
+	public void setId(Integer integer) {
+		setQueueRoom(integer);
 	}
 }
