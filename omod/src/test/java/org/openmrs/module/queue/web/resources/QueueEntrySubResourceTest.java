@@ -32,7 +32,7 @@ import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, QueueEntrySubResource> {
+public class QueueEntrySubResourceTest extends BaseQueueResourceTest<QueueEntry, QueueEntrySubResource> {
 	
 	private static final String QUEUE_ENTRY_UUID = "6hje567a-fca0-11e5-9e59-08002719a7";
 	

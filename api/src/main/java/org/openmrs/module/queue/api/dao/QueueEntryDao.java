@@ -40,4 +40,11 @@ public interface QueueEntryDao<Q extends OpenmrsObject & Auditable> extends Base
 	 */
 	Long getQueueEntriesCountByConceptStatus(@NotNull String conceptStatus, ConceptNameType conceptNameType,
 	        boolean localePreferred);
+	
+	/**
+	 * Get active queue entry by patient uuid
+	 *
+	 * @param patientUuid
+	 */
+	Collection<QueueEntry> getActiveQueueEntryByPatientUuid(@NotNull String patientUuid);
 }

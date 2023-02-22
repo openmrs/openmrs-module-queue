@@ -62,4 +62,19 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 		
 		return (Long) criteria.uniqueResult();
 	}
+	
+	/**
+	 * @see org.openmrs.module.queue.api.dao.QueueEntryDao#getActiveQueueEntryByPatientUuid(String)
+	 */
+	@Override
+	public Collection<QueueEntry> getActiveQueueEntryByPatientUuid(@NotNull String patientUuid) {
+		Criteria criteria = getCurrentSession().createCriteria(QueueEntry.class, "qe");
+		//Include/exclude retired queues
+		includeVoidedObjects(criteria, false);
+		criteria.add(Restrictions.and(Restrictions.isNull("qe.endedAt"), Restrictions.isNotNull("qe.startedAt")));
+		criteria.createAlias("patient", "patient");
+		criteria.add(Restrictions.eq("patient.uuid", patientUuid));
+		
+		return criteria.list();
+	}
 }

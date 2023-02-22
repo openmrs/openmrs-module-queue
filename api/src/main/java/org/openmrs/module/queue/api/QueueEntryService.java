@@ -36,6 +36,14 @@ public interface QueueEntryService {
 	Optional<QueueEntry> getQueueEntryById(@NotNull Integer id);
 	
 	/**
+	 * Gets active queue entry by patient uuid.
+	 *
+	 * @param uuid patient uuid - the uuid of the patient to retrieve queue entry for.
+	 * @return {@link org.openmrs.module.queue.model.QueueEntry}
+	 */
+	Collection<QueueEntry> getActiveQueueEntryByPatientUuid(@NotNull String uuid);
+	
+	/**
 	 * Saves a queue entry
 	 *
 	 * @param queueEntry the queue entry to be saved

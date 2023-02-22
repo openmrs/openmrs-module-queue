@@ -55,6 +55,14 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	}
 	
 	/**
+	 * @see org.openmrs.module.queue.api.QueueEntryService#getActiveQueueEntryByPatientUuid(String)
+	 */
+	@Override
+	public Collection<QueueEntry> getActiveQueueEntryByPatientUuid(@NotNull String patientUuid) {
+		return this.dao.getActiveQueueEntryByPatientUuid(patientUuid);
+	}
+	
+	/**
 	 * @see org.openmrs.module.queue.api.QueueEntryService#createQueueEntry(org.openmrs.module.queue.model.QueueEntry)
 	 */
 	@Override
