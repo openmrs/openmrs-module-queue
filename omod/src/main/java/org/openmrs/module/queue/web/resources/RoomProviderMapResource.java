@@ -53,9 +53,12 @@ public class RoomProviderMapResource extends DelegatingCrudResource<RoomProvider
 	}
 	
 	@Override
-	protected void delete(RoomProviderMap roomProviderMap, String s, RequestContext requestContext)
+	protected void delete(RoomProviderMap roomProviderMap, String voidReason, RequestContext requestContext)
 	        throws ResponseException {
-		
+		if (!this.roomProviderMapService.getRoomProviderMapByUuid(roomProviderMap.getUuid()).isPresent()) {
+			throw new ObjectNotFoundException("Could not find provider's room with uuid " + roomProviderMap.getUuid());
+		}
+		this.roomProviderMapService.voidRoomProviderMap(roomProviderMap.getUuid(), voidReason);
 	}
 	
 	@Override
@@ -70,7 +73,7 @@ public class RoomProviderMapResource extends DelegatingCrudResource<RoomProvider
 	
 	@Override
 	public void purge(RoomProviderMap roomProviderMap, RequestContext requestContext) throws ResponseException {
-		
+		this.roomProviderMapService.purgeRoomProviderMap(roomProviderMap);
 	}
 	
 	@Override

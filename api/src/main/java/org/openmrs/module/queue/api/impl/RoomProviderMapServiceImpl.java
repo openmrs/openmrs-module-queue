@@ -9,6 +9,7 @@
  */
 package org.openmrs.module.queue.api.impl;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,6 +17,8 @@ import lombok.AccessLevel;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.openmrs.Provider;
+import org.openmrs.api.APIException;
+import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.queue.api.RoomProviderMapService;
 import org.openmrs.module.queue.api.dao.RoomProviderMapDao;
@@ -53,5 +56,20 @@ public class RoomProviderMapServiceImpl extends BaseOpenmrsService implements Ro
 	public List<RoomProviderMap> getRoomProvider(Provider provider, QueueRoom queueRoom) {
 		return this.dao.getRoomProvider(provider, queueRoom);
 	}
-	
+
+	@Override
+	public void voidRoomProviderMap(String roomProviderMapUuid, String voidReason) {
+		this.dao.get(roomProviderMapUuid).ifPresent(obj -> {
+			obj.setVoided(true);
+			obj.setDateVoided(new Date());
+			obj.setVoidReason(voidReason);
+			obj.setVoidedBy(Context.getAuthenticatedUser());
+			this.dao.createOrUpdate(obj);
+		});
+	}
+
+	@Override
+	public void purgeRoomProviderMap(RoomProviderMap roomProviderMap) throws APIException {
+		this.dao.delete(roomProviderMap);
+	}
 }

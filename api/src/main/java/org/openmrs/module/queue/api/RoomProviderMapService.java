@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.openmrs.Provider;
+import org.openmrs.api.APIException;
 import org.openmrs.module.queue.model.QueueRoom;
 import org.openmrs.module.queue.model.RoomProviderMap;
 
@@ -27,5 +28,9 @@ public interface RoomProviderMapService {
 	RoomProviderMap createRoomProviderMap(@NotNull RoomProviderMap roomProviderMap);
 	
 	List<RoomProviderMap> getRoomProvider(Provider provider, QueueRoom queueRoom);
+
+	void voidRoomProviderMap(@NotNull String roomProviderMapUuid, String voidReason);
+
+	void purgeRoomProviderMap(RoomProviderMap roomProviderMap) throws APIException;
 	
 }
