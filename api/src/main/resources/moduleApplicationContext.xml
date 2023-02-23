@@ -102,6 +102,25 @@
             </list>
         </property>
     </bean>
+    <bean id="queue.RoomProviderMapService"
+          class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+        <property name="transactionManager" ref="transactionManager"/>
+        <property name="target">
+            <bean class="org.openmrs.module.queue.api.impl.RoomProviderMapServiceImpl">
+                <property name="dao" ref="roomProviderMapDao"/>
+            </bean>
+        </property>
+        <property name="preInterceptors" ref="serviceInterceptors"/>
+        <property name="transactionAttributeSource" ref="transactionAttributeSource"/>
+    </bean>
+    <bean parent="serviceContext">
+        <property name="moduleService">
+            <list>
+                <value>org.openmrs.module.queue.api.RoomProviderMapService</value>
+                <ref bean="queue.RoomProviderMapService"/>
+            </list>
+        </property>
+    </bean>
     <bean id="queueDao" class="org.openmrs.module.queue.api.dao.impl.QueueDaoImpl">
         <constructor-arg ref="sessionFactory"/>
     </bean>
@@ -112,6 +131,9 @@
         <constructor-arg ref="sessionFactory"/>
     </bean>
     <bean id="queueRoomDao" class="org.openmrs.module.queue.api.dao.impl.QueueRoomDaoImpl">
+        <constructor-arg ref="sessionFactory"/>
+    </bean>
+    <bean id="roomProviderMapDao" class="org.openmrs.module.queue.api.dao.impl.RoomProviderMapDaoImpl">
         <constructor-arg ref="sessionFactory"/>
     </bean>
 </beans>

@@ -55,7 +55,7 @@ public class Queue extends BaseChangeableOpenmrsMetadata {
 	@Where(clause = "voided = 0 and (started_at <= current_timestamp() and ended_at is null)")
 	private List<QueueEntry> queueEntries;
 	
-	@OneToMany(mappedBy = "queue", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@OneToMany(mappedBy = "queue", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@Where(clause = "retired = 0")
 	private List<QueueRoom> queueRooms;
 	

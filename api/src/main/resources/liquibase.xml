@@ -262,4 +262,55 @@
                                  referencedTableName="queue" referencedColumnNames="queue_id"/>
     </changeSet>
 
+    <changeSet id="add_room_provider_map_20230222" author="jecihjoy">
+        <preConditions onError="WARN" onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="room_provider_map"/>
+            </not>
+        </preConditions>
+        <createTable tableName="room_provider_map">
+            <column name="room_provider_map_id" type="int" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="queue_room_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="provider_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="creator" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date_created" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="changed_by" type="int"/>
+            <column name="date_changed" type="datetime"/>
+            <column name="voided" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="voided_by" type="int"/>
+            <column name="date_voided" type="datetime"/>
+            <column name="void_reason" type="varchar(255)"/>
+            <column name="uuid" type="char(38)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint constraintName="room_provider_map_creator_fk"
+                                 baseTableName="room_provider_map" baseColumnNames="creator"
+                                 referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint constraintName="room_provider_map_changed_by_fk"
+                                 baseTableName="room_provider_map" baseColumnNames="changed_by"
+                                 referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint constraintName="room_provider_map_voided_by_fk"
+                                 baseTableName="room_provider_map" baseColumnNames="voided_by"
+                                 referencedTableName="users" referencedColumnNames="user_id"/>
+        <addForeignKeyConstraint baseTableName="room_provider_map" baseColumnNames="queue_room_id"
+                                 constraintName="room_provider_map_queue_room_fk" referencedTableName="queue_room"
+                                 referencedColumnNames="queue_room_id"/>
+        <addForeignKeyConstraint baseTableName="room_provider_map" baseColumnNames="provider_id"
+                                 constraintName="room_provider_map_provider_id_fk" referencedTableName="provider"
+                                 referencedColumnNames="provider_id"/>
+    </changeSet>
+
 </databaseChangeLog>
