@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.openmrs.Location;
+import org.openmrs.api.APIException;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueRoom;
 
@@ -27,4 +28,8 @@ public interface QueueRoomService {
 	QueueRoom createQueueRoom(@NotNull QueueRoom queueRoom);
 	
 	List<QueueRoom> getQueueRoomsByServiceAndLocation(Queue queue, Location location);
+
+	void voidQueueRoom(@NotNull String queueRoomUuid, String voidReason);
+
+	void purgeQueueRoom(QueueRoom queueRoom) throws APIException;
 }

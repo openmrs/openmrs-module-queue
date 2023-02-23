@@ -54,7 +54,11 @@ public class QueueRoomResource extends DelegatingCrudResource<QueueRoom> {
 	}
 	
 	@Override
-	protected void delete(QueueRoom queueRoom, String s, RequestContext requestContext) throws ResponseException {
+	protected void delete(QueueRoom queueRoom, String retireReason, RequestContext requestContext) throws ResponseException {
+		if (!this.queueRoomService.getQueueRoomByUuid(queueRoom.getUuid()).isPresent()) {
+			throw new ObjectNotFoundException("Could not find queue room with uuid " + queueRoom.getUuid());
+		}
+		this.queueRoomService.voidQueueRoom(queueRoom.getUuid(), retireReason);
 	}
 	
 	@Override
@@ -69,7 +73,7 @@ public class QueueRoomResource extends DelegatingCrudResource<QueueRoom> {
 	
 	@Override
 	public void purge(QueueRoom queueRoom, RequestContext requestContext) throws ResponseException {
-		
+		this.queueRoomService.purgeQueueRoom(queueRoom);
 	}
 	
 	@Override
