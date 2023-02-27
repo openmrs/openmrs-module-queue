@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    This Source Code Form is subject to the terms of the Mozilla Public License,
+    v. 2.0. If a copy of the MPL was not distributed with this file, You can
+    obtain one at http://mozilla.org/MPL/2.0/. OpenMRS is also distributed under
+    the terms of the Healthcare Disclaimer located at http://openmrs.org/license.
+
+    Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
+    graphic logo is a trademark of OpenMRS Inc.
+-->
+<dataset>
+    <queue_room queue_room_id="1"  queue_id="1"  name="Triage Room 1" description="This is description" creator="1" date_created="2022-02-02 16:38:56.0"
+                retired="false" uuid="4eb8fe43-2813-4kbc-80dc-2e5d30252cc6"/>
+
+    <queue_room queue_room_id="2"  queue_id="1"  name="Triage Room 2" description="This is description" creator="1" date_created="2022-02-02 16:38:56.0"
+                retired="false" uuid="4eb8fe43-2813-4kbc-80dc-2e5d30252cc7"/>
+
+    <!--Retired Room entry -->
+    <queue_room queue_room_id="3"  queue_id="1"  name="Triage Room 3" description="This is description" creator="1" date_created="2022-02-02 16:38:56.0"
+                retired="true" uuid="4eb8fe43-2813-4kbc-80dc-2e5d30252cc8"/>
+</dataset>
