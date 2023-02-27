@@ -32,10 +32,11 @@ public class RoomProviderMapDaoImpl extends AbstractBaseQueueDaoImpl<RoomProvide
 			throw new APIException("Both QueueRoom and Provider cannot be null");
 		}
 		String stringQuery = "Select roomProviderMap from RoomProviderMap as roomProviderMap WHERE voided = 0 ";
-		if (provider != null) {
+		if (provider != null && queueRoom != null) {
+			stringQuery += "AND ( roomProviderMap.provider = :provider or roomProviderMap.queueRoom = :queueRoom ) ";
+		} else if (provider != null) {
 			stringQuery += "AND roomProviderMap.provider = :provider ";
-		}
-		if (queueRoom != null) {
+		} else if (queueRoom != null) {
 			stringQuery += "AND roomProviderMap.queueRoom = :queueRoom ";
 		}
 		

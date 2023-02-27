@@ -49,6 +49,14 @@ public class RoomProviderMapServiceImpl extends BaseOpenmrsService implements Ro
 	
 	@Override
 	public RoomProviderMap createRoomProviderMap(RoomProviderMap roomProviderMap) {
+		if (roomProviderMap.getId() == null) {
+			List<RoomProviderMap> existingAssignedRooms = getRoomProvider(roomProviderMap.getProvider(),
+			    roomProviderMap.getQueueRoom());
+			existingAssignedRooms.forEach(roomProviderMap1 -> voidRoomProviderMap(roomProviderMap1.getUuid(), "Api call"));
+			
+			return this.dao.createOrUpdate(roomProviderMap);
+		}
+		roomProviderMap.setDateChanged(new Date());
 		return this.dao.createOrUpdate(roomProviderMap);
 	}
 	
