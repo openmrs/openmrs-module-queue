@@ -133,7 +133,7 @@ public class QueueRoomDaoTest extends BaseModuleContextSensitiveTest {
     }
 
     @Test
-    public void shouldFindQueueRoomByService() {
+    public void shouldFindQueueRoomByQueue() {
         Queue queue = queueDao.get(QUEUE_UUID).get();
 
         List<QueueRoom> roomsByQueue = dao.getQueueRoomsByServiceAndLocation(queue, null);
