@@ -14,8 +14,10 @@ import javax.validation.constraints.NotNull;
 import java.util.Collection;
 
 import org.openmrs.Auditable;
+import org.openmrs.Location;
 import org.openmrs.OpenmrsObject;
 import org.openmrs.api.ConceptNameType;
+import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
 
 public interface QueueEntryDao<Q extends OpenmrsObject & Auditable> extends BaseQueueDao<Q> {
@@ -40,4 +42,12 @@ public interface QueueEntryDao<Q extends OpenmrsObject & Auditable> extends Base
 	 */
 	Long getQueueEntriesCountByConceptStatus(@NotNull String conceptStatus, ConceptNameType conceptNameType,
 	        boolean localePreferred);
+	
+	/**
+	 * @param location
+	 * @param queue
+	 * @return VisitQueueNumber - used to identify patients in the queue instead of using patient name
+	 */
+	String generateVisitQueueNumber(@NotNull Location location, @NotNull Queue queue);
+	
 }

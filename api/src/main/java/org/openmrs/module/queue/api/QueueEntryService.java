@@ -14,7 +14,11 @@ import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.Optional;
 
+import org.openmrs.Location;
+import org.openmrs.Visit;
+import org.openmrs.VisitAttributeType;
 import org.openmrs.api.APIException;
+import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
 
 public interface QueueEntryService {
@@ -75,4 +79,13 @@ public interface QueueEntryService {
 	 * @return {@link java.lang.Long} count of queue entries by specified status
 	 */
 	Long getQueueEntriesCountByStatus(@NotNull String status);
+	
+	/**
+	 * @param location
+	 * @param queue
+	 * @return VisitQueueNumber - used to identify patients in the queue instead of using patient name
+	 */
+	String generateVisitQueueNumber(@NotNull Location location, @NotNull Queue queue, @NotNull Visit visit,
+	        @NotNull VisitAttributeType visitAttributeType);
+	
 }
