@@ -10,10 +10,12 @@
 package org.openmrs.module.queue.api.dao;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -21,6 +23,7 @@ import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.openmrs.Concept;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.SpringTestConfiguration;
 import org.openmrs.module.queue.model.Queue;
@@ -35,7 +38,9 @@ public class QueueDaoTest extends BaseModuleContextSensitiveTest {
 	private static final List<String> QUEUE_INITIAL_DATASET_XML = Arrays.asList(
 	    "org/openmrs/module/queue/api/dao/QueueDaoTest_locationInitialDataset.xml",
 	    "org/openmrs/module/queue/api/dao/QueueEntryDaoTest_conceptsInitialDataset.xml",
-	    "org/openmrs/module/queue/api/dao/QueueDaoTest_initialDataset.xml");
+	    "org/openmrs/module/queue/api/dao/QueueDaoTest_initialDataset.xml",
+	    "org/openmrs/module/queue/api/dao/QueueEntryDaoTest_patientInitialDataset.xml",
+	    "org/openmrs/module/queue/api/dao/QueueEntryDaoTest_queueWaitTimeInitialDataset.xml");
 	
 	private static final String QUEUE_UUID = "3eb7fe43-2813-4kbc-80dc-2e5d30252bb5";
 	
@@ -50,6 +55,10 @@ public class QueueDaoTest extends BaseModuleContextSensitiveTest {
 	private static final String LOCATION_UUID = "d0938432-1691-11df-97a5-7038c098";
 	
 	private static final String CONCEPT_UUID = "67b910bd-298c-4ecf-a632-661ae2f446op";
+	
+	private static final String QUEUE_UUID_WAIT_TIME = "5ob7fe43-2813-4kbc-80dc-2e5d30252bb3";
+	
+	private static final String CONCEPT_UUID_WAIT_TIME = "56b910bd-298c-4ecf-a632-661ae2f7865y";
 	
 	@Autowired
 	@Qualifier("queueDao")
@@ -164,5 +173,26 @@ public class QueueDaoTest extends BaseModuleContextSensitiveTest {
 		assertThat(queuesByLocation, notNullValue());
 		assertThat(queuesByLocation, hasSize(3));
 		queuesByLocation.forEach(queue -> assertThat(queue.getLocation().getUuid(), is(LOCATION_UUID)));
+	}
+	
+	@Test
+	public void shouldGetQueueAverageWaitTimeByQueue() {
+		LocalDate today = LocalDate.of(2022, 02, 02);
+		Queue queue = dao.get(QUEUE_UUID_WAIT_TIME).get();
+		Double waitTime = dao.getQueueAverageWaitTime(queue, null, today);
+		
+		assertThat(waitTime, notNullValue());
+		assertThat(waitTime, equalTo(150.0));
+	}
+	
+	@Test
+	public void shouldGetQueueAverageWaitTimeByQueueAndStatus() {
+		Concept concept = Context.getConceptService().getConceptByUuid(CONCEPT_UUID_WAIT_TIME);
+		LocalDate today = LocalDate.of(2022, 02, 02);
+		Queue queue = dao.get(QUEUE_UUID_WAIT_TIME).get();
+		Double waitTime = dao.getQueueAverageWaitTime(queue, concept, today);
+		
+		assertThat(waitTime, notNullValue());
+		assertThat(waitTime, equalTo(180.0));
 	}
 }

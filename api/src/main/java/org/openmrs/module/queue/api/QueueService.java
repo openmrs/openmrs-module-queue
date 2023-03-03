@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import org.openmrs.Concept;
 import org.openmrs.api.APIException;
 import org.openmrs.module.queue.model.Queue;
 
@@ -78,4 +79,11 @@ public interface QueueService {
 	 */
 	void purgeQueue(@NotNull Queue queue) throws APIException;
 	
+	/**
+	 * Returns average weight time for patients in a queue
+	 * 
+	 * @param queue
+	 * @return
+	 */
+	Double getQueueAverageWaitTime(@NotNull Queue queue, Concept status);
 }
