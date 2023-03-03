@@ -87,10 +87,11 @@ public class VisitQueueEntryServiceImpl extends BaseOpenmrsService implements Vi
 	}
 	
 	@Override
-	public Collection<VisitQueueEntry> findVisitQueueEntries(String status, String service, String locationUuid) {
+	public Collection<VisitQueueEntry> findVisitQueueEntries(String status, String service, String locationUuid,
+	        String patientUuid) {
 		//Restrict to fully_specified concept names
 		return dao.findVisitQueueEntriesByConceptStatusAndConceptService(status, service, ConceptNameType.FULLY_SPECIFIED,
-		    true, locationUuid);
+		    true, locationUuid, patientUuid);
 	}
 	
 	@Override

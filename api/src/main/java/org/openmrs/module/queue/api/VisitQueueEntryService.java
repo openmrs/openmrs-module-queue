@@ -58,7 +58,8 @@ public interface VisitQueueEntryService {
 	 * @param locationUuid location uuid for the queue location
 	 * @return {@link Collection} visitQueueEntries matching specified parameters
 	 */
-	Collection<VisitQueueEntry> findVisitQueueEntries(String status, String service, String locationUuid);
+	Collection<VisitQueueEntry> findVisitQueueEntries(String status, String service, String locationUuid,
+	        String patientUuid);
 	
 	/**
 	 * Voids a visit queue entry record

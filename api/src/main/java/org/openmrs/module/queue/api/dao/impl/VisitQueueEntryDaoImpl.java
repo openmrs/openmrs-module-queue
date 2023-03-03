@@ -40,22 +40,23 @@ public class VisitQueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<VisitQueueE
 	 */
 	@Override
 	public Collection<VisitQueueEntry> findVisitQueueEntriesByConceptStatusAndConceptService(String conceptStatus,
-	        String conceptService, ConceptNameType conceptNameType, boolean localePreferred, String locationUuid) {
-		return handleVisitQueueEntriesByLocationStatusAndServiceCriteria(conceptStatus, conceptService, conceptNameType,
-		    localePreferred, locationUuid).list();
+	        String conceptService, ConceptNameType conceptNameType, boolean localePreferred, String locationUuid,
+	        String patientUuid) {
+		return handleVisitQueueEntriesCriteria(conceptStatus, conceptService, conceptNameType, localePreferred, locationUuid,
+		    patientUuid).list();
 	}
 	
 	@Override
 	public Long getVisitQueueEntriesCountByLocationStatusAndService(String conceptStatus, String conceptService,
 	        ConceptNameType conceptNameType, boolean localePreferred, String locationUuid) {
-		Criteria criteria = handleVisitQueueEntriesByLocationStatusAndServiceCriteria(conceptStatus, conceptService,
-		    conceptNameType, localePreferred, locationUuid);
+		Criteria criteria = handleVisitQueueEntriesCriteria(conceptStatus, conceptService, conceptNameType, localePreferred,
+		    locationUuid, null);
 		criteria.setProjection(Projections.rowCount());
 		return (Long) criteria.uniqueResult();
 	}
 	
-	private Criteria handleVisitQueueEntriesByLocationStatusAndServiceCriteria(String conceptStatus, String conceptService,
-	        ConceptNameType conceptNameType, boolean localePreferred, String locationUuid) {
+	private Criteria handleVisitQueueEntriesCriteria(String conceptStatus, String conceptService,
+	        ConceptNameType conceptNameType, boolean localePreferred, String locationUuid, String patientUuid) {
 		Criteria criteriaVisitQueueEntries = getCurrentSession().createCriteria(VisitQueueEntry.class, "_vqe");
 		includeVoidedObjects(criteriaVisitQueueEntries, false);
 		Criteria criteriaQueueEntries = criteriaVisitQueueEntries.createCriteria("_vqe.queueEntry", "_qe")
@@ -66,6 +67,11 @@ public class VisitQueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<VisitQueueE
 		        .add(Restrictions.and(Restrictions.isNull("_qe.endedAt"), Restrictions.isNotNull("_qe.startedAt")));
 		if (locationUuid != null) {
 			criteriaQueueLocation.add(eq("_ql.uuid", locationUuid));
+		}
+		
+		if (patientUuid != null) {
+			criteriaQueueLocation.createAlias("_qe.patient", "patient");
+			criteriaQueueLocation.add(Restrictions.eq("patient.uuid", patientUuid));
 		}
 		
 		if (conceptStatus != null && conceptService != null) {
@@ -84,4 +90,5 @@ public class VisitQueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<VisitQueueE
 		
 		return criteriaQueueLocation;
 	}
+	
 }
