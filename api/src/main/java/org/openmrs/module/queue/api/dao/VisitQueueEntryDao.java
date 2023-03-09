@@ -27,7 +27,8 @@ public interface VisitQueueEntryDao<Q extends OpenmrsObject & Auditable> extends
 	 * @return {@link Collection} of visitQueueEntries matching specified parameters.
 	 */
 	Collection<VisitQueueEntry> findVisitQueueEntriesByConceptStatusAndConceptService(String conceptStatus,
-	        String conceptService, ConceptNameType conceptNameType, boolean localePreferred, String locationUuid);
+	        String conceptService, ConceptNameType conceptNameType, boolean localePreferred, String locationUuid,
+	        String patientUuid);
 	
 	/**
 	 * Gets visit queue entries filtered by service and status e.g. count of patient waiting for triage

@@ -173,7 +173,7 @@ public class VisitQueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	@Test
 	public void shouldFindVisitQueueEntriesByWaitingForStatusAndService() {
 		Collection<VisitQueueEntry> result = dao.findVisitQueueEntriesByConceptStatusAndConceptService(WAITING_FOR_STATUS,
-		    TRIAGE_SERVICE, ConceptNameType.FULLY_SPECIFIED, false, null);
+		    TRIAGE_SERVICE, ConceptNameType.FULLY_SPECIFIED, false, null, null);
 		
 		assertThat(result, notNullValue());
 		assertThat(result, hasSize(1));
@@ -182,7 +182,7 @@ public class VisitQueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	@Test
 	public void shouldFindVisitQueueEntriesByInServiceStatusAndService() {
 		Collection<VisitQueueEntry> result = dao.findVisitQueueEntriesByConceptStatusAndConceptService(IN_SERVICE_STATUS,
-		    CONSULTATION_SERVICE, ConceptNameType.FULLY_SPECIFIED, false, null);
+		    CONSULTATION_SERVICE, ConceptNameType.FULLY_SPECIFIED, false, null, null);
 		
 		assertThat(result, notNullValue());
 		assertThat(result, hasSize(1));
@@ -191,7 +191,7 @@ public class VisitQueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	@Test
 	public void shouldFilterVisitQueueEntriesByInServiceStatus() {
 		Collection<VisitQueueEntry> result = dao.findVisitQueueEntriesByConceptStatusAndConceptService(IN_SERVICE_STATUS,
-		    null, ConceptNameType.FULLY_SPECIFIED, false, null);
+		    null, ConceptNameType.FULLY_SPECIFIED, false, null, null);
 		
 		assertThat(result, notNullValue());
 		assertThat(result, hasSize(1));
@@ -200,7 +200,7 @@ public class VisitQueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	@Test
 	public void shouldFilterVisitQueueEntriesByConsultationService() {
 		Collection<VisitQueueEntry> result = dao.findVisitQueueEntriesByConceptStatusAndConceptService(null,
-		    CONSULTATION_SERVICE, ConceptNameType.FULLY_SPECIFIED, false, null);
+		    CONSULTATION_SERVICE, ConceptNameType.FULLY_SPECIFIED, false, null, null);
 		
 		assertThat(result, notNullValue());
 		assertThat(result, hasSize(1));
@@ -209,7 +209,7 @@ public class VisitQueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	@Test
 	public void shouldFilterVisitQueueEntriesByLocation() {
 		Collection<VisitQueueEntry> result = dao.findVisitQueueEntriesByConceptStatusAndConceptService(null, null, null,
-		    false, LOCATION_UUID);
+		    false, LOCATION_UUID, null);
 		
 		assertThat(result, notNullValue());
 		assertThat(result, hasSize(2));
@@ -218,7 +218,7 @@ public class VisitQueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	@Test
 	public void shouldNotFilterVisitQueueEntriesByServiceAndStatusIfBothAreNull() {
 		Collection<VisitQueueEntry> result = dao.findVisitQueueEntriesByConceptStatusAndConceptService(null, null,
-		    ConceptNameType.FULLY_SPECIFIED, false, null);
+		    ConceptNameType.FULLY_SPECIFIED, false, null, null);
 		
 		assertThat(result, notNullValue());
 		assertThat(result, hasSize(2));

@@ -91,9 +91,10 @@ public class VisitQueueEntryResource extends DelegatingCrudResource<VisitQueueEn
 		String status = requestContext.getParameter("status");
 		String service = requestContext.getParameter("service");
 		String location = requestContext.getParameter("location");
-		//Both status,location & service are nullable
+		String patient = requestContext.getParameter("patient");
+		//Both status,location,patient & service are nullable
 		Collection<VisitQueueEntry> visitQueueEntries = this.visitQueueEntryService.findVisitQueueEntries(status, service,
-		    location);
+		    location, patient);
 		return new NeedsPaging<>(new ArrayList<>(visitQueueEntries), requestContext);
 	}
 	
