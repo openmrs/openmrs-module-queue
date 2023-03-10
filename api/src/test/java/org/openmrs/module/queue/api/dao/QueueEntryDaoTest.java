@@ -10,6 +10,7 @@
 package org.openmrs.module.queue.api.dao;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -24,10 +25,12 @@ import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Concept;
+import org.openmrs.Location;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptNameType;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.SpringTestConfiguration;
+import org.openmrs.module.queue.api.QueueEntryService;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
@@ -57,7 +60,9 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	    "org/openmrs/module/queue/api/dao/QueueEntryDaoTest_conceptsInitialDataset.xml",
 	    "org/openmrs/module/queue/api/dao/QueueDaoTest_initialDataset.xml",
 	    "org/openmrs/module/queue/api/dao/QueueEntryDaoTest_patientInitialDataset.xml",
-	    "org/openmrs/module/queue/api/dao/QueueEntryDaoTest_initialDataset.xml");
+	    "org/openmrs/module/queue/api/dao/QueueEntryDaoTest_initialDataset.xml",
+	    "org/openmrs/module/queue/api/dao/VisitQueueEntryDaoTest_visitInitialDataset.xml",
+	    "org/openmrs/module/queue/api/dao/visitQueueEntryDaoTest_visitQueueNumberInitialDataset.xml");
 	
 	private static final String QUEUE_ENTRY_STATUS = "Waiting for service";
 	
@@ -238,5 +243,29 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		
 		assertThat(queueEntriesCountByStatusCount, notNullValue());
 		assertThat(queueEntriesCountByStatusCount, is(0L));
+	}
+	
+	@Test
+	public void shouldGenerateVisitQueueNumber() {
+		QueueEntry queueEntry = Context.getService(QueueEntryService.class)
+		        .getQueueEntryByUuid("7ub8fe43-2813-4kbc-80dc-2e5d30252cc5").get();
+		Location location = Context.getLocationService().getLocationByUuid("d0938432-1691-11df-97a5-7038c098");
+		
+		String queueNumber = dao.generateVisitQueueNumber(location, queueEntry.getQueue());
+		
+		assertThat(queueNumber, notNullValue());
+		assertThat(queueNumber, equalTo("CON-002"));
+	}
+	
+	@Test
+	public void generateVisitQueueNumberShouldReturnOneWhenVisitEntryIsiEmpty() {
+		Queue queue = new Queue();
+		queue.setName("Triage");
+		Location location = Context.getLocationService().getLocationByUuid("d0938432-1691-11df-97a5-7038c098");
+		
+		String queueNumber = dao.generateVisitQueueNumber(location, queue);
+		
+		assertThat(queueNumber, notNullValue());
+		assertThat(queueNumber, equalTo("TRI-001"));
 	}
 }
