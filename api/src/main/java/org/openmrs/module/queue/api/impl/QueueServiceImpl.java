@@ -11,6 +11,7 @@ package org.openmrs.module.queue.api.impl;
 
 import javax.validation.constraints.NotNull;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.Optional;
 
 import lombok.AccessLevel;
 import lombok.Setter;
+import org.openmrs.Concept;
 import org.openmrs.api.APIException;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
@@ -101,5 +103,10 @@ public class QueueServiceImpl extends BaseOpenmrsService implements QueueService
 	@Override
 	public void purgeQueue(Queue queue) throws APIException {
 		this.dao.delete(queue);
+	}
+	
+	@Override
+	public Double getQueueAverageWaitTime(Queue queue, Concept status) {
+		return dao.getQueueAverageWaitTime(queue, status, LocalDate.now());
 	}
 }
