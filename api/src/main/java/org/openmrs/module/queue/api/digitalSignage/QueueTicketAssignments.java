@@ -37,7 +37,8 @@ public class QueueTicketAssignments {
 	 * @param ticketNumber
 	 * @param status
 	 */
-	synchronized public static void updateTicketAssignment(String servicePointName, String ticketNumber, String status) {
+	synchronized public static ObjectNode updateTicketAssignment(String servicePointName, String ticketNumber,
+	        String status) {
 		if (StringUtils.isNotBlank(servicePointName) && StringUtils.isNotBlank(ticketNumber)
 		        && StringUtils.isNotBlank(status)) {
 			if (ACTIVE_QUEUE_TICKETS.has(servicePointName)) { // check if there is an existing ticket assignment
@@ -70,7 +71,11 @@ public class QueueTicketAssignments {
 				System.out.println("Object: " + ACTIVE_QUEUE_TICKETS.toString());
 				
 			}
+			return ACTIVE_QUEUE_TICKETS;
 		}
+		ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+		objectNode.put("Error :", "One of the required fields is empty");
+		return objectNode;
 	}
 	
 	public static ObjectNode getActiveTicketAssignments() {

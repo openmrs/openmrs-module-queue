@@ -65,8 +65,7 @@ public class PatientQueueRestController extends BaseRestController {
 			String ticketNumber = actualObj.get("ticketNumber").textValue();
 			String status = actualObj.get("status").textValue();
 			
-			QueueTicketAssignments.updateTicketAssignment(servicePointName, ticketNumber, status);
-			return "Successfully updated the ticket";
+			return QueueTicketAssignments.updateTicketAssignment(servicePointName, ticketNumber, status);
 		}
 		return "The request could not be interpreted!";
 	}
