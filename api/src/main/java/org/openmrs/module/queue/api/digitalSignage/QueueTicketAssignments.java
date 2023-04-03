@@ -17,8 +17,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 
-import javax.swing.*;
-
 /**
  * A utility class for updating details of active queue tickets
  */
@@ -41,34 +39,35 @@ public class QueueTicketAssignments {
 	        String status) {
 		if (StringUtils.isNotBlank(servicePointName) && StringUtils.isNotBlank(ticketNumber)
 		        && StringUtils.isNotBlank(status)) {
-			if (ACTIVE_QUEUE_TICKETS.has(servicePointName)) { // check if there is an existing ticket assignment
-				//update the object with new information
+			
+			/** remove the ticket number from any assignment */
+			
+			Iterator<String> keys = ACTIVE_QUEUE_TICKETS.getFieldNames();
+			
+			while (keys.hasNext()) {
+				String key = keys.next();
+				ObjectNode obj = (ObjectNode) ACTIVE_QUEUE_TICKETS.get(key);
+				String ticket = String.valueOf(obj.get("ticketNumber"));
+				if (obj.get("ticketNumber").getTextValue().equals(ticketNumber)) {
+					ACTIVE_QUEUE_TICKETS.remove(key);
+					break;
+				}
+			}
+			
+			/** Assign ticket to a room if the room already exist */
+			if (ACTIVE_QUEUE_TICKETS.has(servicePointName)) {
 				ObjectNode tNode = (ObjectNode) ACTIVE_QUEUE_TICKETS.get(servicePointName);
 				tNode.put("status", status);
 				tNode.put("ticketNumber", ticketNumber);
 				ACTIVE_QUEUE_TICKETS.put(servicePointName, tNode);
+				
+				/** Else create a new assignment */
 			} else {
-				// remove the ticket number from any assignment
-				
-				Iterator<String> keys = ACTIVE_QUEUE_TICKETS.getFieldNames();
-				
-				while (keys.hasNext()) { // check if the ticket number has active assignment to any of the service rooms
-					String key = keys.next();
-					ObjectNode obj = (ObjectNode) ACTIVE_QUEUE_TICKETS.get(key);
-					if (obj.has(ticketNumber)) {
-						// remove the object
-						ACTIVE_QUEUE_TICKETS.remove(key);
-						break;
-					}
-				}
-				
-				// add the new assignment
 				ObjectNode ticketAssignment = JsonNodeFactory.instance.objectNode();
 				ticketAssignment.put("status", status);
 				ticketAssignment.put("ticketNumber", ticketNumber);
 				
 				ACTIVE_QUEUE_TICKETS.put(servicePointName, ticketAssignment);
-				System.out.println("Object: " + ACTIVE_QUEUE_TICKETS.toString());
 				
 			}
 			return ACTIVE_QUEUE_TICKETS;
