@@ -28,8 +28,8 @@ public interface QueueRoomService {
 	QueueRoom createQueueRoom(@NotNull QueueRoom queueRoom);
 	
 	List<QueueRoom> getQueueRoomsByServiceAndLocation(Queue queue, Location location);
-
+	
 	void voidQueueRoom(@NotNull String queueRoomUuid, String voidReason);
-
+	
 	void purgeQueueRoom(QueueRoom queueRoom) throws APIException;
 }

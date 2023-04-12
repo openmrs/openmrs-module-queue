@@ -28,9 +28,9 @@ public interface RoomProviderMapService {
 	RoomProviderMap createRoomProviderMap(@NotNull RoomProviderMap roomProviderMap);
 	
 	List<RoomProviderMap> getRoomProvider(Provider provider, QueueRoom queueRoom);
-
+	
 	void voidRoomProviderMap(@NotNull String roomProviderMapUuid, String voidReason);
-
+	
 	void purgeRoomProviderMap(RoomProviderMap roomProviderMap) throws APIException;
 	
 }

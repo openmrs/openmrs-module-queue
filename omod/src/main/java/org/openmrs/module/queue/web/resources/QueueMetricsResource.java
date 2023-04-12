@@ -67,7 +67,8 @@ public class QueueMetricsResource extends DelegatingCrudResource<SimpleObject> {
 			if (queueOptional.isPresent()) {
 				Double averageWaitTime = Context.getService(QueueService.class).getQueueAverageWaitTime(queueOptional.get(),
 				    status);
-				return new GenericSingleObjectResult(Arrays.asList(new PropValue("queue", queueOptional.get().getName()),
+				return new GenericSingleObjectResult(Arrays.asList(
+				    new PropValue("queue", Context.getService(QueueService.class).getQueueByUuid(queueUuid).get().getName()),
 				    new PropValue("averageWaitTime", averageWaitTime)));
 			}
 			

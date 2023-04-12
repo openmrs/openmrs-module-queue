@@ -64,7 +64,7 @@ public class RoomProviderMapServiceImpl extends BaseOpenmrsService implements Ro
 	public List<RoomProviderMap> getRoomProvider(Provider provider, QueueRoom queueRoom) {
 		return this.dao.getRoomProvider(provider, queueRoom);
 	}
-
+	
 	@Override
 	public void voidRoomProviderMap(String roomProviderMapUuid, String voidReason) {
 		this.dao.get(roomProviderMapUuid).ifPresent(obj -> {
@@ -75,7 +75,7 @@ public class RoomProviderMapServiceImpl extends BaseOpenmrsService implements Ro
 			this.dao.createOrUpdate(obj);
 		});
 	}
-
+	
 	@Override
 	public void purgeRoomProviderMap(RoomProviderMap roomProviderMap) throws APIException {
 		this.dao.delete(roomProviderMap);

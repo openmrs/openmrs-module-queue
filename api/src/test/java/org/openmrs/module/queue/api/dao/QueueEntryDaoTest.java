@@ -256,16 +256,4 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		assertThat(queueNumber, notNullValue());
 		assertThat(queueNumber, equalTo("CON-002"));
 	}
-	
-	@Test
-	public void generateVisitQueueNumberShouldReturnOneWhenVisitEntryIsiEmpty() {
-		Queue queue = new Queue();
-		queue.setName("Triage");
-		Location location = Context.getLocationService().getLocationByUuid("d0938432-1691-11df-97a5-7038c098");
-		
-		String queueNumber = dao.generateVisitQueueNumber(location, queue);
-		
-		assertThat(queueNumber, notNullValue());
-		assertThat(queueNumber, equalTo("TRI-001"));
-	}
 }

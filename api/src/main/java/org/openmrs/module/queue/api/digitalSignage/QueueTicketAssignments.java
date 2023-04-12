@@ -9,6 +9,8 @@
  */
 package org.openmrs.module.queue.api.digitalSignage;
 
+import javax.swing.*;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Iterator;
