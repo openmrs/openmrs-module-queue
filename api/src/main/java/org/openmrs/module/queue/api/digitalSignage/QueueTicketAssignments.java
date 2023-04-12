@@ -9,6 +9,8 @@
  */
 package org.openmrs.module.queue.api.digitalSignage;
 
+import javax.swing.*;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Iterator;
@@ -16,8 +18,6 @@ import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
-
-import javax.swing.*;
 
 /**
  * A utility class for updating details of active queue tickets

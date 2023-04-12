@@ -9,6 +9,8 @@
  */
 package org.openmrs.module.queue.api.impl;
 
+import javax.validation.constraints.NotNull;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -25,8 +27,6 @@ import org.openmrs.module.queue.api.dao.QueueRoomDao;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueRoom;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.validation.constraints.NotNull;
 
 @Slf4j
 @Transactional
@@ -58,7 +58,7 @@ public class QueueRoomServiceImpl extends BaseOpenmrsService implements QueueRoo
 	public List<QueueRoom> getQueueRoomsByServiceAndLocation(Queue queue, Location location) {
 		return this.dao.getQueueRoomsByServiceAndLocation(queue, location);
 	}
-
+	
 	@Override
 	public void voidQueueRoom(@NotNull String queueRoomUuid, String voidReason) {
 		this.dao.get(queueRoomUuid).ifPresent(queueRoom -> {
@@ -69,7 +69,7 @@ public class QueueRoomServiceImpl extends BaseOpenmrsService implements QueueRoo
 			this.dao.createOrUpdate(queueRoom);
 		});
 	}
-
+	
 	@Override
 	public void purgeQueueRoom(QueueRoom queueRoom) throws APIException {
 		this.dao.delete(queueRoom);
