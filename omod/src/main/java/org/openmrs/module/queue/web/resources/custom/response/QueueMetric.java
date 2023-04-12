@@ -22,7 +22,7 @@ public class QueueMetric implements Serializable {
 	
 	private static final long serialVersionUID = 45345L;
 	
-	private String queue;
+	private String metric;
 	
 	private int averageWaitTime;
 }

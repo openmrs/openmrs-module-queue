@@ -10,12 +10,10 @@
 package org.openmrs.module.queue.api.dao;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
-import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -23,7 +21,6 @@ import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.openmrs.Concept;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.SpringTestConfiguration;
 import org.openmrs.module.queue.model.Queue;
@@ -175,24 +172,4 @@ public class QueueDaoTest extends BaseModuleContextSensitiveTest {
 		queuesByLocation.forEach(queue -> assertThat(queue.getLocation().getUuid(), is(LOCATION_UUID)));
 	}
 	
-	@Test
-	public void shouldGetQueueAverageWaitTimeByQueue() {
-		LocalDate today = LocalDate.of(2022, 02, 02);
-		Queue queue = dao.get(QUEUE_UUID_WAIT_TIME).get();
-		Double waitTime = dao.getQueueAverageWaitTime(queue, null, today);
-		
-		assertThat(waitTime, notNullValue());
-		assertThat(waitTime, equalTo(150.0));
-	}
-	
-	@Test
-	public void shouldGetQueueAverageWaitTimeByQueueAndStatus() {
-		Concept concept = Context.getConceptService().getConceptByUuid(CONCEPT_UUID_WAIT_TIME);
-		LocalDate today = LocalDate.of(2022, 02, 02);
-		Queue queue = dao.get(QUEUE_UUID_WAIT_TIME).get();
-		Double waitTime = dao.getQueueAverageWaitTime(queue, concept, today);
-		
-		assertThat(waitTime, notNullValue());
-		assertThat(waitTime, equalTo(180.0));
-	}
 }

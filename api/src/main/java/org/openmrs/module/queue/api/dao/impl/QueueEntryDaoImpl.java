@@ -81,7 +81,7 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 		criteriaQueueLocation.add(eq("_q.uuid", queue.getUuid()));
 		
 		List<VisitQueueEntry> queueEntryList = criteriaQueueLocation.list();
-		int visitQueueNumber = 1;
+		int visitQueueNumber = 0;
 		
 		if (!queueEntryList.isEmpty()) {
 			visitQueueNumber = queueEntryList.size() + 1;

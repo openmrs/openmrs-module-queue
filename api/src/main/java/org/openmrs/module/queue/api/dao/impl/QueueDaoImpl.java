@@ -56,46 +56,44 @@ public class QueueDaoImpl extends AbstractBaseQueueDaoImpl<Queue> implements Que
 		if (queue == null) {
 			throw new APIException("Queue cannot be null");
 		}
+		LocalDate minDate = LocalDate.now();
+		LocalDate maxDate = LocalDate.now().plusDays(1);
 		
-		Date startOfDay = Date.from(today.atStartOfDay(ZoneId.systemDefault()).toInstant());
-		Date endOfDay = Date.from(today.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+		Date date1 = Date.from(minDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+		Date date2 = Date.from(maxDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 		
 		Criteria criteria = getCurrentSession().createCriteria(QueueEntry.class, "qe");
 		handleVoidable(criteria);
 		
 		Conjunction queueEntryStartedAtCheck = Restrictions.conjunction();
-		queueEntryStartedAtCheck.add(Restrictions.ge("qe.startedAt", startOfDay));
-		queueEntryStartedAtCheck.add(Restrictions.lt("qe.startedAt", endOfDay));
+		queueEntryStartedAtCheck.add(Restrictions.ge("startedAt", date1));
+		queueEntryStartedAtCheck.add(Restrictions.lt("startedAt", date2));
 		
 		Conjunction queueEntryEndedAtCheck = Restrictions.conjunction();
-		queueEntryEndedAtCheck.add(Restrictions.ge("qe.endedAt", startOfDay));
-		queueEntryEndedAtCheck.add(Restrictions.lt("qe.endedAt", endOfDay));
+		queueEntryEndedAtCheck.add(Restrictions.ge("endedAt", date1));
+		queueEntryEndedAtCheck.add(Restrictions.lt("endedAt", date2));
 		
-		criteria.add(Restrictions.and(queueEntryStartedAtCheck,
-		    Restrictions.or(queueEntryEndedAtCheck, Restrictions.isNull("qe.endedAt")), Restrictions.eq("qe.queue", queue)));
+		criteria.add(Restrictions.and(queueEntryStartedAtCheck, queueEntryEndedAtCheck, Restrictions.eq("queue", queue)));
 		
 		if (status != null) {
-			criteria.add(Restrictions.and(Restrictions.eq("qe.status", status)));
+			criteria.add(Restrictions.and(Restrictions.eq("status", status)));
 		}
 		List<QueueEntry> queuedToday = criteria.list();
 		
-		Double defaultAverageWaitTime = 0.0;
+		Double averageWaitTime = 0.0;
 		
 		if (!queuedToday.isEmpty()) {
 			Double totalWaitTime = 0.0;
 			for (QueueEntry e : queuedToday) {
 				LocalDateTime startedAt = e.getStartedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-				LocalDateTime endedAt = LocalDateTime.now();
+				LocalDateTime endedAt = e.getEndedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
 				
-				if (e.getEndedAt() != null) {
-					endedAt = e.getEndedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-				}
 				totalWaitTime += Duration.between(startedAt, endedAt).toMinutes();
 				
 			}
 			return totalWaitTime / (queuedToday.size());
 		}
 		
-		return defaultAverageWaitTime;
+		return averageWaitTime;
 	}
 }
