@@ -39,7 +39,7 @@ public class VisitQueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<VisitQueueE
 	
 	/**
 	 * @see VisitQueueEntryDao#findVisitQueueEntriesByConceptStatusAndConceptService(String, String,
-	 *      ConceptNameType, boolean)
+	 *      ConceptNameType, boolean, String, String)
 	 */
 	@Override
 	public Collection<VisitQueueEntry> findVisitQueueEntriesByConceptStatusAndConceptService(String conceptStatus,
@@ -75,8 +75,8 @@ public class VisitQueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<VisitQueueE
 		
 		criteriaQueueLocation
 		        .add(Restrictions.and(Restrictions.isNull("_qe.endedAt"), Restrictions.isNotNull("_qe.startedAt")));
-		criteriaQueueLocation
-		        .add(Restrictions.and(Restrictions.ge("_qe.startedAt", startOfDay), Restrictions.lt("_qe.startedAt", endOfDay)));
+		criteriaQueueLocation.add(
+		    Restrictions.and(Restrictions.ge("_qe.startedAt", startOfDay), Restrictions.lt("_qe.startedAt", endOfDay)));
 		if (locationUuid != null) {
 			criteriaQueueLocation.add(eq("_ql.uuid", locationUuid));
 		}
