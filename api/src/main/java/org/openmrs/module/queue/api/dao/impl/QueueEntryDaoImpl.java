@@ -10,6 +10,7 @@
 package org.openmrs.module.queue.api.dao.impl;
 
 import static org.hibernate.criterion.Restrictions.eq;
+import static org.hibernate.criterion.Restrictions.or;
 
 import javax.validation.constraints.NotNull;
 
@@ -92,5 +93,17 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 		String serviceName = queue.getName().toUpperCase();
 		String prefix = serviceName.length() < 3 ? serviceName : serviceName.substring(0, 3);
 		return prefix + "-" + paddedString;
+	}
+	
+	/**
+	 * @see QueueEntryDao#getActiveQueueEntries()
+	 */
+	@Override
+	public List<QueueEntry> getActiveQueueEntries() {
+		Criteria criteria = getCurrentSession().createCriteria(QueueEntry.class);
+		// exclude voided queue entries
+		includeVoidedObjects(criteria, false);
+		criteria.add(or(Restrictions.isEmpty("endedAt"), Restrictions.isNull("endedAt")));
+		return (List<QueueEntry>) criteria.list();
 	}
 }

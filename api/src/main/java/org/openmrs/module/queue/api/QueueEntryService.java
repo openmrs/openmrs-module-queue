@@ -88,4 +88,9 @@ public interface QueueEntryService {
 	String generateVisitQueueNumber(@NotNull Location location, @NotNull Queue queue, @NotNull Visit visit,
 	        @NotNull VisitAttributeType visitAttributeType);
 	
+	/**
+	 * Closes all active queue entries
+	 */
+	void closeActiveQueueEntries();
+	
 }

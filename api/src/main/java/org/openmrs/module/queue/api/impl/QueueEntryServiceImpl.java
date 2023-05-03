@@ -13,6 +13,7 @@ import javax.validation.constraints.NotNull;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import lombok.AccessLevel;
@@ -123,5 +124,16 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		visit.setAttribute(visitQueueNumber);
 		Context.getVisitService().saveVisit(visit);
 		return queueNumber;
+	}
+	
+	@Override
+	public void closeActiveQueueEntries() {
+		List<QueueEntry> queueEntries = dao.getActiveQueueEntries();
+		queueEntries.forEach(this::endQueueEntry);
+	}
+	
+	private void endQueueEntry(@NotNull QueueEntry queueEntry) {
+		queueEntry.setEndedAt(new Date());
+		dao.createOrUpdate(queueEntry);
 	}
 }

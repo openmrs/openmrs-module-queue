@@ -12,6 +12,7 @@ package org.openmrs.module.queue.api.dao;
 import javax.validation.constraints.NotNull;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.openmrs.Auditable;
 import org.openmrs.Location;
@@ -49,5 +50,12 @@ public interface QueueEntryDao<Q extends OpenmrsObject & Auditable> extends Base
 	 * @return VisitQueueNumber - used to identify patients in the queue instead of using patient name
 	 */
 	String generateVisitQueueNumber(@NotNull Location location, @NotNull Queue queue);
+	
+	/**
+	 * Gets active queue entries
+	 * 
+	 * @return List of active queue entries
+	 */
+	List<QueueEntry> getActiveQueueEntries();
 	
 }
