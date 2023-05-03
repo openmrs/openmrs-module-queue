@@ -12,10 +12,7 @@ package org.openmrs.module.queue.api.dao.impl;
 import static org.hibernate.criterion.Restrictions.and;
 import static org.hibernate.criterion.Restrictions.eq;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Collection;
-import java.util.Date;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Criteria;
@@ -62,9 +59,9 @@ public class VisitQueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<VisitQueueE
 	        ConceptNameType conceptNameType, boolean localePreferred, String locationUuid, String patientUuid) {
 		
 		// Filter queue entries for today
-		LocalDate date = LocalDate.now();
-		Date startOfDay = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
-		Date endOfDay = Date.from(date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+		//		LocalDate date = LocalDate.now();
+		//		Date startOfDay = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+		//		Date endOfDay = Date.from(date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
 		
 		Criteria criteriaVisitQueueEntries = getCurrentSession().createCriteria(VisitQueueEntry.class, "_vqe");
 		includeVoidedObjects(criteriaVisitQueueEntries, false);
@@ -75,8 +72,8 @@ public class VisitQueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<VisitQueueE
 		
 		criteriaQueueLocation
 		        .add(Restrictions.and(Restrictions.isNull("_qe.endedAt"), Restrictions.isNotNull("_qe.startedAt")));
-		criteriaQueueLocation.add(
-		    Restrictions.and(Restrictions.ge("_qe.startedAt", startOfDay), Restrictions.lt("_qe.startedAt", endOfDay)));
+		//		criteriaQueueLocation.add(
+		//		    Restrictions.and(Restrictions.ge("_qe.startedAt", startOfDay), Restrictions.lt("_qe.startedAt", endOfDay)));
 		if (locationUuid != null) {
 			criteriaQueueLocation.add(eq("_ql.uuid", locationUuid));
 		}
