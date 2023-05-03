@@ -9,10 +9,10 @@
     graphic logo is a trademark of OpenMRS Inc.
 -->
 <dataset>
-    <global_property property="queue.statusConceptSetName" property_value="Status"
+    <global_property property="queue.statusConceptSetName" property_value="Queue Status"
                      uuid="6eb8fe43-2813-4kbc-80dc-2e5d30252cc9"/>
-    <global_property property="queue.priorityConceptSetName" property_value="Priority"
+    <global_property property="queue.priorityConceptSetName" property_value="Queue Priority"
                      uuid="9eb8fe58-2813-4kbc-80dc-2e5d30252cf9"/>
-    <global_property property="queue.serviceConceptSetName" property_value="Service"
+    <global_property property="queue.serviceConceptSetName" property_value="Queue Service"
                      uuid="8eb8fe90-2813-4kbc-80dc-2e9d30252cc9"/>
 </dataset>
