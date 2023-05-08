@@ -26,7 +26,7 @@ necessary step, no defaults are provided.
 
 ## Rest docs
 
-> Not the ideal place for this, to be migrated later -> https://rest.openmrs.org/#openmrs-rest-api
+> Migrated to > https://rest.openmrs.org/#queue
 
 ### Queue Resource
 
