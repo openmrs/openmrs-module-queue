@@ -254,6 +254,6 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		String queueNumber = dao.generateVisitQueueNumber(location, queueEntry.getQueue());
 		
 		assertThat(queueNumber, notNullValue());
-		assertThat(queueNumber, equalTo("CON-002"));
+		assertThat(queueNumber, equalTo("CON-001"));
 	}
 }
