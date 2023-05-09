@@ -14,12 +14,16 @@ import static org.hibernate.criterion.Restrictions.or;
 
 import javax.validation.constraints.NotNull;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Property;
 import org.hibernate.criterion.Restrictions;
@@ -81,8 +85,20 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 		criteriaQueueLocation.add(eq("_ql.uuid", location.getUuid()));
 		criteriaQueueLocation.add(eq("_q.uuid", queue.getUuid()));
 		
+		LocalDate minDate = LocalDate.now();
+		LocalDate maxDate = LocalDate.now().plusDays(1);
+		
+		Date startOfDay = Date.from(minDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+		Date endOfDay = Date.from(maxDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+		
+		Conjunction queueEntryStartedAtCheck = Restrictions.conjunction();
+		queueEntryStartedAtCheck.add(Restrictions.ge("startedAt", startOfDay));
+		queueEntryStartedAtCheck.add(Restrictions.lt("startedAt", endOfDay));
+		criteriaQueueEntries.add(queueEntryStartedAtCheck);
+		
 		List<VisitQueueEntry> queueEntryList = criteriaQueueLocation.list();
-		int visitQueueNumber = 0;
+		
+		int visitQueueNumber = 1;
 		
 		if (!queueEntryList.isEmpty()) {
 			visitQueueNumber = queueEntryList.size() + 1;
