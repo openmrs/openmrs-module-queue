@@ -54,17 +54,17 @@
 
     <globalProperty>
         <property>${project.parent.artifactId}.statusConceptSetName</property>
-        <defaultValue>Queue Status</defaultValue>
+        <defaultValue>Status</defaultValue>
         <description>Set status conceptSet name</description>
     </globalProperty>
     <globalProperty>
         <property>${project.parent.artifactId}.priorityConceptSetName</property>
-        <defaultValue>Queue Priority</defaultValue>
+        <defaultValue>Priority</defaultValue>
         <description>Set priority conceptSet name</description>
     </globalProperty>
     <globalProperty>
         <property>${project.parent.artifactId}.serviceConceptSetName</property>
-        <defaultValue>Queue Service</defaultValue>
+        <defaultValue>Service</defaultValue>
         <description>Set service conceptSet name</description>
     </globalProperty>
 </module>
