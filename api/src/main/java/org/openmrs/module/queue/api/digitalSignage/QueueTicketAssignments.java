@@ -48,6 +48,9 @@ public class QueueTicketAssignments {
 				ObjectNode obj = (ObjectNode) ACTIVE_QUEUE_TICKETS.get(key);
 				if (obj.get("ticketNumber").getTextValue().equals(ticketNumber)) {
 					ACTIVE_QUEUE_TICKETS.remove(key);
+					if (status.equals("completed")) {
+						return;
+					}
 					break;
 				}
 			}
