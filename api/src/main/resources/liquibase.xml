@@ -328,4 +328,25 @@
             TIMESTAMP(CURDATE()), 'MM/dd/yyyy HH:mm:ss', 86400, TRUE, 1, NOW(), UUID());
         </sql>
     </changeSet>
+
+    <changeSet id="add_location_coming_from_column_to_queue_entry_20230809" author="cynthiakamau">
+        <preConditions onError="WARN" onFail="MARK_RAN">
+            <tableExists tableName="queue_entry"/>
+            <not><columnExists tableName="queue_entry" columnName="location_coming_from"/></not>
+        </preConditions>
+        <comment>
+            Add column location_coming_from to queue entry table
+        </comment>
+        <addColumn tableName="queue_entry">
+            <column name="location_coming_from" type="int">
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="add_queue_entry_location_coming_from_fk_20230809" author="cynthiakamau">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="queue_entry" columnName="location_coming_from"/>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="location_coming_from" baseTableName="queue_entry" constraintName="queue_entry_location_coming_from_id_fk" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="queue_id" referencedTableName="queue"/>
+    </changeSet>
 </databaseChangeLog>
