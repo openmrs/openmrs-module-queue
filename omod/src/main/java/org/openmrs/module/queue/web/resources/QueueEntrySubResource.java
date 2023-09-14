@@ -96,7 +96,7 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 		description.addProperty("sortWeight");
 		description.addProperty("startedAt");
 		description.addProperty("locationWaitingFor");
-		description.addProperty("locationComingFrom");
+		description.addProperty("queueComingFrom");
 		description.addProperty("providerWaitingFor");
 		return description;
 	}
@@ -120,7 +120,7 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 			resourceDescription.addProperty("patient", Representation.REF);
 			resourceDescription.addProperty("priority", Representation.REF);
 			resourceDescription.addProperty("locationWaitingFor", Representation.REF);
-			resourceDescription.addProperty("locationComingFrom", Representation.REF);
+			resourceDescription.addProperty("queueComingFrom", Representation.REF);
 			resourceDescription.addProperty("providerWaitingFor", Representation.REF);
 			resourceDescription.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
 		} else if (representation instanceof DefaultRepresentation) {
@@ -130,7 +130,7 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 			resourceDescription.addProperty("patient", Representation.DEFAULT);
 			resourceDescription.addProperty("priority", Representation.DEFAULT);
 			resourceDescription.addProperty("locationWaitingFor", Representation.DEFAULT);
-			resourceDescription.addProperty("locationComingFrom", Representation.DEFAULT);
+			resourceDescription.addProperty("queueComingFrom", Representation.DEFAULT);
 			resourceDescription.addProperty("providerWaitingFor", Representation.DEFAULT);
 			resourceDescription.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
 		} else if (representation instanceof FullRepresentation) {
@@ -143,7 +143,7 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 			resourceDescription.addProperty("patient", Representation.FULL);
 			resourceDescription.addProperty("priority", Representation.FULL);
 			resourceDescription.addProperty("locationWaitingFor", Representation.FULL);
-			resourceDescription.addProperty("locationComingFrom", Representation.FULL);
+			resourceDescription.addProperty("queueComingFrom", Representation.FULL);
 			resourceDescription.addProperty("providerWaitingFor", Representation.FULL);
 		} else if (representation instanceof CustomRepresentation) {
 			//Let the user decide
