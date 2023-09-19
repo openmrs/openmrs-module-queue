@@ -81,10 +81,10 @@ public class QueueEntry extends BaseChangeableOpenmrsData {
 	@JoinColumn(name = "provider_waiting_for", referencedColumnName = "provider_id")
 	private Provider providerWaitingFor;
 	
-	//The Location the patient is coming from, if any.
+	//The queue the patient is coming from, if any.
 	@OneToOne
-	@JoinColumn(name = "location_coming_from", referencedColumnName = "queue_id")
-	private Queue locationComingFrom;
+	@JoinColumn(name = "queue_coming_from", referencedColumnName = "queue_id")
+	private Queue queueComingFrom;
 	
 	@Column(name = "started_at", nullable = false)
 	private Date startedAt;
