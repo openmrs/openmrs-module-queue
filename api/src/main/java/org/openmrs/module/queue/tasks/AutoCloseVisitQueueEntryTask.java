@@ -63,7 +63,7 @@ public class AutoCloseVisitQueueEntryTask implements Runnable {
 	/**
 	 * @return the active VisitQueueEntries
 	 */
-	Collection<VisitQueueEntry> getActiveVisitQueueEntries() {
+	protected Collection<VisitQueueEntry> getActiveVisitQueueEntries() {
 		return Context.getService(VisitQueueEntryService.class).getActiveVisitQueueEntries();
 	}
 	
@@ -71,7 +71,7 @@ public class AutoCloseVisitQueueEntryTask implements Runnable {
 	 * @param queueEntry the QueueEntry to save
 	 * @return the saved QueueEntry
 	 */
-	QueueEntry saveQueueEntry(QueueEntry queueEntry) {
-		return Context.getService(QueueEntryService.class).createQueueEntry(queueEntry);
+	protected void saveQueueEntry(QueueEntry queueEntry) {
+		Context.getService(QueueEntryService.class).createQueueEntry(queueEntry);
 	}
 }
