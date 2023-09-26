@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
 public class QueueEntrySearchHandler implements SubResourceSearchHandler {
 	
 	private final static SearchConfig SEARCH_CONFIG = new SearchConfig("default", RestConstants.VERSION_1 + "/queue/entry",
-	        Collections.singletonList("2.0 - 2.*"),
+	        Collections.singletonList("2.3 - 9.*"),
 	        new SearchQuery.Builder("Allows you to find queue entries by status").withOptionalParameters("status").build());
 	
 	@Override

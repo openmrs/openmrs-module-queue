@@ -32,7 +32,7 @@ import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOp
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 @Resource(name = RestConstants.VERSION_1 + "/queue-metrics", supportedClass = QueueMetric.class, supportedOpenmrsVersions = {
-        "2.0 - 2.*" })
+        "2.3 - 9.*" })
 public class QueueMetricsResource extends DelegatingCrudResource<SimpleObject> {
 	
 	@Override

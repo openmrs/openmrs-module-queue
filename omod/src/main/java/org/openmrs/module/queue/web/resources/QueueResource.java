@@ -38,7 +38,7 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 @SuppressWarnings("unused")
 @Resource(name = RestConstants.VERSION_1 + "/queue", supportedClass = Queue.class, supportedOpenmrsVersions = {
-        "2.0 - 2.*" })
+        "2.3 - 9.*" })
 public class QueueResource extends DelegatingCrudResource<Queue> {
 	
 	private final QueueService queueService;
