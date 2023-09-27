@@ -372,4 +372,17 @@
         </preConditions>
         <addForeignKeyConstraint baseColumnNames="queue_coming_from" baseTableName="queue_entry" constraintName="queue_entry_queue_coming_from_id_fk" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="queue_id" referencedTableName="queue"/>
     </changeSet>
+
+    <changeSet id="delete-auto-close-queue-entry-task-20230926" author="mseaton">
+        <preConditions>
+            <not>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*) FROM scheduler_task_config WHERE name = "Auto close queue entries Task";
+                </sqlCheck>
+            </not>
+        </preConditions>
+        <delete tableName="scheduler_task_config">
+            <where>schedulable_class = 'org.openmrs.module.queue.tasks.AutoCloseQueueEntryTask'</where>
+        </delete>
+    </changeSet>
 </databaseChangeLog>

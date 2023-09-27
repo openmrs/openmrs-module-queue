@@ -11,9 +11,25 @@ package org.openmrs.module.queue;
 
 import lombok.extern.slf4j.Slf4j;
 import org.openmrs.module.BaseModuleActivator;
+import org.openmrs.module.DaemonToken;
+import org.openmrs.module.DaemonTokenAware;
+import org.openmrs.module.queue.tasks.QueueTimerTask;
 
 /**
  * This class contains the logic that is run every time this module is either started or shutdown
  */
 @Slf4j
-public class QueueModuleActivator extends BaseModuleActivator {}
+public class QueueModuleActivator extends BaseModuleActivator implements DaemonTokenAware {
+	
+	@Override
+	public void started() {
+		super.started();
+		log.info("Queue Module Started");
+		QueueTimerTask.setEnabled(true);
+	}
+	
+	@Override
+	public void setDaemonToken(DaemonToken daemonToken) {
+		QueueTimerTask.setDaemonToken(daemonToken);
+	}
+}
