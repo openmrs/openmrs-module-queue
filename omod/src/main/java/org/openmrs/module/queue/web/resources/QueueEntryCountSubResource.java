@@ -52,7 +52,7 @@ public class QueueEntryCountSubResource extends DelegatingSubResource<QueueEntry
 	@Override
 	public PageableResult doGetAll(Queue queue, RequestContext requestContext) throws ResponseException {
 		return new GenericSingleObjectResult(Arrays.asList(new PropValue("queueName", queue.getName()),
-		    new PropValue("queueEntriesCount", queue.getQueueEntries().size())));
+		    new PropValue("queueEntriesCount", queue.getActiveQueueEntries().size())));
 	}
 	
 	@Override

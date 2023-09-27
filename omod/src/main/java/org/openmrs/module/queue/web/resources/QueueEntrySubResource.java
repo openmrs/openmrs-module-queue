@@ -53,7 +53,7 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 	
 	@Override
 	public PageableResult doGetAll(Queue queue, RequestContext requestContext) throws ResponseException {
-		Collection<QueueEntry> queueEntries = queue.getQueueEntries();
+		Collection<QueueEntry> queueEntries = queue.getActiveQueueEntries();
 		return new NeedsPaging<>(new ArrayList<>(queueEntries), requestContext);
 	}
 	

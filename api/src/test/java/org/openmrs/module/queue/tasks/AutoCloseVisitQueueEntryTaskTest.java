@@ -7,11 +7,12 @@
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
-package org.openmrs.module.queue.model;
+package org.openmrs.module.queue.tasks;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.nullValue;
+import org.junit.Test;
+import org.openmrs.Visit;
+import org.openmrs.module.queue.model.QueueEntry;
+import org.openmrs.module.queue.model.VisitQueueEntry;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -21,9 +22,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.junit.Test;
-import org.openmrs.Visit;
-import org.openmrs.module.queue.tasks.AutoCloseVisitQueueEntryTask;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
 
 public class AutoCloseVisitQueueEntryTaskTest {
 	
@@ -44,7 +45,7 @@ public class AutoCloseVisitQueueEntryTaskTest {
 	
 	@Test
 	public void shouldAutoCloseVisitQueueEntriesIfVisitIsClosed() throws Exception {
-		
+
 		Visit visit1 = new Visit();
 		visit1.setStartDatetime(getDate("2020-01-01 10:00"));
 		QueueEntry queueEntry1 = new QueueEntry();
@@ -53,7 +54,7 @@ public class AutoCloseVisitQueueEntryTaskTest {
 		visitQueueEntry1.setVisit(visit1);
 		visitQueueEntry1.setQueueEntry(queueEntry1);
 		queueEntries.add(visitQueueEntry1);
-		
+
 		Visit visit2 = new Visit();
 		visit2.setStartDatetime(getDate("2021-01-01 10:00"));
 		QueueEntry queueEntry2 = new QueueEntry();
@@ -62,17 +63,17 @@ public class AutoCloseVisitQueueEntryTaskTest {
 		visitQueueEntry2.setVisit(visit2);
 		visitQueueEntry2.setQueueEntry(queueEntry2);
 		queueEntries.add(visitQueueEntry2);
-		
+
 		TestAutoCloseVisitEntryTask task = new TestAutoCloseVisitEntryTask();
 		task.run();
 		assertThat(queueEntry1.getEndedAt(), nullValue());
 		assertThat(queueEntry2.getEndedAt(), nullValue());
-		
+
 		visit1.setStopDatetime(getDate("2020-01-01 23:15"));
 		task.run();
 		assertThat(queueEntry1.getEndedAt(), equalTo(visit1.getStopDatetime()));
 		assertThat(queueEntry2.getEndedAt(), nullValue());
-		
+
 		visit2.setStopDatetime(getDate("2021-01-05 11:30"));
 		task.run();
 		assertThat(queueEntry1.getEndedAt(), equalTo(visit1.getStopDatetime()));
