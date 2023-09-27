@@ -87,7 +87,7 @@ public class Queue extends BaseChangeableOpenmrsMetadata {
 		}
 		return queueRooms.stream().filter(r -> BooleanUtils.isNotTrue(r.getRetired())).collect(Collectors.toList());
 	}
-
+	
 	/**
 	 * @param queueEntry the QueueEntry to add
 	 */
@@ -97,7 +97,7 @@ public class Queue extends BaseChangeableOpenmrsMetadata {
 		}
 		queueEntries.add(queueEntry);
 	}
-
+	
 	/**
 	 * @param queueRoom the QueueRoom to add
 	 */

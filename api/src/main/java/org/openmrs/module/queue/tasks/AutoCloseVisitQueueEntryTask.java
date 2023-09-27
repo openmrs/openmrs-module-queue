@@ -28,7 +28,7 @@ import org.openmrs.module.queue.model.VisitQueueEntry;
 @Slf4j
 public class AutoCloseVisitQueueEntryTask implements Runnable {
 	
-	private static boolean currentlyExecuting = false;
+	private static volatile boolean currentlyExecuting = false;
 	
 	@Override
 	public void run() {
