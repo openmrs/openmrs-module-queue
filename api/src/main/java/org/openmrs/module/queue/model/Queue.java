@@ -64,18 +64,18 @@ public class Queue extends BaseChangeableOpenmrsMetadata {
 	 * @return all non-voided QueueEntries that do not start in the future and are not already ended
 	 */
 	public List<QueueEntry> getActiveQueueEntries() {
-		List<QueueEntry> l = new ArrayList<>();
+		List<QueueEntry> activeQueueEntries = new ArrayList<>();
 		Date now = new Date();
 		if (queueEntries != null) {
-			for (QueueEntry e : queueEntries) {
-				if (BooleanUtils.isNotTrue(e.getVoided())) {
-					if (!e.getStartedAt().after(now) && e.getEndedAt() == null) {
-						l.add(e);
+			for (QueueEntry queueEntry : queueEntries) {
+				if (BooleanUtils.isNotTrue(queueEntry.getVoided())) {
+					if (!queueEntry.getStartedAt().after(now) && queueEntry.getEndedAt() == null) {
+						activeQueueEntries.add(queueEntry);
 					}
 				}
 			}
 		}
-		return l;
+		return activeQueueEntries;
 	}
 	
 	/**
