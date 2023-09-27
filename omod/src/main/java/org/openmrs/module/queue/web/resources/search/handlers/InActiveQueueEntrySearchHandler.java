@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
 public class InActiveQueueEntrySearchHandler implements SearchHandler {
 	
 	private final static SearchConfig SEARCH_CONFIG = new SearchConfig("default",
-	        RestConstants.VERSION_1 + "/visit-queue-entry", Collections.singletonList("2.0 - 2.*"),
+	        RestConstants.VERSION_1 + "/visit-queue-entry", Collections.singletonList("2.3 - 9.*"),
 	        new SearchQuery.Builder("Allows you to include/exclude inactive queue entries")
 	                .withOptionalParameters("includeInactive").build());
 	

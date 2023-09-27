@@ -42,7 +42,7 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
 @Slf4j
 @SuppressWarnings("unused")
 @Resource(name = RestConstants.VERSION_1
-        + "/visit-queue-entry", supportedClass = VisitQueueEntry.class, supportedOpenmrsVersions = { "2.0 - 2.*" })
+        + "/visit-queue-entry", supportedClass = VisitQueueEntry.class, supportedOpenmrsVersions = { "2.3 - 9.*" })
 public class VisitQueueEntryResource extends DelegatingCrudResource<VisitQueueEntry> {
 	
 	private final VisitQueueEntryService visitQueueEntryService;

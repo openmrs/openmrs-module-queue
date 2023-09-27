@@ -36,7 +36,7 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
  */
 @SuppressWarnings("unused")
 @SubResource(parent = QueueResource.class, path = "count", supportedClass = QueueEntryCount.class, supportedOpenmrsVersions = {
-        "2.0 - 2.*" }, order = 12)
+        "2.3 - 9.*" }, order = 12)
 public class QueueEntryCountSubResource extends DelegatingSubResource<QueueEntryCount, Queue, QueueResource> {
 	
 	@Override

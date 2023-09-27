@@ -35,7 +35,7 @@ import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOp
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 @Resource(name = RestConstants.VERSION_1 + "/queueroom", supportedClass = QueueRoom.class, supportedOpenmrsVersions = {
-        "2.0 - 2.*" })
+        "2.3 - 9.*" })
 public class QueueRoomResource extends DelegatingCrudResource<QueueRoom> {
 	
 	private final QueueRoomService queueRoomService;

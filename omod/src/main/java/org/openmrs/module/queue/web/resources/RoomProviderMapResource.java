@@ -34,7 +34,7 @@ import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOp
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 @Resource(name = RestConstants.VERSION_1
-        + "/roomprovidermap", supportedClass = RoomProviderMap.class, supportedOpenmrsVersions = { "2.0 - 2.*" })
+        + "/roomprovidermap", supportedClass = RoomProviderMap.class, supportedOpenmrsVersions = { "2.3 - 9.*" })
 public class RoomProviderMapResource extends DelegatingCrudResource<RoomProviderMap> {
 	
 	private final RoomProviderMapService roomProviderMapService;

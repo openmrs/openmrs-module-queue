@@ -26,7 +26,7 @@
     <!-- <updateURL>https://modules.openmrs.org/modules/download/@MODULE_ID@/update.rdf</updateURL> -->
     <!-- /Base Module Properties -->
 
-    <require_version>2.0.5 - 2.*</require_version>
+    <require_version>2.3.0</require_version>
 
     <require_modules>
         <require_module>org.openmrs.module.webservices.rest</require_module>
