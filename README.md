@@ -13,16 +13,33 @@ OpenMRS Queue Module (backend)
   - Specifically REST web services
 - Java 8 or higher
 
+## Development
+
+### Using docker
+
+The `docker-compose.yml` at the root of this repository defines local development environment, including environment
+variables,
+ports you need accessible, and volumes to mount.
+
+Now that the local development environment is defined in `docker-compose.yml`, you can spin up an instance of OpenMRS service
+with the specified modules with one command:
+
+```shell 
+ docker-compose up -d
+```
+
+TODO
+
 ## Configurations
 
 After installing the queue module, configure the following GPs according to your implementation needs. Note that this is a
 necessary step, no defaults are provided.
 
-|Property   | Default value   | Description
-|:---|---|---|
-|queue.statusConceptSetName | Queue Status | A set of concepts for queue status, i.e Waiting for Service, With Service, and Finished With Service |
-|queue.priorityConceptSetName | Queue Priority | A set of queue priority concepts e.g Urgent, Emergency, Not Urgent |
-|queue.serviceConceptSetName | Queue Service | A set of queue service concepts. Services offered in a clinic e.g Triage, Consultation, ... |
+| Property                     | Default value  | Description                                                                                          |
+|:-----------------------------|----------------|------------------------------------------------------------------------------------------------------|
+| queue.statusConceptSetName   | Queue Status   | A set of concepts for queue status, i.e Waiting for Service, With Service, and Finished With Service |
+| queue.priorityConceptSetName | Queue Priority | A set of queue priority concepts e.g Urgent, Emergency, Not Urgent                                   |
+| queue.serviceConceptSetName  | Queue Service  | A set of queue service concepts. Services offered in a clinic e.g Triage, Consultation, ...          |
 
 ## Rest docs
 
@@ -39,9 +56,9 @@ Retrieve a queue by UUID. Returns a `404 Not found` status if the queue(to be re
 GET /ws/rest/v1/queue/<UUID>
 ```
 
-| Parameter | Type | Description |
-| :--- | :--- | :--- |
-| `UUID` | `string` | UUID of queue to be retrieved |
+| Parameter | Type     | Description                   |
+|:----------|:---------|:------------------------------|
+| `UUID`    | `string` | UUID of queue to be retrieved |
 
 #### Create queue
 
@@ -79,9 +96,9 @@ queue(to be updated) doesn't exist. If not authenticated, 401 Unauthorized statu
 POST /ws/rest/v1/queue/<UUID>
 ```
 
-| Parameter | Type | Description |
-| :--- | :--- | :--- |
-| `UUID` | `string` | UUID of queue to be updated |
+| Parameter | Type     | Description                 |
+|:----------|:---------|:----------------------------|
+| `UUID`    | `string` | UUID of queue to be updated |
 
 Body
 
@@ -101,10 +118,10 @@ authenticated, 401 Unauthorized status is returned.
 DELETE /ws/rest/v1/queue/<UUID>?purge=false
 ```
 
-| Parameter | Type | Description |
-| :--- | :--- | :--- |
-| `UUID` | `string` | UUID of queue to be voided |
-| `purge` | `boolean` | The queue record will be voided unless `purge=true` |
+| Parameter | Type      | Description                                         |
+|:----------|:----------|:----------------------------------------------------|
+| `UUID`    | `string`  | UUID of queue to be voided                          |
+| `purge`   | `boolean` | The queue record will be voided unless `purge=true` |
 
 ### Queue Entry Resource
 
@@ -117,9 +134,9 @@ not authenticated, 401 Unauthorized status is returned.
 GET /ws/rest/v1/queue/<QueueUUID>/entry/<QueueEntryUUID>
 ```
 
-| Parameter | Type | Description |
-| :--- | :--- | :--- |
-| `QueueUUID` | `string` | UUID of the associated queue |
+| Parameter        | Type     | Description                         |
+|:-----------------|:---------|:------------------------------------|
+| `QueueUUID`      | `string` | UUID of the associated queue        |
 | `QueueEntryUUID` | `string` | UUID of queue entry to be retrieved |
 
 #### Find queue entries by status
@@ -129,10 +146,12 @@ Finds queue entries by status. Return empty results if no queue entry with the s
 ```http request
 GET /ws/rest/v1/queue/<QueueUUID>/entry?status=Waiting For Service
 ```
-| Parameter | Type | Description |
-| :--- | :--- | :--- |
+
+| Parameter   | Type     | Description                  |
+|:------------|:---------|:-----------------------------|
 | `QueueUUID` | `string` | UUID of the associated queue |
-| `status` | `string` | queue entry status |
+| `status`    | `string` | queue entry status           |
+
 #### Create queue entry
 
 Creates queue entry record. If not authenticated, 401 Unauthorized status is returned.
@@ -169,9 +188,9 @@ to be updated) doesn't exist. If not authenticated, 401 Unauthorized status is r
 POST /ws/rest/v1/queue/<QueueUUID>/entry/<QueueEntryUUID>
 ```
 
-| Parameter | Type | Description |
-| :--- | :--- | :--- |
-| `QueueUUID` | `string` | UUID of the associated queue |
+| Parameter        | Type     | Description                       |
+|:-----------------|:---------|:----------------------------------|
+| `QueueUUID`      | `string` | UUID of the associated queue      |
 | `QueueEntryUUID` | `string` | UUID of queue entry to be updated |
 
 Body
@@ -192,29 +211,35 @@ not authenticated, 401 Unauthorized status is returned.
 DELETE /ws/rest/v1/queue/<QueueUUID>/entry/<QueueEntryUUID>?purge=false
 ```
 
-| Parameter | Type | Description |
-| :--- | :--- | :--- |
-| `QueueUUID` | `string` | UUID of queue associated |
-| `QueueEntryUUID` | `string` | UUID of queue entry record to be voided |
-| `purge` | `boolean` | The queue entry record will be voided unless `purge=true` then deleted |
+| Parameter        | Type      | Description                                                            |
+|:-----------------|:----------|:-----------------------------------------------------------------------|
+| `QueueUUID`      | `string`  | UUID of queue associated                                               |
+| `QueueEntryUUID` | `string`  | UUID of queue entry record to be voided                                |
+| `purge`          | `boolean` | The queue entry record will be voided unless `purge=true` then deleted |
 
 ### Queue Entry Count
-####  Get queue entries count
+
+#### Get queue entries count
+
 Gets the count of all active queue entries in a given queue.
 
 ```http request
 GET /ws/rest/v1/queue/<QueueUUID>/count
 ```
-| Parameter | Type | Description |
-| :--- | :--- | :--- |
+
+| Parameter   | Type     | Description                  |
+|:------------|:---------|:-----------------------------|
 | `QueueUUID` | `string` | UUID of the associated queue |
 
 #### Get queue entries count by status
+
 Gets the count of queue entries record by status
+
 ```http request
 GET /ws/rest/v1/queue/<QueueUUID>/count?status=Waiting for Service
 ```
-| Parameter | Type | Description |
-| :--- | :--- | :--- |
+
+| Parameter   | Type     | Description                  |
+|:------------|:---------|:-----------------------------|
 | `QueueUUID` | `string` | UUID of the associated queue |
-| `status` | `string` | the status of queue entry |
+| `status`    | `string` | the status of queue entry    |
