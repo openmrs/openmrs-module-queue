@@ -82,6 +82,7 @@ public class QueueEntry extends BaseChangeableOpenmrsData {
 	private Provider providerWaitingFor;
 	
 	//The queue the patient is coming from, if any.
+	@ToString.Exclude
 	@OneToOne
 	@JoinColumn(name = "queue_coming_from", referencedColumnName = "queue_id")
 	private Queue queueComingFrom;
