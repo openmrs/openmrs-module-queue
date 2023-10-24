@@ -16,11 +16,8 @@ import org.openmrs.module.queue.model.VisitQueueEntry;
 import org.springframework.stereotype.Component;
 
 /**
- * Basic implementation of a VisitQueueEntryProcessor which generates a patientQueueNumber prior to
- * saving which: 1. If visit queue number is already populated, retain the existing value 2.
- * Otherwise, find the highest numerical value of all currently active visit queue entries and add 1
- * Note: This assumes that the only consumer of this generator is the VisitQueueEntryService, which
- * is synchronized
+ * Basic implementation of a VisitQueueEntryProcessor which simply returns the
+ * primary kye of the VisitQueueEntry as a string.
  */
 @Slf4j
 @Component
