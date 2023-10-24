@@ -78,7 +78,7 @@ public class VisitAttributeQueueNumberGenerator implements VisitQueueEntryProces
 		String serviceName = queue.getName().toUpperCase();
 		String prefix = serviceName.length() < 3 ? serviceName : serviceName.substring(0, 3);
 		String queueNumber = prefix + "-" + paddedString;
-
+		
 		// Associate this queue number directly
 		queueEntry.setPatientQueueNumber(queueNumber);
 		

@@ -15,7 +15,6 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -109,7 +108,7 @@ public class VisitQueueEntryProcessorTest extends BaseModuleContextSensitiveTest
 		queue = queueService.getQueueByUuid("3eb7fe43-2813-4kbc-80dc-2e5d30252bb5").get();
 		waitingStatus = conceptService.getConcept(3001);
 		emergencyPriority = conceptService.getConcept(1001);
-		visitQueueEntryService.setVisitQueueEntryProcessors(Collections.singletonList(testPatientQueueNumberGenerator));
+		visitQueueEntryService.setVisitQueueEntryProcessor(testPatientQueueNumberGenerator);
 		
 		VisitAttributeType vat = new VisitAttributeType();
 		vat.setName("Test");
@@ -164,7 +163,7 @@ public class VisitQueueEntryProcessorTest extends BaseModuleContextSensitiveTest
 		testPatientQueueNumberGenerator.setProcessorToUse(visitAttributeQueueNumberGenerator);
 		visitQueueEntryService.createVisitQueueEntry(newVisitQueueEntry());
 		VisitQueueEntry visitQueueEntry = visitQueueEntryService.getVisitQueueEntryByUuid(visitQueueEntryUuid).get();
-		assertThat(visitQueueEntry.getQueueEntry().getPatientQueueNumber(), nullValue());
+		assertThat(visitQueueEntry.getQueueEntry().getPatientQueueNumber(), equalTo("TRI-002"));
 		assertThat(visitQueueEntry.getVisit().getAttributes().iterator().next().getValueReference(), equalTo("TRI-002"));
 	}
 	

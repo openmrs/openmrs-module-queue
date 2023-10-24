@@ -12,7 +12,6 @@ package org.openmrs.module.queue.api;
 import javax.validation.constraints.NotNull;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
 import org.openmrs.api.APIException;
@@ -108,13 +107,13 @@ public interface VisitQueueEntryService {
 	 *
 	 * @param service concept service name
 	 * @param status concept status name
-	 * @param locaitonUuid location uuid
+	 * @param locationUUid location uuid
 	 * @return {@link Long} count of visit queue entries
 	 */
 	Long getVisitQueueEntriesCountByLocationStatusAndService(@NotNull String status, String service, String locationUUid);
 	
 	/**
-	 * @param visitQueueEntryProcessors any VisitQueueEntryProcessor instances to set on the service
+	 * @param visitQueueEntryProcessor the visitQueueEntryProcessor to set
 	 */
-	void setVisitQueueEntryProcessors(List<VisitQueueEntryProcessor> visitQueueEntryProcessors);
+	void setVisitQueueEntryProcessor(VisitQueueEntryProcessor visitQueueEntryProcessor);
 }

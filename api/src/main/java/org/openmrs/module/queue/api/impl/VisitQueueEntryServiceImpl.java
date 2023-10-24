@@ -13,7 +13,6 @@ import javax.validation.constraints.NotNull;
 
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -39,7 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Setter(AccessLevel.PUBLIC)
 public class VisitQueueEntryServiceImpl extends BaseOpenmrsService implements VisitQueueEntryService {
 	
-	private List<VisitQueueEntryProcessor> visitQueueEntryProcessors;
+	private VisitQueueEntryProcessor visitQueueEntryProcessor;
 	
 	private VisitQueueEntryDao<VisitQueueEntry> dao;
 	
@@ -65,10 +64,8 @@ public class VisitQueueEntryServiceImpl extends BaseOpenmrsService implements Vi
 		queueEntry = Context.getService(QueueEntryService.class).createQueueEntry(queueEntry);
 		visitQueueEntry.setQueueEntry(queueEntry);
 		
-		if (visitQueueEntryProcessors != null) {
-			for (VisitQueueEntryProcessor processor : visitQueueEntryProcessors) {
-				processor.beforeSaveVisitQueueEntry(visitQueueEntry);
-			}
+		if (visitQueueEntryProcessor != null) {
+			visitQueueEntryProcessor.beforeSaveVisitQueueEntry(visitQueueEntry);
 		}
 		return dao.createOrUpdate(visitQueueEntry);
 	}
