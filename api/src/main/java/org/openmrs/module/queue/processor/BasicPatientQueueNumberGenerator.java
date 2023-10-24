@@ -16,8 +16,8 @@ import org.openmrs.module.queue.model.VisitQueueEntry;
 import org.springframework.stereotype.Component;
 
 /**
- * Basic implementation of a VisitQueueEntryProcessor which simply returns the
- * primary kye of the VisitQueueEntry as a string.
+ * Basic implementation of a VisitQueueEntryProcessor which simply returns the primary kye of the
+ * VisitQueueEntry as a string.
  */
 @Slf4j
 @Component

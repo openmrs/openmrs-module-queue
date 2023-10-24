@@ -16,8 +16,6 @@ import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
-import org.openmrs.Location;
-import org.openmrs.Visit;
 import org.openmrs.VisitAttribute;
 import org.openmrs.VisitAttributeType;
 import org.openmrs.api.APIException;
@@ -49,17 +47,6 @@ public class VisitAttributeQueueNumberGenerator implements VisitQueueEntryProces
 	public void beforeSaveVisitQueueEntry(VisitQueueEntry visitQueueEntry) {
 		QueueEntry queueEntry = visitQueueEntry.getQueueEntry();
 		Queue queue = queueEntry.getQueue();
-		if (queue == null) {
-			throw new APIException("Queue is required");
-		}
-		Location location = queue.getLocation();
-		if (location == null) {
-			throw new APIException("Location is required");
-		}
-		Visit visit = visitQueueEntry.getVisit();
-		if (visit == null) {
-			throw new APIException("Visit is required");
-		}
 		VisitAttributeType visitAttributeType = getVisitAttributeType();
 		
 		LocalDate minDate = LocalDate.now();
@@ -86,7 +73,7 @@ public class VisitAttributeQueueNumberGenerator implements VisitQueueEntryProces
 		VisitAttribute visitAttribute = new VisitAttribute();
 		visitAttribute.setAttributeType(visitAttributeType);
 		visitAttribute.setValueReferenceInternal(queueNumber);
-		visit.addAttribute(visitAttribute);
+		visitQueueEntry.getVisit().addAttribute(visitAttribute);
 	}
 	
 	private VisitAttributeType getVisitAttributeType() {
