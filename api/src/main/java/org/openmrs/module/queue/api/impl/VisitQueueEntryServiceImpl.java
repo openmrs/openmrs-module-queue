@@ -13,6 +13,7 @@ import javax.validation.constraints.NotNull;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -30,12 +31,15 @@ import org.openmrs.module.queue.api.VisitQueueEntryService;
 import org.openmrs.module.queue.api.dao.VisitQueueEntryDao;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.model.VisitQueueEntry;
+import org.openmrs.module.queue.processor.VisitQueueEntryProcessor;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Transactional
-@Setter(AccessLevel.MODULE)
+@Setter(AccessLevel.PUBLIC)
 public class VisitQueueEntryServiceImpl extends BaseOpenmrsService implements VisitQueueEntryService {
+	
+	private List<VisitQueueEntryProcessor> visitQueueEntryProcessors;
 	
 	private VisitQueueEntryDao<VisitQueueEntry> dao;
 	
@@ -49,23 +53,24 @@ public class VisitQueueEntryServiceImpl extends BaseOpenmrsService implements Vi
 	}
 	
 	@Override
-	public VisitQueueEntry createVisitQueueEntry(@NotNull VisitQueueEntry visitQueueEntry) {
-		//verify visit -patient & queue entry patient
-		//Todo more refactor
-		Visit visit = Context.getVisitService().getVisitByUuid(visitQueueEntry.getVisit().getUuid());
-		Patient visitPatient = visit.getPatient();
-		Patient queueEntryPatient = visitQueueEntry.getQueueEntry().getPatient();
-		if (visitPatient != null & queueEntryPatient != null) {
-			boolean isPatientSame = visitPatient.getUuid().equals(queueEntryPatient.getUuid());
-			if (!isPatientSame) {
-				throw new IllegalArgumentException("Patient mismatch - visit.patient does not match queueEntry.patient");
-			}
-			QueueEntry newlyCreatedQueueEntry = Context.getService(QueueEntryService.class)
-			        .createQueueEntry(visitQueueEntry.getQueueEntry());
-			visitQueueEntry.setQueueEntry(newlyCreatedQueueEntry);
-			return this.dao.createOrUpdate(visitQueueEntry);
+	public synchronized VisitQueueEntry createVisitQueueEntry(@NotNull VisitQueueEntry visitQueueEntry) {
+		Visit visit = visitQueueEntry.getVisit();
+		Patient visitPatient = Context.getVisitService().getVisitByUuid(visit.getUuid()).getPatient();
+		QueueEntry queueEntry = visitQueueEntry.getQueueEntry();
+		if (queueEntry.getPatient() == null) {
+			queueEntry.setPatient(visitPatient);
+		} else if (!queueEntry.getPatient().getUuid().equals(visitPatient.getUuid())) {
+			throw new IllegalArgumentException("Patient mismatch - visit.patient does not match queueEntry.patient");
 		}
-		return null;
+		queueEntry = Context.getService(QueueEntryService.class).createQueueEntry(queueEntry);
+		visitQueueEntry.setQueueEntry(queueEntry);
+		
+		if (visitQueueEntryProcessors != null) {
+			for (VisitQueueEntryProcessor processor : visitQueueEntryProcessors) {
+				processor.beforeSaveVisitQueueEntry(visitQueueEntry);
+			}
+		}
+		return dao.createOrUpdate(visitQueueEntry);
 	}
 	
 	/**

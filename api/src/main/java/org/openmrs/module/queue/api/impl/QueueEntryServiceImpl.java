@@ -19,17 +19,12 @@ import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.openmrs.Location;
-import org.openmrs.Visit;
-import org.openmrs.VisitAttribute;
-import org.openmrs.VisitAttributeType;
 import org.openmrs.api.APIException;
 import org.openmrs.api.ConceptNameType;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.queue.api.QueueEntryService;
 import org.openmrs.module.queue.api.dao.QueueEntryDao;
-import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -91,6 +86,11 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		this.dao.delete(queueEntry);
 	}
 	
+	@Override
+	public Collection<QueueEntry> getActiveQueueEntries() {
+		return dao.getActiveQueueEntries();
+	}
+	
 	/**
 	 * @see org.openmrs.module.queue.api.QueueEntryService#searchQueueEntriesByConceptStatus(String,
 	 *      boolean)
@@ -107,23 +107,6 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	@Override
 	public Long getQueueEntriesCountByStatus(@NotNull String status) {
 		return this.dao.getQueueEntriesCountByConceptStatus(status, ConceptNameType.FULLY_SPECIFIED, false);
-	}
-	
-	@Override
-	public String generateVisitQueueNumber(Location location, Queue queue, Visit visit,
-	        VisitAttributeType visitAttributeType) {
-		if (location == null || queue == null || visit == null || visitAttributeType == null) {
-			throw new APIException("Sufficient parameters not supplied for generation of VisitQueueNumber");
-		}
-		String queueNumber = dao.generateVisitQueueNumber(location, queue);
-		
-		// Create Visit Attribute using generated queue number
-		VisitAttribute visitQueueNumber = new VisitAttribute();
-		visitQueueNumber.setAttributeType(visitAttributeType);
-		visitQueueNumber.setValue(queueNumber);
-		visit.setAttribute(visitQueueNumber);
-		Context.getVisitService().saveVisit(visit);
-		return queueNumber;
 	}
 	
 	@Override

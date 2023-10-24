@@ -57,6 +57,9 @@ public class QueueEntry extends BaseChangeableOpenmrsData {
 	@JoinColumn(name = "patient_id", nullable = false)
 	private Patient patient;
 	
+	@Column(name = "patient_queue_number")
+	private String patientQueueNumber;
+	
 	@ManyToOne
 	@JoinColumn(name = "priority", referencedColumnName = "concept_id", nullable = false)
 	private Concept priority;

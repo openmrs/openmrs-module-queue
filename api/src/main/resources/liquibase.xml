@@ -385,4 +385,17 @@
             <where>schedulable_class = 'org.openmrs.module.queue.tasks.AutoCloseQueueEntryTask'</where>
         </delete>
     </changeSet>
+
+    <changeSet id="add_patient_queue_number_to_queue_entry_20231023" author="mseaton">
+        <preConditions onError="WARN" onFail="MARK_RAN">
+            <tableExists tableName="queue_entry"/>
+            <not><columnExists tableName="queue_entry" columnName="patient_queue_number"/></not>
+        </preConditions>
+        <comment>
+            Add column patient_queue_number to queue_entry table
+        </comment>
+        <addColumn tableName="queue_entry">
+            <column name="patient_queue_number" type="varchar(50)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
