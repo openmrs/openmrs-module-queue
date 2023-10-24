@@ -11,11 +11,8 @@ package org.openmrs.module.queue.processor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.openmrs.module.queue.api.QueueEntryService;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.model.VisitQueueEntry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -29,41 +26,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class BasicPatientQueueNumberGenerator implements VisitQueueEntryProcessor {
 	
-	@Autowired
-	@Qualifier("queue.QueueEntryService")
-	QueueEntryService queueEntryService;
-	
 	/**
 	 * This populates the given VisitQueueEntry with an appropriate patient queue number
 	 */
 	public void beforeSaveVisitQueueEntry(VisitQueueEntry visitQueueEntry) {
 		QueueEntry queueEntry = visitQueueEntry.getQueueEntry();
 		if (StringUtils.isBlank(queueEntry.getPatientQueueNumber())) {
-			queueEntry.setPatientQueueNumber(generateNextQueueNumber());
+			queueEntry.setPatientQueueNumber(Integer.toString(visitQueueEntry.getId()));
 		}
 	}
-	
-	/**
-	 * @return the maximum patient queue number found in active queue entries that can be parsed into an
-	 *         int
-	 */
-	private String generateNextQueueNumber() {
-		int queueNum = 0;
-		for (QueueEntry qe : queueEntryService.getActiveQueueEntries()) {
-			if (qe.getPatientQueueNumber() != null) {
-				try {
-					int currentNum = Integer.parseInt(qe.getPatientQueueNumber());
-					if (currentNum > queueNum) {
-						queueNum = currentNum;
-					}
-				}
-				catch (Exception e) {
-					log.debug("Unable to parse patient queue number into an int: " + qe.getPatientQueueNumber(), e);
-				}
-			}
-		}
-		queueNum += 1;
-		return Integer.toString(queueNum);
-	}
-	
 }

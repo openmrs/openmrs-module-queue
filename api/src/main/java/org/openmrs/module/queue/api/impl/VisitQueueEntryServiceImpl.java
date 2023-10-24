@@ -63,6 +63,7 @@ public class VisitQueueEntryServiceImpl extends BaseOpenmrsService implements Vi
 		}
 		queueEntry = Context.getService(QueueEntryService.class).createQueueEntry(queueEntry);
 		visitQueueEntry.setQueueEntry(queueEntry);
+		visitQueueEntry = dao.createOrUpdate(visitQueueEntry);
 		
 		if (visitQueueEntryProcessor != null) {
 			visitQueueEntryProcessor.beforeSaveVisitQueueEntry(visitQueueEntry);

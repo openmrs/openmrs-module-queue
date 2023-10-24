@@ -28,7 +28,6 @@ import org.openmrs.api.AdministrationService;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.VisitService;
-import org.openmrs.api.context.Context;
 import org.openmrs.customdatatype.datatype.FreeTextDatatype;
 import org.openmrs.module.queue.SpringTestConfiguration;
 import org.openmrs.module.queue.api.QueueEntryService;
@@ -155,7 +154,8 @@ public class VisitQueueEntryProcessorTest extends BaseModuleContextSensitiveTest
 		testPatientQueueNumberGenerator.setProcessorToUse(basicPatientQueueNumberGenerator);
 		visitQueueEntryService.createVisitQueueEntry(newVisitQueueEntry());
 		VisitQueueEntry visitQueueEntry = visitQueueEntryService.getVisitQueueEntryByUuid(visitQueueEntryUuid).get();
-		assertThat(visitQueueEntry.getQueueEntry().getPatientQueueNumber(), equalTo("1"));
+		assertThat(visitQueueEntry.getQueueEntry().getPatientQueueNumber(),
+		    equalTo(Integer.toString(visitQueueEntry.getId())));
 	}
 	
 	@Test
@@ -169,8 +169,7 @@ public class VisitQueueEntryProcessorTest extends BaseModuleContextSensitiveTest
 	
 	@Test
 	public void shouldGenerateVisitAttributeVisitNumberForConsultation() {
-		QueueEntry queueEntry = Context.getService(QueueEntryService.class)
-		        .getQueueEntryByUuid("7ub8fe43-2813-4kbc-80dc-2e5d30252cc5").get();
+		QueueEntry queueEntry = queueEntryService.getQueueEntryByUuid("7ub8fe43-2813-4kbc-80dc-2e5d30252cc5").get();
 		assertThat(queueEntry.getQueue().getLocation().getUuid(), equalTo("d0938432-1691-11df-97a5-7038c098"));
 		Visit visit = new Visit();
 		visit.setPatient(queueEntry.getPatient());
