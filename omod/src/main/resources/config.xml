@@ -23,9 +23,6 @@
 
     <activator>${project.parent.groupId}.${project.parent.artifactId}.QueueModuleActivator</activator>
 
-    <!-- <updateURL>https://modules.openmrs.org/modules/download/@MODULE_ID@/update.rdf</updateURL> -->
-    <!-- /Base Module Properties -->
-
     <require_version>2.3.0</require_version>
 
     <require_modules>
@@ -35,22 +32,6 @@
     <aware_of_modules>
         <aware_of_module>org.openmrs.module.legacyui</aware_of_module>
     </aware_of_modules>
-
-    <!-- Internationalization -->
-    <!-- All message codes should start with @MODULE_ID@.* -->
-    <messages>
-        <lang>en</lang>
-        <file>messages.properties</file>
-    </messages>
-    <messages>
-        <lang>fr</lang>
-        <file>messages_fr.properties</file>
-    </messages>
-    <messages>
-        <lang>es</lang>
-        <file>messages_es.properties</file>
-    </messages>
-    <!-- /Internationalization -->
 
     <globalProperty>
         <property>${project.parent.artifactId}.statusConceptSetName</property>
