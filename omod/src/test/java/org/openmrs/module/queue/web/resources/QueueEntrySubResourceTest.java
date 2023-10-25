@@ -13,10 +13,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-import java.util.Collections;
 import java.util.Optional;
 
 import org.junit.Before;
@@ -33,23 +32,16 @@ import org.openmrs.module.queue.api.QueueService;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.api.RoomProviderMapService;
 import org.openmrs.module.queue.model.QueueEntry;
-import org.openmrs.module.webservices.rest.web.RestUtil;
 import org.openmrs.module.webservices.rest.web.representation.CustomRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ Context.class, RestUtil.class })
-public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, QueueEntryResource> {
+public class QueueEntrySubResourceTest extends BaseQueueResourceTest<QueueEntry, QueueEntrySubResource> {
 	
 	private static final String QUEUE_ENTRY_UUID = "6hje567a-fca0-11e5-9e59-08002719a7";
-	
-	private QueueEntryResource resource;
-	
-	private QueueEntry queueEntry;
 	
 	@Mock
 	private QueueService queueService;
@@ -75,10 +67,12 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	@Mock
 	private QueueServicesWrapper queueServicesWrapper;
 	
+	private QueueEntry queueEntry;
+	
 	@Before
-	public void prepareMocks() {
-		mockStatic(RestUtil.class);
-		mockStatic(Context.class);
+	public void setup() {
+		this.prepareMocks();
+		queueEntry = mock(QueueEntry.class);
 		when(queueServicesWrapper.getQueueService()).thenReturn(queueService);
 		when(queueServicesWrapper.getQueueEntryService()).thenReturn(queueEntryService);
 		when(queueServicesWrapper.getQueueRoomService()).thenReturn(queueRoomService);
@@ -87,28 +81,23 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 		when(queueServicesWrapper.getLocationService()).thenReturn(locationService);
 		when(queueServicesWrapper.getPatientService()).thenReturn(patientService);
 		
-		//By pass authentication
-		when(Context.isAuthenticated()).thenReturn(true);
-		when(Context.getRegisteredComponents(QueueServicesWrapper.class))
-		        .thenReturn(Collections.singletonList(queueServicesWrapper));
+		when(queueEntry.getUuid()).thenReturn(QUEUE_ENTRY_UUID);
+		when(Context.getService(QueueEntryService.class)).thenReturn(queueEntryService);
 		
-		resource = new QueueEntryResource();
-		setResource(resource);
-		queueEntry = new QueueEntry();
-		queueEntry.setUuid(QUEUE_ENTRY_UUID);
-		setObject(queueEntry);
+		this.setResource(new QueueEntrySubResource());
+		this.setObject(queueEntry);
 	}
 	
 	@Test
 	public void shouldReturnDefaultRepresentation() {
-		verifyDefaultRepresentation("uuid", "queue", "status", "visit", "priority", "priorityComment", "sortWeight",
-		    "patient", "locationWaitingFor", "providerWaitingFor", "startedAt", "endedAt", "display");
+		verifyDefaultRepresentation("uuid", "status", "visit", "priority", "priorityComment", "sortWeight", "patient",
+		    "locationWaitingFor", "providerWaitingFor", "startedAt", "endedAt", "display");
 	}
 	
 	@Test
 	public void shouldReturnFullRepresentation() {
-		verifyFullRepresentation("queue", "status", "priority", "priorityComment", "sortWeight", "patient",
-		    "locationWaitingFor", "providerWaitingFor", "startedAt", "endedAt", "display", "uuid", "display", "auditInfo");
+		verifyFullRepresentation("status", "priority", "priorityComment", "sortWeight", "patient", "locationWaitingFor",
+		    "providerWaitingFor", "startedAt", "endedAt", "display", "uuid", "display", "auditInfo");
 	}
 	
 	@Test
@@ -135,6 +124,7 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	@Test
 	public void shouldGetResourceByUniqueUuid() {
 		when(queueEntryService.getQueueEntryByUuid(QUEUE_ENTRY_UUID)).thenReturn(Optional.of(queueEntry));
+		
 		QueueEntry result = getResource().getByUniqueId(QUEUE_ENTRY_UUID);
 		assertThat(result, notNullValue());
 		assertThat(result.getUuid(), is(QUEUE_ENTRY_UUID));

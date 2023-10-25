@@ -10,9 +10,12 @@
 package org.openmrs.module.queue.web.resources;
 
 import java.util.Arrays;
+import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.queue.api.VisitQueueEntryService;
+import org.openmrs.module.queue.api.QueueServicesWrapper;
+import org.openmrs.module.queue.utils.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.web.resources.custom.response.GenericSingleObjectResult;
 import org.openmrs.module.queue.web.resources.custom.response.PropValue;
 import org.openmrs.module.queue.web.resources.custom.response.QueueEntryMetric;
@@ -35,6 +38,18 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
 @Resource(name = RestConstants.VERSION_1
         + "/queue-entry-metrics", supportedClass = QueueEntryMetric.class, supportedOpenmrsVersions = { "2.3 - 9.*" })
 public class QueueEntryMetricsResource extends DelegatingCrudResource<SimpleObject> {
+	
+	public static final String SEARCH_PARAM_STATUS = "status";
+	
+	public static final String SEARCH_PARAM_SERVICE = "service";
+	
+	public static final String SEARCH_PARAM_LOCATION = "location";
+	
+	private final QueueServicesWrapper services;
+	
+	public QueueEntryMetricsResource() {
+		this.services = Context.getRegisteredComponents(QueueServicesWrapper.class).get(0);
+	}
 	
 	@Override
 	public SimpleObject getByUniqueId(String uuid) {
@@ -67,33 +82,57 @@ public class QueueEntryMetricsResource extends DelegatingCrudResource<SimpleObje
 	}
 	
 	@Override
+	
 	protected PageableResult doSearch(RequestContext requestContext) {
-		String status = requestContext.getParameter("status");
-		String service = requestContext.getParameter("service");
-		String locationUuid = requestContext.getParameter("location");
-		
-		if (service != null && status != null && locationUuid != null) {
-			Long patientsCount = Context.getService(VisitQueueEntryService.class)
-			        .getVisitQueueEntriesCountByLocationStatusAndService(status, service, locationUuid);
-			
-			return new GenericSingleObjectResult(
-			        Arrays.asList(new PropValue("metric", status + " " + service), new PropValue("count", patientsCount)));
-		} else if (service != null && !service.isEmpty()) {
-			Long count = Context.getService(VisitQueueEntryService.class).getVisitQueueEntriesCountByService(service);
-			return new GenericSingleObjectResult(
-			        Arrays.asList(new PropValue("metric", service), new PropValue("count", count)));
-			
-		} else if (status != null && !status.isEmpty()) {
-			Long count = Context.getService(VisitQueueEntryService.class).getVisitQueueEntriesCountByStatus(status);
-			return new GenericSingleObjectResult(
-			        Arrays.asList(new PropValue("metric", status), new PropValue("count", count)));
-			
-		} else if (locationUuid != null && !locationUuid.isEmpty()) {
-			Long count = Context.getService(VisitQueueEntryService.class).getVisitQueueEntriesCountByLocation(locationUuid);
-			return new GenericSingleObjectResult(
-			        Arrays.asList(new PropValue("metric", locationUuid), new PropValue("count", count)));
+		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
+		Map<String, String[]> parameterMap = getParameters(requestContext);
+		for (String parameterName : parameterMap.keySet()) {
+			switch (parameterName) {
+				case SEARCH_PARAM_STATUS: {
+					criteria.setStatuses(services.getConcepts(parameterMap.get(SEARCH_PARAM_STATUS)));
+					break;
+				}
+				case SEARCH_PARAM_SERVICE: {
+					criteria.setServices(services.getConcepts(parameterMap.get(SEARCH_PARAM_SERVICE)));
+					break;
+				}
+				case SEARCH_PARAM_LOCATION: {
+					criteria.setLocations(services.getLocations(parameterMap.get(SEARCH_PARAM_LOCATION)));
+					break;
+				}
+				default: {
+					log.debug("Unhandled search parameter found: " + parameterName);
+				}
+			}
+		}
+		if (criteria.getStatuses() == null && criteria.getServices() == null && criteria.getLocations() == null) {
+			return new EmptySearchResult();
 		}
 		
-		return new EmptySearchResult();
+		StringBuilder metric = new StringBuilder();
+		if (criteria.getStatuses() != null) {
+			metric.append(String.join(",", parameterMap.get(SEARCH_PARAM_STATUS)));
+		}
+		if (criteria.getServices() != null) {
+			if (metric.length() > 0) {
+				metric.append(" ");
+			}
+			metric.append(String.join(",", parameterMap.get(SEARCH_PARAM_SERVICE)));
+		}
+		if (criteria.getLocations() != null && metric.length() == 0) {
+			metric.append(StringUtils.join(parameterMap.get(SEARCH_PARAM_LOCATION)));
+		}
+		
+		Long count = services.getQueueEntryService().getCountOfQueueEntries(criteria);
+		return new GenericSingleObjectResult(
+		        Arrays.asList(new PropValue("metric", metric.toString()), new PropValue("count", count)));
+	}
+	
+	/**
+	 * @return the parameters for the given request context
+	 */
+	@SuppressWarnings("unchecked")
+	protected Map<String, String[]> getParameters(RequestContext requestContext) {
+		return requestContext.getRequest().getParameterMap();
 	}
 }

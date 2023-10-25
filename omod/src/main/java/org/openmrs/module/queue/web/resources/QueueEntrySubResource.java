@@ -115,8 +115,8 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 		DelegatingResourceDescription resourceDescription = new DelegatingResourceDescription();
 		if (representation instanceof RefRepresentation) {
 			this.addSharedResourceDescriptionProperties(resourceDescription);
-			resourceDescription.addProperty("queue", Representation.REF);
 			resourceDescription.addProperty("status", Representation.REF);
+			resourceDescription.addProperty("patient", Representation.REF);
 			resourceDescription.addProperty("patient", Representation.REF);
 			resourceDescription.addProperty("priority", Representation.REF);
 			resourceDescription.addProperty("locationWaitingFor", Representation.REF);
@@ -125,9 +125,9 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 			resourceDescription.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
 		} else if (representation instanceof DefaultRepresentation) {
 			this.addSharedResourceDescriptionProperties(resourceDescription);
-			resourceDescription.addProperty("queue", Representation.DEFAULT);
 			resourceDescription.addProperty("status", Representation.DEFAULT);
 			resourceDescription.addProperty("patient", Representation.DEFAULT);
+			resourceDescription.addProperty("visit", Representation.DEFAULT);
 			resourceDescription.addProperty("priority", Representation.DEFAULT);
 			resourceDescription.addProperty("locationWaitingFor", Representation.DEFAULT);
 			resourceDescription.addProperty("queueComingFrom", Representation.DEFAULT);
@@ -138,9 +138,9 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 			resourceDescription.addProperty("voided");
 			resourceDescription.addProperty("voidReason");
 			resourceDescription.addProperty("auditInfo");
-			resourceDescription.addProperty("queue", Representation.FULL);
 			resourceDescription.addProperty("status", Representation.FULL);
 			resourceDescription.addProperty("patient", Representation.FULL);
+			resourceDescription.addProperty("visit", Representation.FULL);
 			resourceDescription.addProperty("priority", Representation.FULL);
 			resourceDescription.addProperty("locationWaitingFor", Representation.FULL);
 			resourceDescription.addProperty("queueComingFrom", Representation.FULL);

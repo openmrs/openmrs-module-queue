@@ -10,8 +10,10 @@
 package org.openmrs.module.queue.api;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -24,10 +26,15 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.openmrs.Concept;
-import org.openmrs.api.ConceptNameType;
+import org.openmrs.Location;
+import org.openmrs.Visit;
+import org.openmrs.VisitAttributeType;
+import org.openmrs.api.VisitService;
 import org.openmrs.module.queue.api.dao.QueueEntryDao;
 import org.openmrs.module.queue.api.impl.QueueEntryServiceImpl;
+import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
+import org.openmrs.module.queue.utils.QueueEntrySearchCriteria;
 
 @RunWith(MockitoJUnitRunner.class)
 public class QueueEntryServiceTest {
@@ -36,20 +43,20 @@ public class QueueEntryServiceTest {
 	
 	private static final Integer QUEUE_ENTRY_ID = 14;
 	
-	private static final String QUEUE_ENTRY_STATUS = "Waiting for Service";
-	
-	private static final String BAD_QUEUE_ENTRY_STATUS = "Waiting for Service";
-	
 	private QueueEntryServiceImpl queueEntryService;
 	
 	@Mock
 	private QueueEntryDao<QueueEntry> dao;
+	
+	@Mock
+	private VisitService visitService;
 	
 	@Before
 	public void setupMocks() {
 		MockitoAnnotations.openMocks(this);
 		queueEntryService = new QueueEntryServiceImpl();
 		queueEntryService.setDao(dao);
+		queueEntryService.setVisitService(visitService);
 	}
 	
 	@Test
@@ -95,9 +102,7 @@ public class QueueEntryServiceTest {
 	@Test
 	public void shouldVoidQueue() {
 		when(dao.get(QUEUE_ENTRY_UUID)).thenReturn(Optional.empty());
-		
 		queueEntryService.voidQueueEntry(QUEUE_ENTRY_UUID, "voidReason");
-		
 		assertThat(queueEntryService.getQueueEntryByUuid(QUEUE_ENTRY_UUID).isPresent(), is(false));
 	}
 	
@@ -105,24 +110,28 @@ public class QueueEntryServiceTest {
 	public void shouldPurgeQueue() {
 		QueueEntry queueEntry = mock(QueueEntry.class);
 		when(dao.get(QUEUE_ENTRY_UUID)).thenReturn(Optional.empty());
-		
 		queueEntryService.purgeQueueEntry(queueEntry);
 		assertThat(queueEntryService.getQueueEntryByUuid(QUEUE_ENTRY_UUID).isPresent(), is(false));
 	}
 	
 	@Test
 	public void shouldReturnCountOfQueueEntriesByStatus() {
-		when(dao.getQueueEntriesCountByConceptStatus(QUEUE_ENTRY_STATUS, ConceptNameType.FULLY_SPECIFIED, false))
-		        .thenReturn(1L);
-		
-		assertThat(queueEntryService.getQueueEntriesCountByStatus(QUEUE_ENTRY_STATUS), is(1L));
+		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
+		when(dao.getCountOfQueueEntries(criteria)).thenReturn(1L);
+		assertThat(queueEntryService.getCountOfQueueEntries(criteria), is(1L));
 	}
 	
 	@Test
-	public void shouldReturnZeroForBadGivenStatus() {
-		when(dao.getQueueEntriesCountByConceptStatus(BAD_QUEUE_ENTRY_STATUS, ConceptNameType.FULLY_SPECIFIED, false))
-		        .thenReturn(0L);
-		
-		assertThat(queueEntryService.getQueueEntriesCountByStatus(QUEUE_ENTRY_STATUS), is(0L));
+	public void shouldGenerateVisitQueueNumber() {
+		Visit visit = new Visit();
+		Location location = new Location();
+		Queue queue = new Queue();
+		queue.setName("Consultation Queue");
+		VisitAttributeType visitAttributeType = new VisitAttributeType();
+		when(visitService.saveVisit(visit)).thenReturn(visit);
+		when(queueEntryService.getCountOfQueueEntries(any())).thenReturn(52L);
+		String queueNumber = queueEntryService.generateVisitQueueNumber(location, queue, visit, visitAttributeType);
+		assertThat(queueNumber, notNullValue());
+		assertThat(queueNumber, equalTo("CON-053"));
 	}
 }

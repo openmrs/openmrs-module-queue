@@ -11,7 +11,10 @@ package org.openmrs.module.queue.api.impl;
 
 import javax.validation.constraints.NotNull;
 
-import java.util.Collection;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -19,18 +22,20 @@ import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Location;
 import org.openmrs.Visit;
 import org.openmrs.VisitAttribute;
 import org.openmrs.VisitAttributeType;
 import org.openmrs.api.APIException;
-import org.openmrs.api.ConceptNameType;
+import org.openmrs.api.VisitService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.queue.api.QueueEntryService;
 import org.openmrs.module.queue.api.dao.QueueEntryDao;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
+import org.openmrs.module.queue.utils.QueueEntrySearchCriteria;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
@@ -40,14 +45,21 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	
 	private QueueEntryDao<QueueEntry> dao;
 	
+	private VisitService visitService;
+	
 	public void setDao(QueueEntryDao<QueueEntry> dao) {
 		this.dao = dao;
+	}
+	
+	public void setVisitService(VisitService visitService) {
+		this.visitService = visitService;
 	}
 	
 	/**
 	 * @see org.openmrs.module.queue.api.QueueEntryService#getQueueEntryByUuid(String)
 	 */
 	@Override
+	@Transactional(readOnly = true)
 	public Optional<QueueEntry> getQueueEntryByUuid(@NotNull String queueEntryUuid) {
 		return this.dao.get(queueEntryUuid);
 	}
@@ -56,6 +68,7 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	 * @see org.openmrs.module.queue.api.QueueEntryService#getQueueEntryById(Integer)
 	 */
 	@Override
+	@Transactional(readOnly = true)
 	public Optional<QueueEntry> getQueueEntryById(@NotNull Integer queueEntryId) {
 		return this.dao.get(queueEntryId);
 	}
@@ -65,6 +78,11 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	 */
 	@Override
 	public QueueEntry createQueueEntry(QueueEntry queueEntry) {
+		if (queueEntry.getVisit() != null) {
+			if (!queueEntry.getVisit().getPatient().equals(queueEntry.getPatient())) {
+				throw new IllegalArgumentException("Patient mismatch - visit.patient does not match patient");
+			}
+		}
 		return this.dao.createOrUpdate(queueEntry);
 	}
 	
@@ -91,22 +109,16 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		this.dao.delete(queueEntry);
 	}
 	
-	/**
-	 * @see org.openmrs.module.queue.api.QueueEntryService#searchQueueEntriesByConceptStatus(String,
-	 *      boolean)
-	 */
 	@Override
-	public Collection<QueueEntry> searchQueueEntriesByConceptStatus(String conceptStatus, boolean includeVoided) {
-		return this.dao.SearchQueueEntriesByConceptStatus(conceptStatus, ConceptNameType.FULLY_SPECIFIED, false,
-		    includeVoided);
+	@Transactional(readOnly = true)
+	public List<QueueEntry> getQueueEntries(QueueEntrySearchCriteria searchCriteria) {
+		return dao.getQueueEntries(searchCriteria);
 	}
 	
-	/**
-	 * @see org.openmrs.module.queue.api.QueueEntryService#getQueueEntriesCountByStatus(String)
-	 */
 	@Override
-	public Long getQueueEntriesCountByStatus(@NotNull String status) {
-		return this.dao.getQueueEntriesCountByConceptStatus(status, ConceptNameType.FULLY_SPECIFIED, false);
+	@Transactional(readOnly = true)
+	public Long getCountOfQueueEntries(QueueEntrySearchCriteria searchCriteria) {
+		return dao.getCountOfQueueEntries(searchCriteria);
 	}
 	
 	@Override
@@ -115,20 +127,34 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		if (location == null || queue == null || visit == null || visitAttributeType == null) {
 			throw new APIException("Sufficient parameters not supplied for generation of VisitQueueNumber");
 		}
-		String queueNumber = dao.generateVisitQueueNumber(location, queue);
+		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
+		criteria.setHasVisit(Boolean.TRUE);
+		criteria.setQueues(Collections.singletonList(queue));
+		criteria.setLocations(Collections.singletonList(location));
+		Date onOrAfter = Date.from(LocalDateTime.now().with(LocalTime.MIN).atZone(ZoneId.systemDefault()).toInstant());
+		criteria.setStartedOnOrAfter(onOrAfter);
+		Date onOrBefore = Date.from(LocalDateTime.now().with(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant());
+		criteria.setStartedOnOrAfter(onOrBefore);
+		Long nextQueueNumber = getCountOfQueueEntries(criteria) + 1;
+		String paddedString = StringUtils.leftPad(String.valueOf(nextQueueNumber), 3, "0");
+		String serviceName = queue.getName().toUpperCase();
+		String prefix = serviceName.length() < 3 ? serviceName : serviceName.substring(0, 3);
+		String queueNumber = prefix + "-" + paddedString;
 		
 		// Create Visit Attribute using generated queue number
 		VisitAttribute visitQueueNumber = new VisitAttribute();
 		visitQueueNumber.setAttributeType(visitAttributeType);
 		visitQueueNumber.setValue(queueNumber);
 		visit.setAttribute(visitQueueNumber);
-		Context.getVisitService().saveVisit(visit);
+		visitService.saveVisit(visit);
 		return queueNumber;
 	}
 	
 	@Override
 	public void closeActiveQueueEntries() {
-		List<QueueEntry> queueEntries = dao.getActiveQueueEntries();
+		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
+		criteria.setIsEnded(Boolean.FALSE);
+		List<QueueEntry> queueEntries = getQueueEntries(criteria);
 		queueEntries.forEach(this::endQueueEntry);
 	}
 	

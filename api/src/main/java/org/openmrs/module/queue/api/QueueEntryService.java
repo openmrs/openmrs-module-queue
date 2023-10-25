@@ -11,7 +11,7 @@ package org.openmrs.module.queue.api;
 
 import javax.validation.constraints.NotNull;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import org.openmrs.Location;
@@ -20,6 +20,7 @@ import org.openmrs.VisitAttributeType;
 import org.openmrs.api.APIException;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
+import org.openmrs.module.queue.utils.QueueEntrySearchCriteria;
 
 public interface QueueEntryService {
 	
@@ -64,21 +65,15 @@ public interface QueueEntryService {
 	void purgeQueueEntry(@NotNull QueueEntry queueEntry) throws APIException;
 	
 	/**
-	 * Search for queue entries by conceptStatus
-	 *
-	 * @param conceptStatus queue entry conceptStatus
-	 * @param includeVoided include/exclude voided queue entries
-	 * @return {@link java.util.Collection} of queue entries with the specified statuses
+	 * @return {@link List} of queue entries that match the given %{@link QueueEntrySearchCriteria}
 	 */
-	Collection<QueueEntry> searchQueueEntriesByConceptStatus(@NotNull String conceptStatus, boolean includeVoided);
+	List<QueueEntry> getQueueEntries(@NotNull QueueEntrySearchCriteria searchCriteria);
 	
 	/**
-	 * Gets count of queue entries by status
-	 *
-	 * @param status the queue entry status
-	 * @return {@link java.lang.Long} count of queue entries by specified status
+	 * @return {@link Long} count of queue entries that match the given
+	 *         %{@link QueueEntrySearchCriteria}
 	 */
-	Long getQueueEntriesCountByStatus(@NotNull String status);
+	Long getCountOfQueueEntries(@NotNull QueueEntrySearchCriteria searchCriteria);
 	
 	/**
 	 * @param location

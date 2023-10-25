@@ -16,7 +16,6 @@ import static org.hamcrest.Matchers.nullValue;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,17 +23,16 @@ import java.util.stream.Collectors;
 import org.junit.Test;
 import org.openmrs.Visit;
 import org.openmrs.module.queue.model.QueueEntry;
-import org.openmrs.module.queue.model.VisitQueueEntry;
 
 public class AutoCloseVisitQueueEntryTaskTest {
 	
-	final List<VisitQueueEntry> queueEntries = new ArrayList<>();
+	final List<QueueEntry> queueEntries = new ArrayList<>();
 	
 	class TestAutoCloseVisitEntryTask extends AutoCloseVisitQueueEntryTask {
 		
 		@Override
-		protected Collection<VisitQueueEntry> getActiveVisitQueueEntries() {
-			return queueEntries.stream().filter(e -> e.getQueueEntry().getEndedAt() == null).collect(Collectors.toList());
+		protected List<QueueEntry> getActiveVisitQueueEntries() {
+			return queueEntries.stream().filter(e -> e.getEndedAt() == null).collect(Collectors.toList());
 		}
 		
 		@Override
@@ -50,19 +48,15 @@ public class AutoCloseVisitQueueEntryTaskTest {
 		visit1.setStartDatetime(getDate("2020-01-01 10:00"));
 		QueueEntry queueEntry1 = new QueueEntry();
 		queueEntry1.setStartedAt(getDate("2020-01-01 10:10"));
-		VisitQueueEntry visitQueueEntry1 = new VisitQueueEntry();
-		visitQueueEntry1.setVisit(visit1);
-		visitQueueEntry1.setQueueEntry(queueEntry1);
-		queueEntries.add(visitQueueEntry1);
+		queueEntry1.setVisit(visit1);
+		queueEntries.add(queueEntry1);
 		
 		Visit visit2 = new Visit();
 		visit2.setStartDatetime(getDate("2021-01-01 10:00"));
 		QueueEntry queueEntry2 = new QueueEntry();
 		queueEntry2.setStartedAt(getDate("2021-01-01 10:20"));
-		VisitQueueEntry visitQueueEntry2 = new VisitQueueEntry();
-		visitQueueEntry2.setVisit(visit2);
-		visitQueueEntry2.setQueueEntry(queueEntry2);
-		queueEntries.add(visitQueueEntry2);
+		queueEntry2.setVisit(visit2);
+		queueEntries.add(queueEntry2);
 		
 		TestAutoCloseVisitEntryTask task = new TestAutoCloseVisitEntryTask();
 		task.run();

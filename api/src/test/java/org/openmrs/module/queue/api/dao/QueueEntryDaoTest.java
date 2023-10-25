@@ -18,6 +18,7 @@ import static org.hamcrest.Matchers.nullValue;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -25,14 +26,13 @@ import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Concept;
-import org.openmrs.Location;
 import org.openmrs.Patient;
-import org.openmrs.api.ConceptNameType;
+import org.openmrs.api.ConceptService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.SpringTestConfiguration;
-import org.openmrs.module.queue.api.QueueEntryService;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
+import org.openmrs.module.queue.utils.QueueEntrySearchCriteria;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -58,15 +58,10 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	private static final List<String> QUEUE_INITIAL_DATASET_XML = Arrays.asList(
 	    "org/openmrs/module/queue/api/dao/QueueDaoTest_locationInitialDataset.xml",
 	    "org/openmrs/module/queue/api/dao/QueueEntryDaoTest_conceptsInitialDataset.xml",
-	    "org/openmrs/module/queue/api/dao/QueueDaoTest_initialDataset.xml",
 	    "org/openmrs/module/queue/api/dao/QueueEntryDaoTest_patientInitialDataset.xml",
-	    "org/openmrs/module/queue/api/dao/QueueEntryDaoTest_initialDataset.xml",
 	    "org/openmrs/module/queue/api/dao/VisitQueueEntryDaoTest_visitInitialDataset.xml",
-	    "org/openmrs/module/queue/api/dao/visitQueueEntryDaoTest_visitQueueNumberInitialDataset.xml");
-	
-	private static final String QUEUE_ENTRY_STATUS = "Waiting for service";
-	
-	private static final String BAD_QUEUE_ENTRY_STATUS = "Bad Waiting for service";
+	    "org/openmrs/module/queue/api/dao/QueueDaoTest_initialDataset.xml",
+	    "org/openmrs/module/queue/api/dao/QueueEntryDaoTest_initialDataset.xml");
 	
 	@Autowired
 	@Qualifier("queueEntryDao")
@@ -76,9 +71,15 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	@Qualifier("queueDao")
 	private QueueDao<Queue> queueDao;
 	
+	@Autowired
+	private ConceptService conceptService;
+	
+	Concept waitingForService;
+	
 	@Before
 	public void setup() {
 		QUEUE_INITIAL_DATASET_XML.forEach(this::executeDataSet);
+		waitingForService = conceptService.getConcept(3001);
 	}
 	
 	@Test
@@ -203,57 +204,46 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	
 	@Test
 	public void shouldSearchQueueEntriesByStatus() {
-		Collection<QueueEntry> queueEntries = dao.SearchQueueEntriesByConceptStatus(QUEUE_ENTRY_STATUS,
-		    ConceptNameType.FULLY_SPECIFIED, false, false);
-		
+		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
+		criteria.setStatuses(Collections.singletonList(waitingForService));
+		List<QueueEntry> queueEntries = dao.getQueueEntries(criteria);
 		assertThat(queueEntries.isEmpty(), is(false));
 		assertThat(queueEntries, hasSize(1));
 		queueEntries.forEach(queueEntry -> {
 			assertThat(queueEntry.getStatus(), notNullValue());
-			assertThat(queueEntry.getStatus().getName().getName(), is(QUEUE_ENTRY_STATUS));
+			assertThat(queueEntry.getStatus(), equalTo(waitingForService));
 		});
 	}
 	
 	@Test
 	public void shouldSearchQueueEntriesByStatusIncludingVoidedQueueEntries() {
-		Collection<QueueEntry> queueEntries = dao.SearchQueueEntriesByConceptStatus(QUEUE_ENTRY_STATUS,
-		    ConceptNameType.FULLY_SPECIFIED, false, true);
-		
+		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
+		criteria.setStatuses(Collections.singletonList(waitingForService));
+		criteria.setIncludedVoided(true);
+		List<QueueEntry> queueEntries = dao.getQueueEntries(criteria);
 		assertThat(queueEntries.isEmpty(), is(false));
 		assertThat(queueEntries, hasSize(2));
 		queueEntries.forEach(queueEntry -> {
 			assertThat(queueEntry.getStatus(), notNullValue());
-			assertThat(queueEntry.getStatus().getName().getName(), is(QUEUE_ENTRY_STATUS));
+			assertThat(queueEntry.getStatus(), equalTo(waitingForService));
 		});
 	}
 	
 	@Test
 	public void shouldCountQueueEntriesByStatus() {
-		Long queueEntriesCountByStatusCount = dao.getQueueEntriesCountByConceptStatus(QUEUE_ENTRY_STATUS,
-		    ConceptNameType.FULLY_SPECIFIED, false);
-		
+		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
+		criteria.setStatuses(Collections.singletonList(waitingForService));
+		Long queueEntriesCountByStatusCount = dao.getCountOfQueueEntries(criteria);
 		assertThat(queueEntriesCountByStatusCount, notNullValue());
 		assertThat(queueEntriesCountByStatusCount, is(1L));
 	}
 	
 	@Test
 	public void shouldZeroCountQueueEntriesByBadStatus() {
-		Long queueEntriesCountByStatusCount = dao.getQueueEntriesCountByConceptStatus(BAD_QUEUE_ENTRY_STATUS,
-		    ConceptNameType.FULLY_SPECIFIED, false);
-		
+		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
+		criteria.setStatuses(Collections.singletonList(conceptService.getConcept(1000)));
+		Long queueEntriesCountByStatusCount = dao.getCountOfQueueEntries(criteria);
 		assertThat(queueEntriesCountByStatusCount, notNullValue());
 		assertThat(queueEntriesCountByStatusCount, is(0L));
-	}
-	
-	@Test
-	public void shouldGenerateVisitQueueNumber() {
-		QueueEntry queueEntry = Context.getService(QueueEntryService.class)
-		        .getQueueEntryByUuid("7ub8fe43-2813-4kbc-80dc-2e5d30252cc5").get();
-		Location location = Context.getLocationService().getLocationByUuid("d0938432-1691-11df-97a5-7038c098");
-		
-		String queueNumber = dao.generateVisitQueueNumber(location, queueEntry.getQueue());
-		
-		assertThat(queueNumber, notNullValue());
-		assertThat(queueNumber, equalTo("CON-001"));
 	}
 }
