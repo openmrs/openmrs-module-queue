@@ -20,6 +20,8 @@ import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.LocationService;
 import org.openmrs.api.PatientService;
+import org.openmrs.api.ProviderService;
+import org.openmrs.api.VisitService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -42,12 +44,17 @@ public class QueueServicesWrapper {
 	
 	private final PatientService patientService;
 	
+	private final VisitService visitService;
+	
+	private final ProviderService providerService;
+	
 	@Autowired
 	public QueueServicesWrapper(@Qualifier("queue.QueueService") QueueService queueService,
 	    @Qualifier("queue.QueueEntryService") QueueEntryService queueEntryService,
 	    @Qualifier("queue.QueueRoomService") QueueRoomService queueRoomService,
 	    @Qualifier("queue.RoomProviderMapService") RoomProviderMapService roomProviderMapService,
-	    ConceptService conceptService, LocationService locationService, PatientService patientService) {
+	    ConceptService conceptService, LocationService locationService, PatientService patientService,
+	    VisitService visitService, ProviderService providerService) {
 		this.queueService = queueService;
 		this.queueEntryService = queueEntryService;
 		this.queueRoomService = queueRoomService;
@@ -55,6 +62,8 @@ public class QueueServicesWrapper {
 		this.conceptService = conceptService;
 		this.locationService = locationService;
 		this.patientService = patientService;
+		this.visitService = visitService;
+		this.providerService = providerService;
 	}
 	
 	/**

@@ -45,10 +45,11 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 	 */
 	private Criteria createCriteriaFromSearchCriteria(QueueEntrySearchCriteria searchCriteria) {
 		Criteria c = getCurrentSession().createCriteria(QueueEntry.class, "qe");
+		c.createAlias("queue", "q");
 		includeVoidedObjects(c, searchCriteria.isIncludedVoided());
-		limitByCollectionProperty(c, "qe.queue", searchCriteria.getQueues());
-		limitByCollectionProperty(c, "qe.queue.location", searchCriteria.getLocations());
-		limitByCollectionProperty(c, "qe.queue.service", searchCriteria.getServices());
+		limitByCollectionProperty(c, "queue", searchCriteria.getQueues());
+		limitByCollectionProperty(c, "q.location", searchCriteria.getLocations());
+		limitByCollectionProperty(c, "q.service", searchCriteria.getServices());
 		limitToEqualsProperty(c, "qe.patient", searchCriteria.getPatient());
 		limitToEqualsProperty(c, "qe.visit", searchCriteria.getVisit());
 		limitByCollectionProperty(c, "qe.priority", searchCriteria.getPriorities());
@@ -56,10 +57,10 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 		limitByCollectionProperty(c, "qe.locationWaitingFor", searchCriteria.getLocationsWaitingFor());
 		limitByCollectionProperty(c, "qe.providerWaitingFor", searchCriteria.getProvidersWaitingFor());
 		limitByCollectionProperty(c, "qe.queueComingFrom", searchCriteria.getQueuesComingFrom());
-		limitToGreaterThanOrEqualToProperty(c, "ge.startedAt", searchCriteria.getStartedOnOrAfter());
-		limitToLessThanOrEqualToProperty(c, "ge.startedAt", searchCriteria.getStartedOnOrBefore());
-		limitToGreaterThanOrEqualToProperty(c, "ge.endedAt", searchCriteria.getEndedOnOrAfter());
-		limitToLessThanOrEqualToProperty(c, "ge.endedAt", searchCriteria.getEndedOnOrBefore());
+		limitToGreaterThanOrEqualToProperty(c, "qe.startedAt", searchCriteria.getStartedOnOrAfter());
+		limitToLessThanOrEqualToProperty(c, "qe.startedAt", searchCriteria.getStartedOnOrBefore());
+		limitToGreaterThanOrEqualToProperty(c, "qe.endedAt", searchCriteria.getEndedOnOrAfter());
+		limitToLessThanOrEqualToProperty(c, "qe.endedAt", searchCriteria.getEndedOnOrBefore());
 		if (searchCriteria.getHasVisit() == Boolean.TRUE) {
 			c.add(Restrictions.isNotNull("qe.visit"));
 		} else if (searchCriteria.getHasVisit() == Boolean.FALSE) {
