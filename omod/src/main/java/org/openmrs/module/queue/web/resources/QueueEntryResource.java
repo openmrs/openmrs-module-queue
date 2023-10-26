@@ -18,13 +18,11 @@ import java.util.Map;
 import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
-import org.openmrs.Location;
-import org.openmrs.Provider;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.utils.QueueEntrySearchCriteria;
-import org.openmrs.module.queue.utils.QueueUtils;
+import org.openmrs.module.queue.web.QueueEntrySearchCriteriaParser;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
@@ -51,44 +49,13 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
         "2.3 - 9.*" })
 public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 	
-	public static final String SEARCH_PARAM_QUEUE = "queue";
-	
-	public static final String SEARCH_PARAM_LOCATION = "location";
-	
-	public static final String SEARCH_PARAM_SERVICE = "service";
-	
-	public static final String SEARCH_PARAM_PATIENT = "patient";
-	
-	public static final String SEARCH_PARAM_VISIT = "visit";
-	
-	public static final String SEARCH_PARAM_HAS_VISIT = "hasVisit";
-	
-	public static final String SEARCH_PARAM_PRIORITY = "priority";
-	
-	public static final String SEARCH_PARAM_STATUS = "status";
-	
-	public static final String SEARCH_PARAM_LOCATION_WAITING_FOR = "locationWaitingFor";
-	
-	public static final String SEARCH_PARAM_PROVIDER_WAITING_FOR = "providerWaitingFor";
-	
-	public static final String SEARCH_PARAM_QUEUE_COMING_FROM = "queueComingFrom";
-	
-	public static final String SEARCH_PARAM_STARTED_ON_OR_AFTER = "startedOnOrAfter";
-	
-	public static final String SEARCH_PARAM_STARTED_ON_OR_BEFORE = "startedOnOrBefore";
-	
-	public static final String SEARCH_PARAM_IS_ENDED = "isEnded";
-	
-	public static final String SEARCH_PARAM_ENDED_ON_OR_AFTER = "endedOnOrAfter";
-	
-	public static final String SEARCH_PARAM_ENDED_ON_OR_BEFORE = "endedOnOrBefore";
-	
-	public static final String SEARCH_PARAM_INCLUDE_VOIDED = "includedVoided";
-	
 	private final QueueServicesWrapper services;
 	
+	private final QueueEntrySearchCriteriaParser searchCriteriaParser;
+	
 	public QueueEntryResource() {
-		this.services = Context.getRegisteredComponents(QueueServicesWrapper.class).get(0);
+		services = Context.getRegisteredComponents(QueueServicesWrapper.class).get(0);
+		searchCriteriaParser = Context.getRegisteredComponents(QueueEntrySearchCriteriaParser.class).get(0);
 	}
 	
 	@Override
@@ -132,109 +99,11 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 	@SuppressWarnings("unchecked")
 	protected PageableResult doSearch(RequestContext requestContext) {
 		boolean criteriaFound = false;
-		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
-		Map<String, String[]> parameterMap = requestContext.getRequest().getParameterMap();
-		for (String parameterName : parameterMap.keySet()) {
-			switch (parameterName) {
-				case SEARCH_PARAM_QUEUE: {
-					criteriaFound = true;
-					criteria.setQueues(services.getQueues(parameterMap.get(SEARCH_PARAM_QUEUE)));
-					break;
-				}
-				case SEARCH_PARAM_LOCATION: {
-					criteriaFound = true;
-					criteria.setLocations(services.getLocations(parameterMap.get(SEARCH_PARAM_LOCATION)));
-					break;
-				}
-				case SEARCH_PARAM_SERVICE: {
-					criteriaFound = true;
-					criteria.setServices(services.getConcepts(parameterMap.get(SEARCH_PARAM_SERVICE)));
-					break;
-				}
-				case SEARCH_PARAM_PATIENT: {
-					criteriaFound = true;
-					criteria.setPatient(services.getPatient(parameterMap.get(SEARCH_PARAM_PATIENT)[0]));
-					break;
-				}
-				case SEARCH_PARAM_VISIT: {
-					criteriaFound = true;
-					criteria.setVisit(services.getVisit(parameterMap.get(SEARCH_PARAM_VISIT)[0]));
-					break;
-				}
-				case SEARCH_PARAM_HAS_VISIT: {
-					criteriaFound = true;
-					criteria.setHasVisit(Boolean.parseBoolean(parameterMap.get(SEARCH_PARAM_HAS_VISIT)[0]));
-					break;
-				}
-				case SEARCH_PARAM_PRIORITY: {
-					criteriaFound = true;
-					criteria.setPriorities(services.getConcepts(parameterMap.get(SEARCH_PARAM_PRIORITY)));
-					break;
-				}
-				case SEARCH_PARAM_STATUS: {
-					criteriaFound = true;
-					criteria.setStatuses(services.getConcepts(parameterMap.get(SEARCH_PARAM_STATUS)));
-					break;
-				}
-				case SEARCH_PARAM_LOCATION_WAITING_FOR: {
-					criteriaFound = true;
-					List<Location> l = services.getLocations(parameterMap.get(SEARCH_PARAM_LOCATION_WAITING_FOR));
-					criteria.setLocationsWaitingFor(l);
-					break;
-				}
-				case SEARCH_PARAM_PROVIDER_WAITING_FOR: {
-					criteriaFound = true;
-					List<Provider> l = services.getProviders(parameterMap.get(SEARCH_PARAM_PROVIDER_WAITING_FOR));
-					criteria.setProvidersWaitingFor(l);
-					break;
-				}
-				case SEARCH_PARAM_QUEUE_COMING_FROM: {
-					criteriaFound = true;
-					criteria.setQueuesComingFrom(services.getQueues(parameterMap.get(SEARCH_PARAM_QUEUE_COMING_FROM)));
-					break;
-				}
-				case SEARCH_PARAM_STARTED_ON_OR_AFTER: {
-					criteriaFound = true;
-					String date = parameterMap.get(SEARCH_PARAM_STARTED_ON_OR_AFTER)[0];
-					criteria.setStartedOnOrAfter(QueueUtils.parseDate(date));
-					break;
-				}
-				case SEARCH_PARAM_STARTED_ON_OR_BEFORE: {
-					criteriaFound = true;
-					String date = parameterMap.get(SEARCH_PARAM_STARTED_ON_OR_BEFORE)[0];
-					criteria.setStartedOnOrBefore(QueueUtils.parseDate(date));
-					break;
-				}
-				case SEARCH_PARAM_ENDED_ON_OR_AFTER: {
-					criteriaFound = true;
-					String date = parameterMap.get(SEARCH_PARAM_ENDED_ON_OR_AFTER)[0];
-					criteria.setEndedOnOrAfter(QueueUtils.parseDate(date));
-					break;
-				}
-				case SEARCH_PARAM_ENDED_ON_OR_BEFORE: {
-					criteriaFound = true;
-					String date = parameterMap.get(SEARCH_PARAM_ENDED_ON_OR_BEFORE)[0];
-					criteria.setEndedOnOrBefore(QueueUtils.parseDate(date));
-					break;
-				}
-				case SEARCH_PARAM_IS_ENDED: {
-					criteriaFound = true;
-					criteria.setIsEnded(Boolean.parseBoolean(parameterMap.get(SEARCH_PARAM_IS_ENDED)[0]));
-					break;
-				}
-				case SEARCH_PARAM_INCLUDE_VOIDED: {
-					criteriaFound = true;
-					criteria.setIncludedVoided(Boolean.parseBoolean(parameterMap.get(SEARCH_PARAM_INCLUDE_VOIDED)[0]));
-					break;
-				}
-				default: {
-					log.debug("Unhandled search parameter found: " + parameterName);
-				}
-			}
-		}
-		if (!criteriaFound) {
+		Map<String, String[]> parameters = requestContext.getRequest().getParameterMap();
+		if (!searchCriteriaParser.hasSearchParameter(parameters)) {
 			return new EmptySearchResult();
 		}
+		QueueEntrySearchCriteria criteria = searchCriteriaParser.constructFromRequest(parameters);
 		Collection<QueueEntry> queueEntries = services.getQueueEntryService().getQueueEntries(criteria);
 		return new NeedsPaging<>(new ArrayList<>(queueEntries), requestContext);
 	}

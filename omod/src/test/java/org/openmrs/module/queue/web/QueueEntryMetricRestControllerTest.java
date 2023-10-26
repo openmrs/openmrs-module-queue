@@ -7,26 +7,32 @@
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
-package org.openmrs.module.queue.web.resources;
+package org.openmrs.module.queue.web;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.openmrs.module.queue.web.QueueEntryMetricRestController.COUNT;
+import static org.openmrs.module.queue.web.QueueEntrySearchCriteriaParser.SEARCH_PARAM_STATUS;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.openmrs.Concept;
 import org.openmrs.api.ConceptService;
@@ -38,21 +44,17 @@ import org.openmrs.module.queue.api.QueueRoomService;
 import org.openmrs.module.queue.api.QueueService;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.api.RoomProviderMapService;
-import org.openmrs.module.queue.web.resources.custom.response.GenericSingleObjectResult;
-import org.openmrs.module.webservices.rest.web.RequestContext;
+import org.openmrs.module.queue.utils.QueueEntrySearchCriteria;
+import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.RestUtil;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ Context.class, RestUtil.class })
-public class QueueEntryMetricsResourceTest {
+public class QueueEntryMetricRestControllerTest {
 	
-	private static final String STATUS = "Waiting";
-	
-	private static final String SERVICE = "Triage";
-	
-	private QueueEntryMetricsResource resource;
+	private QueueEntryMetricRestController controller;
 	
 	@Mock
 	private QueueService queueService;
@@ -78,6 +80,12 @@ public class QueueEntryMetricsResourceTest {
 	@Mock
 	private QueueServicesWrapper queueServicesWrapper;
 	
+	HttpServletRequest request;
+	
+	Map<String, String[]> parameterMap;
+	
+	ArgumentCaptor<QueueEntrySearchCriteria> queueEntryArgumentCaptor;
+	
 	@Before
 	public void prepareMocks() {
 		mockStatic(RestUtil.class);
@@ -92,58 +100,34 @@ public class QueueEntryMetricsResourceTest {
 		
 		//By pass authentication
 		when(Context.isAuthenticated()).thenReturn(true);
+		
+		QueueEntrySearchCriteriaParser searchCriteriaParser = new QueueEntrySearchCriteriaParser(queueServicesWrapper);
+		when(Context.getRegisteredComponents(QueueEntrySearchCriteriaParser.class))
+		        .thenReturn(Collections.singletonList(searchCriteriaParser));
+		
 		when(Context.getRegisteredComponents(QueueServicesWrapper.class))
 		        .thenReturn(Collections.singletonList(queueServicesWrapper));
 		
-		resource = new QueueEntryMetricsResource();
+		controller = new QueueEntryMetricRestController(searchCriteriaParser, queueServicesWrapper);
+		
+		request = mock(HttpServletRequest.class);
+		parameterMap = new HashMap<>();
+		when(request.getParameterMap()).thenReturn(parameterMap);
+		queueEntryArgumentCaptor = ArgumentCaptor.forClass(QueueEntrySearchCriteria.class);
+		when(queueEntryService.getCountOfQueueEntries(any())).thenReturn(50L);
 	}
 	
 	@Test
-	public void shouldReturnQueueEntryMetricsByStatus() {
-		Map<String, String[]> parameterMap = new HashMap<>();
-		parameterMap.put("status", new String[] { STATUS });
-		
-		RequestContext requestContext = mock(RequestContext.class);
-		HttpServletRequest request = mock(HttpServletRequest.class);
-		when(requestContext.getRequest()).thenReturn(request);
-		when(request.getParameterMap()).thenReturn(parameterMap);
-		
-		Concept statusConcept = new Concept();
-		when(queueServicesWrapper.getConcept(STATUS)).thenReturn(statusConcept);
-		when(queueEntryService.getCountOfQueueEntries(any())).thenReturn(50L);
-		
-		GenericSingleObjectResult result = (GenericSingleObjectResult) resource.doSearch(requestContext);
-		
-		assertThat(result, notNullValue());
-		assertThat(result.getPropValues(), hasSize(2));
-		assertThat(result.getPropValues().get(0).getProperty(), equalTo("metric"));
-		assertThat(result.getPropValues().get(0).getValue(), equalTo(STATUS));
-		assertThat(result.getPropValues().get(1).getProperty(), equalTo("count"));
-		assertThat(result.getPropValues().get(1).getValue(), equalTo(50L));
+	public void shouldRetrieveCountOfQueueEntriesByStatus() {
+		List<Concept> vals = Arrays.asList(new Concept(), new Concept());
+		String[] refs = new String[] { "ref1", "ref2" };
+		parameterMap.put(SEARCH_PARAM_STATUS, refs);
+		when(queueServicesWrapper.getConcepts(refs)).thenReturn(vals);
+		SimpleObject result = (SimpleObject) controller.handleRequest(request);
+		assertThat(result.get(COUNT), equalTo(50L));
+		verify(queueEntryService).getCountOfQueueEntries(queueEntryArgumentCaptor.capture());
+		QueueEntrySearchCriteria criteria = queueEntryArgumentCaptor.getValue();
+		assertThat(criteria.getStatuses(), hasSize(2));
+		assertThat(criteria.getStatuses(), containsInAnyOrder(vals.get(0), vals.get(1)));
 	}
-	
-	@Test
-	public void shouldReturnQueueEntryMetricsByService() {
-		Map<String, String[]> parameterMap = new HashMap<>();
-		parameterMap.put("service", new String[] { SERVICE });
-		
-		RequestContext requestContext = mock(RequestContext.class);
-		HttpServletRequest request = mock(HttpServletRequest.class);
-		when(requestContext.getRequest()).thenReturn(request);
-		when(request.getParameterMap()).thenReturn(parameterMap);
-		
-		Concept serviceConcept = new Concept();
-		when(queueServicesWrapper.getConcept(SERVICE)).thenReturn(serviceConcept);
-		when(queueEntryService.getCountOfQueueEntries(any())).thenReturn(50L);
-		
-		GenericSingleObjectResult result = (GenericSingleObjectResult) resource.doSearch(requestContext);
-		
-		assertThat(result, notNullValue());
-		assertThat(result.getPropValues(), hasSize(2));
-		assertThat(result.getPropValues().get(0).getProperty(), equalTo("metric"));
-		assertThat(result.getPropValues().get(0).getValue(), equalTo(SERVICE));
-		assertThat(result.getPropValues().get(1).getProperty(), equalTo("count"));
-		assertThat(result.getPropValues().get(1).getValue(), equalTo(50L));
-	}
-	
 }

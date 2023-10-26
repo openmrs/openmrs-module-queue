@@ -17,6 +17,23 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.verify;
+import static org.openmrs.module.queue.web.QueueEntrySearchCriteriaParser.SEARCH_PARAM_ENDED_ON_OR_AFTER;
+import static org.openmrs.module.queue.web.QueueEntrySearchCriteriaParser.SEARCH_PARAM_ENDED_ON_OR_BEFORE;
+import static org.openmrs.module.queue.web.QueueEntrySearchCriteriaParser.SEARCH_PARAM_HAS_VISIT;
+import static org.openmrs.module.queue.web.QueueEntrySearchCriteriaParser.SEARCH_PARAM_INCLUDE_VOIDED;
+import static org.openmrs.module.queue.web.QueueEntrySearchCriteriaParser.SEARCH_PARAM_IS_ENDED;
+import static org.openmrs.module.queue.web.QueueEntrySearchCriteriaParser.SEARCH_PARAM_LOCATION;
+import static org.openmrs.module.queue.web.QueueEntrySearchCriteriaParser.SEARCH_PARAM_LOCATION_WAITING_FOR;
+import static org.openmrs.module.queue.web.QueueEntrySearchCriteriaParser.SEARCH_PARAM_PATIENT;
+import static org.openmrs.module.queue.web.QueueEntrySearchCriteriaParser.SEARCH_PARAM_PRIORITY;
+import static org.openmrs.module.queue.web.QueueEntrySearchCriteriaParser.SEARCH_PARAM_PROVIDER_WAITING_FOR;
+import static org.openmrs.module.queue.web.QueueEntrySearchCriteriaParser.SEARCH_PARAM_QUEUE;
+import static org.openmrs.module.queue.web.QueueEntrySearchCriteriaParser.SEARCH_PARAM_QUEUE_COMING_FROM;
+import static org.openmrs.module.queue.web.QueueEntrySearchCriteriaParser.SEARCH_PARAM_SERVICE;
+import static org.openmrs.module.queue.web.QueueEntrySearchCriteriaParser.SEARCH_PARAM_STARTED_ON_OR_AFTER;
+import static org.openmrs.module.queue.web.QueueEntrySearchCriteriaParser.SEARCH_PARAM_STARTED_ON_OR_BEFORE;
+import static org.openmrs.module.queue.web.QueueEntrySearchCriteriaParser.SEARCH_PARAM_STATUS;
+import static org.openmrs.module.queue.web.QueueEntrySearchCriteriaParser.SEARCH_PARAM_VISIT;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -53,6 +70,7 @@ import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.utils.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.utils.QueueUtils;
+import org.openmrs.module.queue.web.QueueEntrySearchCriteriaParser;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestUtil;
 import org.openmrs.module.webservices.rest.web.representation.CustomRepresentation;
@@ -118,8 +136,13 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 		
 		//By pass authentication
 		when(Context.isAuthenticated()).thenReturn(true);
+		
 		when(Context.getRegisteredComponents(QueueServicesWrapper.class))
 		        .thenReturn(Collections.singletonList(queueServicesWrapper));
+		
+		QueueEntrySearchCriteriaParser searchCriteriaParser = new QueueEntrySearchCriteriaParser(queueServicesWrapper);
+		when(Context.getRegisteredComponents(QueueEntrySearchCriteriaParser.class))
+		        .thenReturn(Collections.singletonList(searchCriteriaParser));
 		
 		resource = new QueueEntryResource();
 		setResource(resource);
@@ -188,7 +211,7 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	public void shouldSearchQueueEntriesByQueue() {
 		List<Queue> vals = Arrays.asList(new Queue(), new Queue());
 		String[] refs = new String[] { "ref1", "ref2" };
-		parameterMap.put(QueueEntryResource.SEARCH_PARAM_QUEUE, refs);
+		parameterMap.put(SEARCH_PARAM_QUEUE, refs);
 		when(queueServicesWrapper.getQueues(refs)).thenReturn(vals);
 		resource.doSearch(requestContext);
 		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
@@ -201,7 +224,7 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	public void shouldSearchQueueEntriesByLocation() {
 		List<Location> vals = Arrays.asList(new Location(), new Location());
 		String[] refs = new String[] { "ref1", "ref2" };
-		parameterMap.put(QueueEntryResource.SEARCH_PARAM_LOCATION, refs);
+		parameterMap.put(SEARCH_PARAM_LOCATION, refs);
 		when(queueServicesWrapper.getLocations(refs)).thenReturn(vals);
 		resource.doSearch(requestContext);
 		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
@@ -214,7 +237,7 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	public void shouldSearchQueueEntriesByService() {
 		List<Concept> vals = Arrays.asList(new Concept(), new Concept());
 		String[] refs = new String[] { "ref1", "ref2" };
-		parameterMap.put(QueueEntryResource.SEARCH_PARAM_SERVICE, refs);
+		parameterMap.put(SEARCH_PARAM_SERVICE, refs);
 		when(queueServicesWrapper.getConcepts(refs)).thenReturn(vals);
 		resource.doSearch(requestContext);
 		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
@@ -227,7 +250,7 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	public void shouldSearchQueueEntriesByPatient() {
 		Patient val = new Patient();
 		String[] refs = new String[] { "ref1" };
-		parameterMap.put(QueueEntryResource.SEARCH_PARAM_PATIENT, refs);
+		parameterMap.put(SEARCH_PARAM_PATIENT, refs);
 		when(queueServicesWrapper.getPatient(refs[0])).thenReturn(val);
 		resource.doSearch(requestContext);
 		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
@@ -239,7 +262,7 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	public void shouldSearchQueueEntriesByVisit() {
 		Visit val = new Visit();
 		String[] refs = new String[] { "ref1" };
-		parameterMap.put(QueueEntryResource.SEARCH_PARAM_VISIT, refs);
+		parameterMap.put(SEARCH_PARAM_VISIT, refs);
 		when(queueServicesWrapper.getVisit(refs[0])).thenReturn(val);
 		resource.doSearch(requestContext);
 		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
@@ -249,7 +272,7 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	
 	@Test
 	public void shouldSearchQueueEntriesByHasVisitTrue() {
-		parameterMap.put(QueueEntryResource.SEARCH_PARAM_HAS_VISIT, new String[] { "true" });
+		parameterMap.put(SEARCH_PARAM_HAS_VISIT, new String[] { "true" });
 		resource.doSearch(requestContext);
 		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
 		QueueEntrySearchCriteria criteria = queueEntryArgumentCaptor.getValue();
@@ -258,7 +281,7 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	
 	@Test
 	public void shouldSearchQueueEntriesByHasVisitFalse() {
-		parameterMap.put(QueueEntryResource.SEARCH_PARAM_HAS_VISIT, new String[] { "false" });
+		parameterMap.put(SEARCH_PARAM_HAS_VISIT, new String[] { "false" });
 		resource.doSearch(requestContext);
 		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
 		QueueEntrySearchCriteria criteria = queueEntryArgumentCaptor.getValue();
@@ -269,7 +292,7 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	public void shouldSearchQueueEntriesByPriority() {
 		List<Concept> vals = Arrays.asList(new Concept(), new Concept());
 		String[] refs = new String[] { "ref1", "ref2" };
-		parameterMap.put(QueueEntryResource.SEARCH_PARAM_PRIORITY, refs);
+		parameterMap.put(SEARCH_PARAM_PRIORITY, refs);
 		when(queueServicesWrapper.getConcepts(refs)).thenReturn(vals);
 		resource.doSearch(requestContext);
 		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
@@ -282,7 +305,7 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	public void shouldSearchQueueEntriesByStatus() {
 		List<Concept> vals = Arrays.asList(new Concept(), new Concept());
 		String[] refs = new String[] { "ref1", "ref2" };
-		parameterMap.put(QueueEntryResource.SEARCH_PARAM_STATUS, refs);
+		parameterMap.put(SEARCH_PARAM_STATUS, refs);
 		when(queueServicesWrapper.getConcepts(refs)).thenReturn(vals);
 		resource.doSearch(requestContext);
 		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
@@ -295,7 +318,7 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	public void shouldSearchQueueEntriesByLocationWaitingFor() {
 		List<Location> vals = Arrays.asList(new Location(), new Location());
 		String[] refs = new String[] { "ref1", "ref2" };
-		parameterMap.put(QueueEntryResource.SEARCH_PARAM_LOCATION_WAITING_FOR, refs);
+		parameterMap.put(SEARCH_PARAM_LOCATION_WAITING_FOR, refs);
 		when(queueServicesWrapper.getLocations(refs)).thenReturn(vals);
 		resource.doSearch(requestContext);
 		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
@@ -308,7 +331,7 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	public void shouldSearchQueueEntriesByProviderWaitingFor() {
 		List<Provider> vals = Arrays.asList(new Provider(), new Provider());
 		String[] refs = new String[] { "ref1", "ref2" };
-		parameterMap.put(QueueEntryResource.SEARCH_PARAM_PROVIDER_WAITING_FOR, refs);
+		parameterMap.put(SEARCH_PARAM_PROVIDER_WAITING_FOR, refs);
 		when(queueServicesWrapper.getProviders(refs)).thenReturn(vals);
 		resource.doSearch(requestContext);
 		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
@@ -321,7 +344,7 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	public void shouldSearchQueueEntriesByQueueComingFrom() {
 		List<Queue> vals = Arrays.asList(new Queue(), new Queue());
 		String[] refs = new String[] { "ref1", "ref2" };
-		parameterMap.put(QueueEntryResource.SEARCH_PARAM_QUEUE_COMING_FROM, refs);
+		parameterMap.put(SEARCH_PARAM_QUEUE_COMING_FROM, refs);
 		when(queueServicesWrapper.getQueues(refs)).thenReturn(vals);
 		resource.doSearch(requestContext);
 		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
@@ -333,7 +356,7 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	@Test
 	public void shouldSearchQueueEntriesByStartedOnOrAfter() {
 		String dateStr = "2023-09-10 11:12:13";
-		parameterMap.put(QueueEntryResource.SEARCH_PARAM_STARTED_ON_OR_AFTER, new String[] { dateStr });
+		parameterMap.put(SEARCH_PARAM_STARTED_ON_OR_AFTER, new String[] { dateStr });
 		resource.doSearch(requestContext);
 		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
 		QueueEntrySearchCriteria criteria = queueEntryArgumentCaptor.getValue();
@@ -343,7 +366,7 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	@Test
 	public void shouldSearchQueueEntriesByStartedOnOrBefore() {
 		String dateStr = "2023-09-10 11:12:13";
-		parameterMap.put(QueueEntryResource.SEARCH_PARAM_STARTED_ON_OR_BEFORE, new String[] { dateStr });
+		parameterMap.put(SEARCH_PARAM_STARTED_ON_OR_BEFORE, new String[] { dateStr });
 		resource.doSearch(requestContext);
 		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
 		QueueEntrySearchCriteria criteria = queueEntryArgumentCaptor.getValue();
@@ -353,7 +376,7 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	@Test
 	public void shouldSearchQueueEntriesByEndedOnOrAfter() {
 		String dateStr = "2023-09-10 11:12:13";
-		parameterMap.put(QueueEntryResource.SEARCH_PARAM_ENDED_ON_OR_AFTER, new String[] { dateStr });
+		parameterMap.put(SEARCH_PARAM_ENDED_ON_OR_AFTER, new String[] { dateStr });
 		resource.doSearch(requestContext);
 		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
 		QueueEntrySearchCriteria criteria = queueEntryArgumentCaptor.getValue();
@@ -363,7 +386,7 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	@Test
 	public void shouldSearchQueueEntriesByEndedOnOrBefore() {
 		String dateStr = "2023-09-10 11:12:13";
-		parameterMap.put(QueueEntryResource.SEARCH_PARAM_ENDED_ON_OR_BEFORE, new String[] { dateStr });
+		parameterMap.put(SEARCH_PARAM_ENDED_ON_OR_BEFORE, new String[] { dateStr });
 		resource.doSearch(requestContext);
 		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
 		QueueEntrySearchCriteria criteria = queueEntryArgumentCaptor.getValue();
@@ -372,7 +395,7 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	
 	@Test
 	public void shouldSearchQueueEntriesByIsEndedTrue() {
-		parameterMap.put(QueueEntryResource.SEARCH_PARAM_IS_ENDED, new String[] { "true" });
+		parameterMap.put(SEARCH_PARAM_IS_ENDED, new String[] { "true" });
 		resource.doSearch(requestContext);
 		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
 		QueueEntrySearchCriteria criteria = queueEntryArgumentCaptor.getValue();
@@ -381,7 +404,7 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	
 	@Test
 	public void shouldSearchQueueEntriesByIsEndedFalse() {
-		parameterMap.put(QueueEntryResource.SEARCH_PARAM_IS_ENDED, new String[] { "false" });
+		parameterMap.put(SEARCH_PARAM_IS_ENDED, new String[] { "false" });
 		resource.doSearch(requestContext);
 		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
 		QueueEntrySearchCriteria criteria = queueEntryArgumentCaptor.getValue();
@@ -390,7 +413,7 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	
 	@Test
 	public void shouldSearchQueueEntriesByIncludeVoidedTrue() {
-		parameterMap.put(QueueEntryResource.SEARCH_PARAM_INCLUDE_VOIDED, new String[] { "true" });
+		parameterMap.put(SEARCH_PARAM_INCLUDE_VOIDED, new String[] { "true" });
 		resource.doSearch(requestContext);
 		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
 		QueueEntrySearchCriteria criteria = queueEntryArgumentCaptor.getValue();
@@ -399,7 +422,7 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	
 	@Test
 	public void shouldSearchQueueEntriesByIncludeVoidedFalse() {
-		parameterMap.put(QueueEntryResource.SEARCH_PARAM_INCLUDE_VOIDED, new String[] { "false" });
+		parameterMap.put(SEARCH_PARAM_INCLUDE_VOIDED, new String[] { "false" });
 		resource.doSearch(requestContext);
 		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
 		QueueEntrySearchCriteria criteria = queueEntryArgumentCaptor.getValue();
