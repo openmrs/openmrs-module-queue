@@ -48,9 +48,9 @@ public class QueueServicesWrapper {
 	private final PatientService patientService;
 	
 	private final VisitService visitService;
-
+	
 	private final ProviderService providerService;
-
+	
 	@Autowired
 	public QueueServicesWrapper(@Qualifier("queue.QueueService") QueueService queueService,
 	    @Qualifier("queue.QueueEntryService") QueueEntryService queueEntryService,
@@ -160,7 +160,7 @@ public class QueueServicesWrapper {
 		}
 		throw new IllegalArgumentException("Unable to find patient: " + patientRef);
 	}
-
+	
 	/**
 	 * @param visitRef a uuid for the Visit to retrieve
 	 * @return the Visit that matches the visitRef
@@ -175,7 +175,7 @@ public class QueueServicesWrapper {
 		}
 		throw new IllegalArgumentException("Unable to find Visit: " + visitRef);
 	}
-
+	
 	/**
 	 * @param queueRefs array of Queue references
 	 * @return a List of Queues matching those references
@@ -187,7 +187,7 @@ public class QueueServicesWrapper {
 		}
 		return ret;
 	}
-
+	
 	/**
 	 * @param queueRef a uuid for the queue to retrieve
 	 * @return the queue that matches the queueRef
@@ -202,7 +202,7 @@ public class QueueServicesWrapper {
 		}
 		throw new IllegalArgumentException("Unable to find queue: " + queueRef);
 	}
-
+	
 	/**
 	 * @param providerRefs array of Provider references
 	 * @return a List of Providers matching those references
@@ -214,7 +214,7 @@ public class QueueServicesWrapper {
 		}
 		return ret;
 	}
-
+	
 	/**
 	 * @param providerRef a uuid for the provider to retrieve
 	 * @return the provider that matches the providerRef

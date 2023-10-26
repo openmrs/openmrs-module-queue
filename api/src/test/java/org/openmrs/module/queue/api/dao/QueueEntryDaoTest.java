@@ -16,7 +16,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -218,7 +217,7 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		criteria.setIncludedVoided(true);
 		assertResults(criteria, 2, 3, 4, 10);
 	}
-
+	
 	@Test
 	public void shouldSearchAndCountQueueEntriesByQueueLocation() {
 		Location location1 = services.getLocationService().getLocation(1);
@@ -235,7 +234,7 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		criteria.setIncludedVoided(true);
 		assertResults(criteria, 1, 2, 3, 4, 10);
 	}
-
+	
 	@Test
 	public void shouldSearchAndCountQueueEntriesByQueueService() {
 		Concept service1 = services.getConceptService().getConcept(2001);
@@ -252,7 +251,7 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		criteria.setIncludedVoided(true);
 		assertResults(criteria, 1, 2, 3, 4, 10);
 	}
-
+	
 	@Test
 	public void shouldSearchAndCountQueueEntriesByPatient() {
 		Patient patient1 = services.getPatientService().getPatient(100);
@@ -263,7 +262,7 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		criteria.setPatient(patient2);
 		assertResults(criteria, 4);
 	}
-
+	
 	@Test
 	public void shouldSearchAndCountQueueEntriesByVisit() {
 		Visit visit1 = services.getVisitService().getVisit(101);
@@ -279,7 +278,7 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		criteria.setHasVisit(false);
 		assertResults(criteria, 4);
 	}
-
+	
 	@Test
 	public void shouldSearchAndCountQueueEntriesByPriority() {
 		Concept priority1 = services.getConceptService().getConcept(1001);
@@ -319,7 +318,7 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		criteria.setIncludedVoided(true);
 		assertResults(criteria, 1, 2, 3, 4, 10);
 	}
-
+	
 	@Test
 	public void shouldSearchAndCountQueueEntriesByLocationWaitingFor() {
 		Location location1 = services.getLocationService().getLocation(1);
@@ -334,7 +333,7 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		criteria.setLocationsWaitingFor(Arrays.asList(location1, location3));
 		assertResults(criteria, 1, 2, 4);
 	}
-
+	
 	@Test
 	public void shouldSearchAndCountQueueEntriesByProviderWaitingFor() {
 		Provider provider1 = services.getProviderService().getProvider(1);
@@ -344,7 +343,7 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		criteria.setProvidersWaitingFor(Collections.singletonList(provider1));
 		assertResults(criteria, 1, 3);
 	}
-
+	
 	@Test
 	public void shouldSearchAndCountQueueEntriesByQueueComingFrom() {
 		Queue queue1 = services.getQueueService().getQueueById(1).orElse(null);
@@ -354,7 +353,7 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		criteria.setQueuesComingFrom(Collections.singletonList(queue1));
 		assertResults(criteria, 2);
 	}
-
+	
 	@Test
 	// 2022-02-02 16:40:56.0, 2022-02-02 18:40:56.0, 2022-02-03 16:40:56.0, 2022-03-02 16:40:56.0
 	public void shouldSearchAndCountQueueEntriesStartedOnOrAfterDate() {
@@ -376,7 +375,7 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		criteria.setStartedOnOrAfter(date("2022-03-02 16:40:57"));
 		assertNumberOfResults(criteria, 0);
 	}
-
+	
 	@Test
 	// 2022-02-02 16:40:56.0, 2022-02-02 18:40:56.0, 2022-02-03 16:40:56.0, 2022-03-02 16:40:56.0
 	public void shouldSearchAndCountQueueEntriesStartedOnOrBeforeDate() {
@@ -426,7 +425,7 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		criteria.setIsEnded(false);
 		assertResults(criteria, 2, 3);
 	}
-
+	
 	/**
 	 * Utility method that tests criteria against both DAO methods to getQueueEntries and
 	 * getCountOfQueueEntries
@@ -437,7 +436,7 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		Long numResults = dao.getCountOfQueueEntries(criteria);
 		assertThat(numResults.intValue(), equalTo(expectedNumber));
 	}
-
+	
 	/**
 	 * Utility method that tests criteria against both DAO methods to getQueueEntries and
 	 * getCountOfQueueEntries
@@ -453,7 +452,7 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		Long numResults = dao.getCountOfQueueEntries(criteria);
 		assertThat(numResults.intValue(), equalTo(queueEntryIds.length));
 	}
-
+	
 	/**
 	 * @return the date for the given string value
 	 */
