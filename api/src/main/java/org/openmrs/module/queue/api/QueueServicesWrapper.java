@@ -17,11 +17,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Concept;
 import org.openmrs.Location;
 import org.openmrs.Patient;
+import org.openmrs.Provider;
+import org.openmrs.Visit;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.LocationService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.api.VisitService;
+import org.openmrs.module.queue.model.Queue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -45,9 +48,9 @@ public class QueueServicesWrapper {
 	private final PatientService patientService;
 	
 	private final VisitService visitService;
-	
+
 	private final ProviderService providerService;
-	
+
 	@Autowired
 	public QueueServicesWrapper(@Qualifier("queue.QueueService") QueueService queueService,
 	    @Qualifier("queue.QueueEntryService") QueueEntryService queueEntryService,
@@ -156,5 +159,74 @@ public class QueueServicesWrapper {
 			return p;
 		}
 		throw new IllegalArgumentException("Unable to find patient: " + patientRef);
+	}
+
+	/**
+	 * @param visitRef a uuid for the Visit to retrieve
+	 * @return the Visit that matches the visitRef
+	 */
+	public Visit getVisit(String visitRef) {
+		if (StringUtils.isBlank(visitRef)) {
+			return null;
+		}
+		Visit v = getVisitService().getVisitByUuid(visitRef);
+		if (v != null) {
+			return v;
+		}
+		throw new IllegalArgumentException("Unable to find Visit: " + visitRef);
+	}
+
+	/**
+	 * @param queueRefs array of Queue references
+	 * @return a List of Queues matching those references
+	 */
+	public List<Queue> getQueues(String[] queueRefs) {
+		List<Queue> ret = new ArrayList<>();
+		for (String queueRef : queueRefs) {
+			ret.add(getQueue(queueRef.trim()));
+		}
+		return ret;
+	}
+
+	/**
+	 * @param queueRef a uuid for the queue to retrieve
+	 * @return the queue that matches the queueRef
+	 */
+	public Queue getQueue(String queueRef) {
+		if (StringUtils.isBlank(queueRef)) {
+			return null;
+		}
+		Queue queue = getQueueService().getQueueByUuid(queueRef).orElse(null);
+		if (queue != null) {
+			return queue;
+		}
+		throw new IllegalArgumentException("Unable to find queue: " + queueRef);
+	}
+
+	/**
+	 * @param providerRefs array of Provider references
+	 * @return a List of Providers matching those references
+	 */
+	public List<Provider> getProviders(String[] providerRefs) {
+		List<Provider> ret = new ArrayList<>();
+		for (String providerRef : providerRefs) {
+			ret.add(getProvider(providerRef.trim()));
+		}
+		return ret;
+	}
+
+	/**
+	 * @param providerRef a uuid for the provider to retrieve
+	 * @return the provider that matches the providerRef
+	 */
+	public Provider getProvider(String providerRef) {
+		if (StringUtils.isBlank(providerRef)) {
+			return null;
+		}
+		Provider provider = getProviderService().getProviderByUuid(providerRef);
+		if (provider != null) {
+			return provider;
+		}
+		throw new IllegalArgumentException("Unable to find provider: " + providerRef);
 	}
 }
