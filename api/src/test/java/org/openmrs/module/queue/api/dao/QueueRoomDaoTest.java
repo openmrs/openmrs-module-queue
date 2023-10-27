@@ -58,7 +58,7 @@ public class QueueRoomDaoTest extends BaseModuleContextSensitiveTest {
 	
 	@Autowired
 	@Qualifier("queueDao")
-	private QueueDao<Queue> queueDao;
+	private QueueDao queueDao;
 	
 	@Before
 	public void setup() {

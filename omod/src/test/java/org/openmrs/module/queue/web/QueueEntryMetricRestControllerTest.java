@@ -122,9 +122,10 @@ public class QueueEntryMetricRestControllerTest {
 		List<Concept> vals = Arrays.asList(new Concept(), new Concept());
 		String[] refs = new String[] { "ref1", "ref2" };
 		parameterMap.put(SEARCH_PARAM_STATUS, refs);
+		parameterMap.put(QueueEntryMetricRestController.METRIC, new String[] { COUNT });
 		when(queueServicesWrapper.getConcepts(refs)).thenReturn(vals);
 		SimpleObject result = (SimpleObject) controller.handleRequest(request);
-		assertThat(result.get(COUNT), equalTo(50L));
+		assertThat(result.get(COUNT), equalTo(50));
 		verify(queueEntryService).getCountOfQueueEntries(queueEntryArgumentCaptor.capture());
 		QueueEntrySearchCriteria criteria = queueEntryArgumentCaptor.getValue();
 		assertThat(criteria.getStatuses(), hasSize(2));

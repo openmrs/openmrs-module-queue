@@ -13,12 +13,14 @@ import javax.validation.constraints.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
-import org.openmrs.Location;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.queue.api.QueueService;
+import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.model.Queue;
+import org.openmrs.module.queue.utils.QueueSearchCriteria;
+import org.openmrs.module.queue.web.QueueSearchCriteriaParser;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
@@ -31,6 +33,7 @@ import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
+import org.openmrs.module.webservices.rest.web.resource.impl.EmptySearchResult;
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
@@ -41,21 +44,28 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
         "2.3 - 9.*" })
 public class QueueResource extends DelegatingCrudResource<Queue> {
 	
-	private final QueueService queueService;
+	private final QueueServicesWrapper services;
+	
+	private final QueueSearchCriteriaParser searchCriteriaParser;
 	
 	public QueueResource() {
-		this.queueService = Context.getService(QueueService.class);
+		this.services = Context.getRegisteredComponents(QueueServicesWrapper.class).get(0);
+		this.searchCriteriaParser = Context.getRegisteredComponents(QueueSearchCriteriaParser.class).get(0);
+	}
+	
+	public QueueResource(QueueServicesWrapper services, QueueSearchCriteriaParser searchCriteriaParser) {
+		this.services = services;
+		this.searchCriteriaParser = searchCriteriaParser;
 	}
 	
 	@Override
 	public NeedsPaging<Queue> doGetAll(RequestContext requestContext) throws ResponseException {
-		return new NeedsPaging<Queue>(new ArrayList<Queue>(Context.getService(QueueService.class).getAllQueues()),
-		        requestContext);
+		return new NeedsPaging<>(new ArrayList<>(services.getQueueService().getAllQueues()), requestContext);
 	}
 	
 	@Override
 	public Queue getByUniqueId(@NotNull String uuid) {
-		Optional<Queue> optionalQueue = queueService.getQueueByUuid(uuid);
+		Optional<Queue> optionalQueue = services.getQueueService().getQueueByUuid(uuid);
 		if (!optionalQueue.isPresent()) {
 			throw new ObjectNotFoundException("Could not find queue with UUID " + uuid);
 		}
@@ -64,10 +74,11 @@ public class QueueResource extends DelegatingCrudResource<Queue> {
 	
 	@Override
 	protected void delete(Queue queue, String retireReason, RequestContext requestContext) throws ResponseException {
-		if (!this.queueService.getQueueByUuid(queue.getUuid()).isPresent()) {
+		Optional<Queue> optionalQueue = services.getQueueService().getQueueByUuid(queue.getUuid());
+		if (!optionalQueue.isPresent()) {
 			throw new ObjectNotFoundException("Could not find queue with uuid " + queue.getUuid());
 		}
-		this.queueService.voidQueue(queue.getUuid(), retireReason);
+		services.getQueueService().retireQueue(queue, retireReason);
 	}
 	
 	@Override
@@ -77,12 +88,12 @@ public class QueueResource extends DelegatingCrudResource<Queue> {
 	
 	@Override
 	public Queue save(Queue queue) {
-		return this.queueService.createQueue(queue);
+		return services.getQueueService().createQueue(queue);
 	}
 	
 	@Override
 	public void purge(Queue queue, RequestContext requestContext) throws ResponseException {
-		this.queueService.purgeQueue(queue);
+		services.getQueueService().purgeQueue(queue);
 	}
 	
 	@Override
@@ -133,14 +144,16 @@ public class QueueResource extends DelegatingCrudResource<Queue> {
 	}
 	
 	@Override
+	@SuppressWarnings("unchecked")
 	protected PageableResult doSearch(RequestContext requestContext) {
-		String locationUuid = requestContext.getParameter("location");
-		Location location = Context.getLocationService().getLocationByUuid(locationUuid);
-		if (location == null) {
-			throw new ObjectNotFoundException("could not find location with uuid " + locationUuid);
+		boolean criteriaFound = false;
+		Map<String, String[]> parameters = requestContext.getRequest().getParameterMap();
+		if (!searchCriteriaParser.hasSearchParameter(parameters)) {
+			return new EmptySearchResult();
 		}
-		List<Queue> queuesByLocation = queueService.getAllQueuesByLocation(locationUuid);
-		return new NeedsPaging<>(queuesByLocation, requestContext);
+		QueueSearchCriteria criteria = searchCriteriaParser.constructFromRequest(parameters);
+		List<Queue> queueEntries = services.getQueueService().getQueues(criteria);
+		return new NeedsPaging<>(queueEntries, requestContext);
 	}
 	
 	@PropertyGetter("display")
@@ -150,7 +163,6 @@ public class QueueResource extends DelegatingCrudResource<Queue> {
 	
 	@Override
 	public String getResourceVersion() {
-		//What determines the resource version? is it the target platform version or just 1.8
 		return "2.3";
 	}
 }

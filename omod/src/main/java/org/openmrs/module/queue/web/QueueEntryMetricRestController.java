@@ -11,10 +11,15 @@ package org.openmrs.module.queue.web;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import org.openmrs.module.queue.api.QueueServicesWrapper;
+import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.utils.QueueEntrySearchCriteria;
+import org.openmrs.module.queue.utils.QueueUtils;
 import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.v1_0.controller.BaseRestController;
@@ -31,7 +36,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/queue-entry-metric")
 public class QueueEntryMetricRestController extends BaseRestController {
 	
+	public static final String METRIC = "metric";
+	
 	public static final String COUNT = "count";
+	
+	public static final String AVERAGE_WAIT_TIME = "averageWaitTime";
 	
 	private final QueueEntrySearchCriteriaParser searchCriteriaParser;
 	
@@ -49,13 +58,28 @@ public class QueueEntryMetricRestController extends BaseRestController {
 	@SuppressWarnings("unchecked")
 	public Object handleRequest(HttpServletRequest request) {
 		Map<String, String[]> parameters = request.getParameterMap();
-		Long count = 0L;
+		SimpleObject ret = new SimpleObject();
+		
+		String[] metricArray = parameters.get(METRIC);
+		List<String> metrics = (metricArray == null ? new ArrayList<>() : Arrays.asList(metricArray));
+		
 		if (searchCriteriaParser.hasSearchParameter(parameters)) {
 			QueueEntrySearchCriteria criteria = searchCriteriaParser.constructFromRequest(parameters);
-			count = services.getQueueEntryService().getCountOfQueueEntries(criteria);
+			
+			// If we only want count, then use the ore efficient service to get counts
+			if (metrics.size() == 1 && metrics.get(0).equals(COUNT)) {
+				ret.add(COUNT, services.getQueueEntryService().getCountOfQueueEntries(criteria).intValue());
+			} else {
+				List<QueueEntry> queueEntries = services.getQueueEntryService().getQueueEntries(criteria);
+				if (metrics.isEmpty() || metrics.contains(COUNT)) {
+					ret.add(COUNT, queueEntries.size());
+				}
+				if (metrics.isEmpty() || metrics.contains(AVERAGE_WAIT_TIME)) {
+					ret.add(AVERAGE_WAIT_TIME, QueueUtils.computeAverageWaitTimeInMinutes(queueEntries));
+				}
+			}
 		}
-		SimpleObject ret = new SimpleObject();
-		ret.add(COUNT, count);
+		
 		return ret;
 	}
 	

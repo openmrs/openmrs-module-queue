@@ -12,7 +12,6 @@ package org.openmrs.module.queue.web.resources;
 import javax.validation.constraints.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -56,6 +55,11 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 	public QueueEntryResource() {
 		services = Context.getRegisteredComponents(QueueServicesWrapper.class).get(0);
 		searchCriteriaParser = Context.getRegisteredComponents(QueueEntrySearchCriteriaParser.class).get(0);
+	}
+	
+	public QueueEntryResource(QueueServicesWrapper services, QueueEntrySearchCriteriaParser searchCriteriaParser) {
+		this.services = services;
+		this.searchCriteriaParser = searchCriteriaParser;
 	}
 	
 	@Override
@@ -104,8 +108,8 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 			return new EmptySearchResult();
 		}
 		QueueEntrySearchCriteria criteria = searchCriteriaParser.constructFromRequest(parameters);
-		Collection<QueueEntry> queueEntries = services.getQueueEntryService().getQueueEntries(criteria);
-		return new NeedsPaging<>(new ArrayList<>(queueEntries), requestContext);
+		List<QueueEntry> queueEntries = services.getQueueEntryService().getQueueEntries(criteria);
+		return new NeedsPaging<>(queueEntries, requestContext);
 	}
 	
 	@Override
