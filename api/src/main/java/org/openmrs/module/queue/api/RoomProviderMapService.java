@@ -25,6 +25,8 @@ public interface RoomProviderMapService {
 	Optional<RoomProviderMap> getRoomProviderMapById(@NotNull int id);
 	
 	RoomProviderMap createRoomProviderMap(@NotNull RoomProviderMap roomProviderMap);
+
+	List<RoomProviderMap> getAllRoomProviderMaps();
 	
 	List<RoomProviderMap> getRoomProviderMaps(RoomProviderMapSearchCriteria searchCriteria);
 	

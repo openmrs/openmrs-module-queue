@@ -12,6 +12,7 @@ package org.openmrs.module.queue.api.dao;
 import javax.validation.constraints.NotNull;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import org.openmrs.Auditable;
@@ -33,8 +34,8 @@ public interface BaseQueueDao<Q extends OpenmrsObject & Auditable> {
 	void delete(@NotNull String uuid);
 	
 	@Transactional(readOnly = true)
-	Collection<Q> findAll();
+	List<Q> findAll();
 	
 	@Transactional(readOnly = true)
-	Collection<Q> findAll(boolean includeVoided);
+	List<Q> findAll(boolean includeVoided);
 }

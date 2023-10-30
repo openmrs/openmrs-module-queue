@@ -51,7 +51,7 @@ public interface QueueService {
 	/**
 	 * @return all queues
 	 */
-	Collection<Queue> getAllQueues();
+	List<Queue> getAllQueues();
 	
 	/**
 	 * @return {@link List} of queues that match the given %{@link QueueSearchCriteria}

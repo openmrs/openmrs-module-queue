@@ -9,11 +9,6 @@
  */
 package org.openmrs.module.queue.api.impl;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-
 import lombok.AccessLevel;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +21,11 @@ import org.openmrs.module.queue.api.search.RoomProviderMapSearchCriteria;
 import org.openmrs.module.queue.model.RoomProviderMap;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
 @Slf4j
 @Transactional
 @Setter(AccessLevel.MODULE)
@@ -36,12 +36,14 @@ public class RoomProviderMapServiceImpl extends BaseOpenmrsService implements Ro
 	public void setDao(RoomProviderMapDao dao) {
 		this.dao = dao;
 	}
-	
+
+	@Transactional(readOnly = true)
 	@Override
 	public Optional<RoomProviderMap> getRoomProviderMapByUuid(String uuid) {
 		return dao.get(uuid);
 	}
-	
+
+	@Transactional(readOnly = true)
 	@Override
 	public Optional<RoomProviderMap> getRoomProviderMapById(int id) {
 		return dao.get(id);
@@ -59,7 +61,14 @@ public class RoomProviderMapServiceImpl extends BaseOpenmrsService implements Ro
 		}
 		return dao.createOrUpdate(roomProviderMap);
 	}
-	
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<RoomProviderMap> getAllRoomProviderMaps() {
+		return getRoomProviderMaps(new RoomProviderMapSearchCriteria());
+	}
+
+	@Transactional(readOnly = true)
 	@Override
 	public List<RoomProviderMap> getRoomProviderMaps(RoomProviderMapSearchCriteria searchCriteria) {
 		return dao.getRoomProviderMaps(searchCriteria);

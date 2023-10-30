@@ -23,6 +23,8 @@ public interface QueueRoomService {
 	Optional<QueueRoom> getQueueRoomByUuid(@NotNull String uuid);
 	
 	Optional<QueueRoom> getQueueRoomById(@NotNull int id);
+
+	List<QueueRoom> getAllQueueRooms();
 	
 	QueueRoom createQueueRoom(@NotNull QueueRoom queueRoom);
 	

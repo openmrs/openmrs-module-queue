@@ -31,6 +31,7 @@ import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -52,6 +53,11 @@ public class RoomProviderMapResource extends DelegatingCrudResource<RoomProvider
 	public RoomProviderMapResource(QueueServicesWrapper services, RoomProviderMapSearchCriteriaParser parser) {
 		this.services = services;
 		this.searchCriteriaParser = parser;
+	}
+
+	@Override
+	public NeedsPaging<RoomProviderMap> doGetAll(RequestContext ctx) throws ResponseException {
+		return new NeedsPaging<>(new ArrayList<>(services.getRoomProviderMapService().getAllRoomProviderMaps()), ctx);
 	}
 	
 	@Override

@@ -77,7 +77,7 @@ public class QueueServiceImpl extends BaseOpenmrsService implements QueueService
 	 */
 	@Override
 	@Transactional(readOnly = true)
-	public Collection<Queue> getAllQueues() {
+	public List<Queue> getAllQueues() {
 		return dao.findAll();
 	}
 	

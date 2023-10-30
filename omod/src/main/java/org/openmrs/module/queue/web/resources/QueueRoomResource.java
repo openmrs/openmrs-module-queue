@@ -9,10 +9,6 @@
  */
 package org.openmrs.module.queue.web.resources;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.api.search.QueueRoomSearchCriteria;
@@ -36,6 +32,11 @@ import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 @SuppressWarnings("unused")
 @Resource(name = RestConstants.VERSION_1 + "/queueroom", supportedClass = QueueRoom.class, supportedOpenmrsVersions = {
         "2.3 - 9.*" })
@@ -53,6 +54,11 @@ public class QueueRoomResource extends DelegatingCrudResource<QueueRoom> {
 	public QueueRoomResource(QueueServicesWrapper services, QueueRoomSearchCriteriaParser searchCriteriaParser) {
 		this.services = services;
 		this.searchCriteriaParser = searchCriteriaParser;
+	}
+
+	@Override
+	public NeedsPaging<QueueRoom> doGetAll(RequestContext requestContext) throws ResponseException {
+		return new NeedsPaging<>(new ArrayList<>(services.getQueueRoomService().getAllQueueRooms()), requestContext);
 	}
 	
 	@Override

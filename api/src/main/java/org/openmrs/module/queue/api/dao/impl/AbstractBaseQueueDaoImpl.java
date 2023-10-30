@@ -15,6 +15,7 @@ import javax.validation.constraints.NotNull;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import lombok.AccessLevel;
@@ -80,12 +81,12 @@ public class AbstractBaseQueueDaoImpl<Q extends OpenmrsObject & Auditable> imple
 	}
 	
 	@Override
-	public Collection<Q> findAll() {
+	public List<Q> findAll() {
 		return this.findAll(false);
 	}
 	
 	@Override
-	public Collection<Q> findAll(boolean includeVoided) {
+	public List<Q> findAll(boolean includeVoided) {
 		Criteria criteria = getCurrentSession().createCriteria(clazz);
 		includeVoidedObjects(criteria, includeVoided);
 		return criteria.list();
