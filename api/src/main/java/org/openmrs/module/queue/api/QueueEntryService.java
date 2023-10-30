@@ -51,10 +51,10 @@ public interface QueueEntryService {
 	/**
 	 * Voids a queue entry
 	 *
-	 * @param queueEntryUuid uuid of the queue entry to be voided
+	 * @param queueEntry the queue entry to be voided
 	 * @param voidReason the reason for voiding the queue entry
 	 */
-	void voidQueueEntry(@NotNull String queueEntryUuid, String voidReason);
+	void voidQueueEntry(@NotNull QueueEntry queueEntry, String voidReason);
 	
 	/**
 	 * Completely remove a queue entry from the database

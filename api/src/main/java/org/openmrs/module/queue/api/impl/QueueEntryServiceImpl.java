@@ -56,25 +56,25 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	}
 	
 	/**
-	 * @see org.openmrs.module.queue.api.QueueEntryService#getQueueEntryByUuid(String)
+	 * @see QueueEntryService#getQueueEntryByUuid(String)
 	 */
 	@Override
 	@Transactional(readOnly = true)
 	public Optional<QueueEntry> getQueueEntryByUuid(@NotNull String queueEntryUuid) {
-		return this.dao.get(queueEntryUuid);
+		return dao.get(queueEntryUuid);
 	}
 	
 	/**
-	 * @see org.openmrs.module.queue.api.QueueEntryService#getQueueEntryById(Integer)
+	 * @see QueueEntryService#getQueueEntryById(Integer)
 	 */
 	@Override
 	@Transactional(readOnly = true)
 	public Optional<QueueEntry> getQueueEntryById(@NotNull Integer queueEntryId) {
-		return this.dao.get(queueEntryId);
+		return dao.get(queueEntryId);
 	}
 	
 	/**
-	 * @see org.openmrs.module.queue.api.QueueEntryService#createQueueEntry(org.openmrs.module.queue.model.QueueEntry)
+	 * @see QueueEntryService#createQueueEntry(org.openmrs.module.queue.model.QueueEntry)
 	 */
 	@Override
 	public QueueEntry createQueueEntry(QueueEntry queueEntry) {
@@ -83,30 +83,27 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 				throw new IllegalArgumentException("Patient mismatch - visit.patient does not match patient");
 			}
 		}
-		return this.dao.createOrUpdate(queueEntry);
+		return dao.createOrUpdate(queueEntry);
 	}
 	
 	/**
-	 * @see org.openmrs.module.queue.api.QueueEntryService#voidQueueEntry(String, String)
+	 * @see QueueEntryService#voidQueueEntry(QueueEntry, String)
 	 */
 	@Override
-	public void voidQueueEntry(String queueEntryUuid, String voidReason) {
-		this.dao.get(queueEntryUuid).ifPresent(queueEntry -> {
-			queueEntry.setVoided(true);
-			queueEntry.setVoidReason(voidReason);
-			queueEntry.setDateVoided(new Date());
-			queueEntry.setVoidedBy(Context.getAuthenticatedUser());
-			//Update
-			this.dao.createOrUpdate(queueEntry);
-		});
+	public void voidQueueEntry(QueueEntry queueEntry, String voidReason) {
+		queueEntry.setVoided(true);
+		queueEntry.setVoidReason(voidReason);
+		queueEntry.setDateVoided(new Date());
+		queueEntry.setVoidedBy(Context.getAuthenticatedUser());
+		dao.createOrUpdate(queueEntry);
 	}
 	
 	/**
-	 * @see org.openmrs.module.queue.api.QueueEntryService#purgeQueueEntry(org.openmrs.module.queue.model.QueueEntry)
+	 * @see QueueEntryService#purgeQueueEntry(org.openmrs.module.queue.model.QueueEntry)
 	 */
 	@Override
 	public void purgeQueueEntry(QueueEntry queueEntry) throws APIException {
-		this.dao.delete(queueEntry);
+		dao.delete(queueEntry);
 	}
 	
 	@Override

@@ -41,6 +41,16 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
         "2.3 - 9.*" }, order = 10)
 public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Queue, QueueResource> {
 	
+	private final QueueEntryService queueEntryService;
+	
+	public QueueEntrySubResource() {
+		this.queueEntryService = Context.getService(QueueEntryService.class);
+	}
+	
+	public QueueEntrySubResource(QueueEntryService queueEntryService) {
+		this.queueEntryService = queueEntryService;
+	}
+	
 	@Override
 	public Queue getParent(QueueEntry queueEntry) {
 		return queueEntry.getQueue();
@@ -59,7 +69,7 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 	
 	@Override
 	public QueueEntry getByUniqueId(@NotNull String uuid) {
-		Optional<QueueEntry> queueEntryOptional = Context.getService(QueueEntryService.class).getQueueEntryByUuid(uuid);
+		Optional<QueueEntry> queueEntryOptional = queueEntryService.getQueueEntryByUuid(uuid);
 		if (!queueEntryOptional.isPresent()) {
 			throw new ObjectNotFoundException("Could not find queue entry with UUID " + uuid);
 		}
@@ -68,7 +78,7 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 	
 	@Override
 	protected void delete(QueueEntry queueEntry, String voidReason, RequestContext requestContext) throws ResponseException {
-		Context.getService(QueueEntryService.class).voidQueueEntry(queueEntry.getUuid(), voidReason);
+		queueEntryService.voidQueueEntry(queueEntry, voidReason);
 	}
 	
 	@Override
@@ -78,12 +88,12 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 	
 	@Override
 	public QueueEntry save(QueueEntry queueEntry) {
-		return Context.getService(QueueEntryService.class).createQueueEntry(queueEntry);
+		return queueEntryService.createQueueEntry(queueEntry);
 	}
 	
 	@Override
 	public void purge(QueueEntry queueEntry, RequestContext requestContext) throws ResponseException {
-		Context.getService(QueueEntryService.class).purgeQueueEntry(queueEntry);
+		queueEntryService.purgeQueueEntry(queueEntry);
 	}
 	
 	@Override

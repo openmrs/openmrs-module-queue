@@ -13,6 +13,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -27,9 +28,12 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.openmrs.Concept;
 import org.openmrs.Location;
+import org.openmrs.User;
 import org.openmrs.Visit;
 import org.openmrs.VisitAttributeType;
 import org.openmrs.api.VisitService;
+import org.openmrs.api.context.Context;
+import org.openmrs.api.context.UserContext;
 import org.openmrs.module.queue.api.dao.QueueEntryDao;
 import org.openmrs.module.queue.api.impl.QueueEntryServiceImpl;
 import org.openmrs.module.queue.model.Queue;
@@ -100,14 +104,26 @@ public class QueueEntryServiceTest {
 	}
 	
 	@Test
-	public void shouldVoidQueue() {
-		when(dao.get(QUEUE_ENTRY_UUID)).thenReturn(Optional.empty());
-		queueEntryService.voidQueueEntry(QUEUE_ENTRY_UUID, "voidReason");
-		assertThat(queueEntryService.getQueueEntryByUuid(QUEUE_ENTRY_UUID).isPresent(), is(false));
+	public void shouldVoidQueueEntry() {
+		User user = new User();
+		UserContext userContext = mock(UserContext.class);
+		when(userContext.getAuthenticatedUser()).thenReturn(user);
+		Context.setUserContext(userContext);
+		QueueEntry queueEntry = new QueueEntry();
+		when(dao.createOrUpdate(queueEntry)).thenReturn(queueEntry);
+		assertThat(queueEntry.getVoided(), equalTo(false));
+		assertThat(queueEntry.getDateVoided(), nullValue());
+		assertThat(queueEntry.getVoidedBy(), nullValue());
+		assertThat(queueEntry.getVoidReason(), nullValue());
+		queueEntryService.voidQueueEntry(queueEntry, "voidReason");
+		assertThat(queueEntry.getVoided(), equalTo(true));
+		assertThat(queueEntry.getDateVoided(), notNullValue());
+		assertThat(queueEntry.getVoidedBy(), equalTo(user));
+		assertThat(queueEntry.getVoidReason(), equalTo("voidReason"));
 	}
 	
 	@Test
-	public void shouldPurgeQueue() {
+	public void shouldPurgeQueueEntry() {
 		QueueEntry queueEntry = mock(QueueEntry.class);
 		when(dao.get(QUEUE_ENTRY_UUID)).thenReturn(Optional.empty());
 		queueEntryService.purgeQueueEntry(queueEntry);

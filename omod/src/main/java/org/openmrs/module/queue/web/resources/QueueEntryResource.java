@@ -73,7 +73,7 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 	
 	@Override
 	protected void delete(QueueEntry qe, String reason, RequestContext requestContext) throws ResponseException {
-		services.getQueueEntryService().voidQueueEntry(qe.getUuid(), reason);
+		services.getQueueEntryService().voidQueueEntry(qe, reason);
 	}
 	
 	@Override
