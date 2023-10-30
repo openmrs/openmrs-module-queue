@@ -16,8 +16,8 @@ import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.openmrs.module.queue.api.dao.QueueEntryDao;
+import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.QueueEntry;
-import org.openmrs.module.queue.utils.QueueEntrySearchCriteria;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 @SuppressWarnings("unchecked")

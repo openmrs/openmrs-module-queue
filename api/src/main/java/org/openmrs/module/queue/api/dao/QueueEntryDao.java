@@ -15,8 +15,8 @@ import java.util.List;
 
 import org.openmrs.Auditable;
 import org.openmrs.OpenmrsObject;
+import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.QueueEntry;
-import org.openmrs.module.queue.utils.QueueEntrySearchCriteria;
 
 public interface QueueEntryDao<Q extends OpenmrsObject & Auditable> extends BaseQueueDao<Q> {
 	

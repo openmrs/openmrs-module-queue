@@ -10,20 +10,23 @@
 package org.openmrs.module.queue.api.dao;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Location;
-import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.SpringTestConfiguration;
+import org.openmrs.module.queue.api.QueueServicesWrapper;
+import org.openmrs.module.queue.api.search.QueueRoomSearchCriteria;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueRoom;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
@@ -57,8 +60,7 @@ public class QueueRoomDaoTest extends BaseModuleContextSensitiveTest {
 	private QueueRoomDao dao;
 	
 	@Autowired
-	@Qualifier("queueDao")
-	private QueueDao queueDao;
+	private QueueServicesWrapper services;
 	
 	@Before
 	public void setup() {
@@ -94,7 +96,7 @@ public class QueueRoomDaoTest extends BaseModuleContextSensitiveTest {
 		QueueRoom queueRoom = new QueueRoom();
 		queueRoom.setUuid(NEW_QUEUE_ROOM_UUID);
 		queueRoom.setName(NEW_QUEUE_ROOM_NAME);
-		queueRoom.setQueue(queueDao.get(QUEUE_UUID).get());
+		queueRoom.setQueue(services.getQueueService().getQueueByUuid(QUEUE_UUID).get());
 		
 		QueueRoom result = dao.createOrUpdate(queueRoom);
 		assertThat(result, notNullValue());
@@ -130,41 +132,37 @@ public class QueueRoomDaoTest extends BaseModuleContextSensitiveTest {
 	
 	@Test
 	public void shouldFindQueueRoomByLocation() {
-		Location location = Context.getLocationService().getLocationByUuid(LOCATION_UUID);
-		
-		List<QueueRoom> roomsByLocation = dao.getQueueRoomsByServiceAndLocation(null, location);
-		
+		QueueRoomSearchCriteria criteria = new QueueRoomSearchCriteria();
+		Location location = services.getLocationService().getLocationByUuid(LOCATION_UUID);
+		criteria.setLocations(Collections.singletonList(location));
+		List<QueueRoom> roomsByLocation = dao.getQueueRooms(criteria);
 		assertThat(roomsByLocation, notNullValue());
 		assertThat(roomsByLocation, hasSize(2));
-		roomsByLocation.forEach(room -> assertThat(room.getQueue().getLocation().getUuid(), is(LOCATION_UUID)));
+		roomsByLocation.forEach(room -> assertThat(room.getQueue().getLocation(), equalTo(location)));
 	}
 	
 	@Test
 	public void shouldFindQueueRoomByQueue() {
-		Queue queue = queueDao.get(QUEUE_UUID).get();
-		
-		List<QueueRoom> roomsByQueue = dao.getQueueRoomsByServiceAndLocation(queue, null);
-		
+		QueueRoomSearchCriteria criteria = new QueueRoomSearchCriteria();
+		Queue queue = services.getQueueService().getQueueByUuid(QUEUE_UUID).get();
+		criteria.setQueues(Collections.singletonList(queue));
+		List<QueueRoom> roomsByQueue = dao.getQueueRooms(criteria);
 		assertThat(roomsByQueue, notNullValue());
 		assertThat(roomsByQueue, hasSize(2));
-		roomsByQueue.forEach(room -> assertThat(room.getQueue().getUuid(), is(QUEUE_UUID)));
+		roomsByQueue.forEach(room -> assertThat(room.getQueue(), equalTo(queue)));
 	}
 	
 	@Test
 	public void shouldDeleteQueueRoomByUuid() {
 		dao.delete(QUEUE_ROOM_UUID);
-		
 		Optional<QueueRoom> result = dao.get(QUEUE_ROOM_UUID);
-		//verify delete operation
 		assertThat(result.isPresent(), is(false));
 	}
 	
 	@Test
 	public void shouldDeleteQueueRoomByEntity() {
 		dao.get(QUEUE_ROOM_UUID).ifPresent((queue) -> dao.delete(queue));
-		
 		Optional<QueueRoom> result = dao.get(QUEUE_ROOM_UUID);
-		//verify delete operation
 		assertThat(result.isPresent(), is(false));
 	}
 	

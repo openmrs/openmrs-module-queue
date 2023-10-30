@@ -7,7 +7,7 @@
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
-package org.openmrs.module.queue.utils;
+package org.openmrs.module.queue.api.search;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -15,20 +15,23 @@ import java.util.Collection;
 import lombok.Data;
 import org.openmrs.Concept;
 import org.openmrs.Location;
+import org.openmrs.module.queue.model.Queue;
 
 /**
- * Bean definition used for retrieving Queues that meet specific criteria All properties should be
- * considered to further limit results (ANDed together) Any property that is null will not limit by
- * the related property Any Collection that is empty will return only those results for which the
+ * Bean definition used for retrieving Queue Rooms that meet specific criteria All properties should
+ * be considered to further limit results (ANDed together) Any property that is null will not limit
+ * by the related property Any Collection that is empty will return only those results for which the
  * related property is null Any Boolean property without a default value will not limit if the
  * property is null For example, to not limit by priority, set the priority property to null To
  * limit to only those entries whose priority is null, set the priority property to an empty
  * collection
  */
 @Data
-public class QueueSearchCriteria implements Serializable {
+public class QueueRoomSearchCriteria implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
+	
+	private Collection<Queue> queues;
 	
 	private Collection<Location> locations;
 	

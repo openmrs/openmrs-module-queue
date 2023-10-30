@@ -16,6 +16,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
@@ -23,6 +24,8 @@ import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -36,9 +39,9 @@ import org.openmrs.api.context.Context;
 import org.openmrs.api.context.UserContext;
 import org.openmrs.module.queue.api.dao.QueueEntryDao;
 import org.openmrs.module.queue.api.impl.QueueEntryServiceImpl;
+import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
-import org.openmrs.module.queue.utils.QueueEntrySearchCriteria;
 
 @RunWith(MockitoJUnitRunner.class)
 public class QueueEntryServiceTest {
@@ -54,6 +57,9 @@ public class QueueEntryServiceTest {
 	
 	@Mock
 	private VisitService visitService;
+	
+	@Captor
+	ArgumentCaptor<QueueEntrySearchCriteria> queueEntrySearchCriteriaArgumentCaptor;
 	
 	@Before
 	public void setupMocks() {
@@ -135,6 +141,15 @@ public class QueueEntryServiceTest {
 		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
 		when(dao.getCountOfQueueEntries(criteria)).thenReturn(1L);
 		assertThat(queueEntryService.getCountOfQueueEntries(criteria), is(1L));
+	}
+	
+	@Test
+	public void shouldGetQueuesEntriesByCriteria() {
+		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
+		queueEntryService.getQueueEntries(criteria);
+		verify(dao).getQueueEntries(queueEntrySearchCriteriaArgumentCaptor.capture());
+		QueueEntrySearchCriteria daoCriteria = queueEntrySearchCriteriaArgumentCaptor.getValue();
+		assertThat(daoCriteria, equalTo(criteria));
 	}
 	
 	@Test

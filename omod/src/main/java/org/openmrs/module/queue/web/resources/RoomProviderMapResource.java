@@ -9,14 +9,15 @@
  */
 package org.openmrs.module.queue.web.resources;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
-import org.openmrs.Provider;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.queue.api.QueueRoomService;
-import org.openmrs.module.queue.api.RoomProviderMapService;
-import org.openmrs.module.queue.model.QueueRoom;
+import org.openmrs.module.queue.api.QueueServicesWrapper;
+import org.openmrs.module.queue.api.search.RoomProviderMapSearchCriteria;
 import org.openmrs.module.queue.model.RoomProviderMap;
+import org.openmrs.module.queue.web.resources.parser.RoomProviderMapSearchCriteriaParser;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
@@ -28,6 +29,7 @@ import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
+import org.openmrs.module.webservices.rest.web.resource.impl.EmptySearchResult;
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
@@ -37,28 +39,32 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
         + "/roomprovidermap", supportedClass = RoomProviderMap.class, supportedOpenmrsVersions = { "2.3 - 9.*" })
 public class RoomProviderMapResource extends DelegatingCrudResource<RoomProviderMap> {
 	
-	private final RoomProviderMapService roomProviderMapService;
+	private final QueueServicesWrapper services;
+	
+	private final RoomProviderMapSearchCriteriaParser searchCriteriaParser;
 	
 	public RoomProviderMapResource() {
-		this.roomProviderMapService = Context.getService(RoomProviderMapService.class);
+		this.services = Context.getService(QueueServicesWrapper.class);
+		this.searchCriteriaParser = Context.getRegisteredComponents(RoomProviderMapSearchCriteriaParser.class).get(0);
+	}
+	
+	public RoomProviderMapResource(QueueServicesWrapper services, RoomProviderMapSearchCriteriaParser parser) {
+		this.services = services;
+		this.searchCriteriaParser = parser;
 	}
 	
 	@Override
 	public RoomProviderMap getByUniqueId(String uuid) {
-		Optional<RoomProviderMap> optionalQueueRoom = roomProviderMapService.getRoomProviderMapByUuid(uuid);
-		if (!optionalQueueRoom.isPresent()) {
+		Optional<RoomProviderMap> optional = services.getRoomProviderMapService().getRoomProviderMapByUuid(uuid);
+		if (!optional.isPresent()) {
 			throw new ObjectNotFoundException("Could not find roomProviderMap with UUID " + uuid);
 		}
-		return optionalQueueRoom.get();
+		return optional.get();
 	}
 	
 	@Override
-	protected void delete(RoomProviderMap roomProviderMap, String voidReason, RequestContext requestContext)
-	        throws ResponseException {
-		if (!this.roomProviderMapService.getRoomProviderMapByUuid(roomProviderMap.getUuid()).isPresent()) {
-			throw new ObjectNotFoundException("Could not find provider's room with uuid " + roomProviderMap.getUuid());
-		}
-		this.roomProviderMapService.voidRoomProviderMap(roomProviderMap, voidReason);
+	protected void delete(RoomProviderMap rpm, String voidReason, RequestContext context) throws ResponseException {
+		services.getRoomProviderMapService().voidRoomProviderMap(rpm, voidReason);
 	}
 	
 	@Override
@@ -68,23 +74,24 @@ public class RoomProviderMapResource extends DelegatingCrudResource<RoomProvider
 	
 	@Override
 	public RoomProviderMap save(RoomProviderMap roomProviderMap) {
-		return roomProviderMapService.createRoomProviderMap(roomProviderMap);
+		return services.getRoomProviderMapService().createRoomProviderMap(roomProviderMap);
 	}
 	
 	@Override
 	public void purge(RoomProviderMap roomProviderMap, RequestContext requestContext) throws ResponseException {
-		this.roomProviderMapService.purgeRoomProviderMap(roomProviderMap);
+		services.getRoomProviderMapService().purgeRoomProviderMap(roomProviderMap);
 	}
 	
 	@Override
-	protected PageableResult doSearch(RequestContext context) {
-		Provider provider = context.getParameter("provider") != null
-		        ? Context.getProviderService().getProviderByUuid(context.getParameter("provider"))
-		        : null;
-		QueueRoom queueRoom = context.getParameter("queueRoom") != null
-		        ? Context.getService(QueueRoomService.class).getQueueRoomByUuid(context.getParameter("queueRoom")).get()
-		        : null;
-		return new NeedsPaging<>(roomProviderMapService.getRoomProvider(provider, queueRoom), context);
+	@SuppressWarnings("unchecked")
+	protected PageableResult doSearch(RequestContext requestContext) {
+		Map<String, String[]> parameters = requestContext.getRequest().getParameterMap();
+		if (!searchCriteriaParser.hasSearchParameter(parameters)) {
+			return new EmptySearchResult();
+		}
+		RoomProviderMapSearchCriteria criteria = searchCriteriaParser.constructFromRequest(parameters);
+		List<RoomProviderMap> rpms = services.getRoomProviderMapService().getRoomProviderMaps(criteria);
+		return new NeedsPaging<>(rpms, requestContext);
 	}
 	
 	@Override

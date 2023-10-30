@@ -33,9 +33,9 @@ import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.queue.api.QueueEntryService;
 import org.openmrs.module.queue.api.dao.QueueEntryDao;
+import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
-import org.openmrs.module.queue.utils.QueueEntrySearchCriteria;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j

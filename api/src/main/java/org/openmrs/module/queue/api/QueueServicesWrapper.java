@@ -25,6 +25,7 @@ import org.openmrs.api.PatientService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.api.VisitService;
 import org.openmrs.module.queue.model.Queue;
+import org.openmrs.module.queue.model.QueueRoom;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -228,5 +229,32 @@ public class QueueServicesWrapper {
 			return provider;
 		}
 		throw new IllegalArgumentException("Unable to find provider: " + providerRef);
+	}
+	
+	/**
+	 * @param queueRoomRefs array of QueueRoom references
+	 * @return a List of QueueRooms matching those references
+	 */
+	public List<QueueRoom> getQueueRooms(String[] queueRoomRefs) {
+		List<QueueRoom> ret = new ArrayList<>();
+		for (String queueRoomRef : queueRoomRefs) {
+			ret.add(getQueueRoom(queueRoomRef.trim()));
+		}
+		return ret;
+	}
+	
+	/**
+	 * @param queueRoomRef a uuid for the queueRoom to retrieve
+	 * @return the queueRoom that matches the queueRoomRef
+	 */
+	public QueueRoom getQueueRoom(String queueRoomRef) {
+		if (StringUtils.isBlank(queueRoomRef)) {
+			return null;
+		}
+		QueueRoom queueRoom = getQueueRoomService().getQueueRoomByUuid(queueRoomRef).orElse(null);
+		if (queueRoom != null) {
+			return queueRoom;
+		}
+		throw new IllegalArgumentException("Unable to find queueRoom: " + queueRoomRef);
 	}
 }

@@ -18,9 +18,9 @@ import org.openmrs.Location;
 import org.openmrs.Visit;
 import org.openmrs.VisitAttributeType;
 import org.openmrs.api.APIException;
+import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
-import org.openmrs.module.queue.utils.QueueEntrySearchCriteria;
 
 public interface QueueEntryService {
 	

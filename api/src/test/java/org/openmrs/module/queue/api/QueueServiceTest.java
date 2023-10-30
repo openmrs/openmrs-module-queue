@@ -38,8 +38,8 @@ import org.openmrs.api.context.Context;
 import org.openmrs.api.context.UserContext;
 import org.openmrs.module.queue.api.dao.QueueDao;
 import org.openmrs.module.queue.api.impl.QueueServiceImpl;
+import org.openmrs.module.queue.api.search.QueueSearchCriteria;
 import org.openmrs.module.queue.model.Queue;
-import org.openmrs.module.queue.utils.QueueSearchCriteria;
 
 @RunWith(MockitoJUnitRunner.class)
 public class QueueServiceTest {

@@ -9,14 +9,15 @@
  */
 package org.openmrs.module.queue.web.resources;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
-import org.openmrs.Location;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.queue.api.QueueRoomService;
-import org.openmrs.module.queue.api.QueueService;
-import org.openmrs.module.queue.model.Queue;
+import org.openmrs.module.queue.api.QueueServicesWrapper;
+import org.openmrs.module.queue.api.search.QueueRoomSearchCriteria;
 import org.openmrs.module.queue.model.QueueRoom;
+import org.openmrs.module.queue.web.resources.parser.QueueRoomSearchCriteriaParser;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
@@ -29,6 +30,7 @@ import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
+import org.openmrs.module.webservices.rest.web.resource.impl.EmptySearchResult;
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
@@ -38,15 +40,23 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
         "2.3 - 9.*" })
 public class QueueRoomResource extends DelegatingCrudResource<QueueRoom> {
 	
-	private final QueueRoomService queueRoomService;
+	private final QueueServicesWrapper services;
+	
+	private final QueueRoomSearchCriteriaParser searchCriteriaParser;
 	
 	public QueueRoomResource() {
-		this.queueRoomService = Context.getService(QueueRoomService.class);
+		this.services = Context.getService(QueueServicesWrapper.class);
+		this.searchCriteriaParser = Context.getRegisteredComponents(QueueRoomSearchCriteriaParser.class).get(0);
+	}
+	
+	public QueueRoomResource(QueueServicesWrapper services, QueueRoomSearchCriteriaParser searchCriteriaParser) {
+		this.services = services;
+		this.searchCriteriaParser = searchCriteriaParser;
 	}
 	
 	@Override
 	public QueueRoom getByUniqueId(String uuid) {
-		Optional<QueueRoom> optionalQueueRoom = queueRoomService.getQueueRoomByUuid(uuid);
+		Optional<QueueRoom> optionalQueueRoom = services.getQueueRoomService().getQueueRoomByUuid(uuid);
 		if (!optionalQueueRoom.isPresent()) {
 			throw new ObjectNotFoundException("Could not find queueRoom with UUID " + uuid);
 		}
@@ -55,10 +65,7 @@ public class QueueRoomResource extends DelegatingCrudResource<QueueRoom> {
 	
 	@Override
 	protected void delete(QueueRoom queueRoom, String retireReason, RequestContext requestContext) throws ResponseException {
-		if (!this.queueRoomService.getQueueRoomByUuid(queueRoom.getUuid()).isPresent()) {
-			throw new ObjectNotFoundException("Could not find queue room with uuid " + queueRoom.getUuid());
-		}
-		this.queueRoomService.retireQueueRoom(queueRoom, retireReason);
+		services.getQueueRoomService().retireQueueRoom(queueRoom, retireReason);
 	}
 	
 	@Override
@@ -68,23 +75,24 @@ public class QueueRoomResource extends DelegatingCrudResource<QueueRoom> {
 	
 	@Override
 	public QueueRoom save(QueueRoom queueRoom) {
-		return queueRoomService.createQueueRoom(queueRoom);
+		return services.getQueueRoomService().createQueueRoom(queueRoom);
 	}
 	
 	@Override
 	public void purge(QueueRoom queueRoom, RequestContext requestContext) throws ResponseException {
-		this.queueRoomService.purgeQueueRoom(queueRoom);
+		services.getQueueRoomService().purgeQueueRoom(queueRoom);
 	}
 	
 	@Override
-	protected PageableResult doSearch(RequestContext context) {
-		Queue queue = context.getParameter("queue") != null
-		        ? Context.getService(QueueService.class).getQueueByUuid(context.getParameter("queue")).get()
-		        : null;
-		Location location = context.getParameter("location") != null
-		        ? Context.getLocationService().getLocationByUuid(context.getParameter("location"))
-		        : null;
-		return new NeedsPaging<>(queueRoomService.getQueueRoomsByServiceAndLocation(queue, location), context);
+	@SuppressWarnings("unchecked")
+	protected PageableResult doSearch(RequestContext requestContext) {
+		Map<String, String[]> parameters = requestContext.getRequest().getParameterMap();
+		if (!searchCriteriaParser.hasSearchParameter(parameters)) {
+			return new EmptySearchResult();
+		}
+		QueueRoomSearchCriteria criteria = searchCriteriaParser.constructFromRequest(parameters);
+		List<QueueRoom> queueRooms = services.getQueueRoomService().getQueueRooms(criteria);
+		return new NeedsPaging<>(queueRooms, requestContext);
 	}
 	
 	@Override

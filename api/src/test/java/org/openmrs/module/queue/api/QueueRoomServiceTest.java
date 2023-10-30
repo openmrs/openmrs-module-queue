@@ -11,30 +11,29 @@ package org.openmrs.module.queue.api;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.openmrs.Location;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.context.UserContext;
 import org.openmrs.module.queue.api.dao.QueueRoomDao;
 import org.openmrs.module.queue.api.impl.QueueRoomServiceImpl;
-import org.openmrs.module.queue.model.Queue;
+import org.openmrs.module.queue.api.search.QueueRoomSearchCriteria;
 import org.openmrs.module.queue.model.QueueRoom;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -52,6 +51,9 @@ public class QueueRoomServiceTest {
 	
 	@Mock
 	private QueueRoomDao dao;
+	
+	@Captor
+	ArgumentCaptor<QueueRoomSearchCriteria> queueRoomSearchCriteriaArgumentCaptor;
 	
 	@Before
 	public void setupMocks() {
@@ -112,26 +114,11 @@ public class QueueRoomServiceTest {
 	}
 	
 	@Test
-	public void shouldGetAllQueueRoomsByLocation() {
-		QueueRoom queueRoom = mock(QueueRoom.class);
-		Location location = new Location();
-		location.setUuid(LOCATION_UUID);
-		when(dao.getQueueRoomsByServiceAndLocation(null, location)).thenReturn(Collections.singletonList(queueRoom));
-		
-		List<QueueRoom> queueRoomsByLocation = queueRoomService.getQueueRoomsByServiceAndLocation(null, location);
-		assertThat(queueRoomsByLocation, notNullValue());
-		assertThat(queueRoomsByLocation, hasSize(1));
-	}
-	
-	@Test
-	public void shouldGetAllQueueRoomsByQueue() {
-		QueueRoom queueRoom = mock(QueueRoom.class);
-		Queue queue = new Queue();
-		queue.setUuid(QUEUE_UUID);
-		when(dao.getQueueRoomsByServiceAndLocation(queue, null)).thenReturn(Collections.singletonList(queueRoom));
-		
-		List<QueueRoom> queueRoomsByLocation = queueRoomService.getQueueRoomsByServiceAndLocation(queue, null);
-		assertThat(queueRoomsByLocation, notNullValue());
-		assertThat(queueRoomsByLocation, hasSize(1));
+	public void shouldGetQueueRoomsByCriteria() {
+		QueueRoomSearchCriteria criteria = new QueueRoomSearchCriteria();
+		queueRoomService.getQueueRooms(criteria);
+		verify(dao).getQueueRooms(queueRoomSearchCriteriaArgumentCaptor.capture());
+		QueueRoomSearchCriteria daoCriteria = queueRoomSearchCriteriaArgumentCaptor.getValue();
+		assertThat(daoCriteria, equalTo(criteria));
 	}
 }

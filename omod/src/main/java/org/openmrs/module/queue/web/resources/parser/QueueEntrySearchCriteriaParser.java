@@ -7,7 +7,7 @@
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
-package org.openmrs.module.queue.web;
+package org.openmrs.module.queue.web.resources.parser;
 
 import java.util.Arrays;
 import java.util.List;
@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.openmrs.Location;
 import org.openmrs.Provider;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
-import org.openmrs.module.queue.utils.QueueEntrySearchCriteria;
+import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.utils.QueueUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

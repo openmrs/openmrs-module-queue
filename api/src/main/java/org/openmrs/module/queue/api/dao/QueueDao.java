@@ -13,8 +13,8 @@ import javax.validation.constraints.NotNull;
 
 import java.util.List;
 
+import org.openmrs.module.queue.api.search.QueueSearchCriteria;
 import org.openmrs.module.queue.model.Queue;
-import org.openmrs.module.queue.utils.QueueSearchCriteria;
 
 public interface QueueDao extends BaseQueueDao<Queue> {
 	

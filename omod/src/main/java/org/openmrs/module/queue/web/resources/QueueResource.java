@@ -18,9 +18,9 @@ import java.util.Optional;
 
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
+import org.openmrs.module.queue.api.search.QueueSearchCriteria;
 import org.openmrs.module.queue.model.Queue;
-import org.openmrs.module.queue.utils.QueueSearchCriteria;
-import org.openmrs.module.queue.web.QueueSearchCriteriaParser;
+import org.openmrs.module.queue.web.resources.parser.QueueSearchCriteriaParser;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;

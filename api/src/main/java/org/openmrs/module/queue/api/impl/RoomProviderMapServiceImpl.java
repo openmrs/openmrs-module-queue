@@ -9,6 +9,7 @@
  */
 package org.openmrs.module.queue.api.impl;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -16,13 +17,12 @@ import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.openmrs.Provider;
 import org.openmrs.api.APIException;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.queue.api.RoomProviderMapService;
 import org.openmrs.module.queue.api.dao.RoomProviderMapDao;
-import org.openmrs.module.queue.model.QueueRoom;
+import org.openmrs.module.queue.api.search.RoomProviderMapSearchCriteria;
 import org.openmrs.module.queue.model.RoomProviderMap;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,19 +50,19 @@ public class RoomProviderMapServiceImpl extends BaseOpenmrsService implements Ro
 	@Override
 	public RoomProviderMap createRoomProviderMap(RoomProviderMap roomProviderMap) {
 		if (roomProviderMap.getId() == null) {
-			List<RoomProviderMap> existingAssignedRooms = getRoomProvider(roomProviderMap.getProvider(),
-			    roomProviderMap.getQueueRoom());
-			existingAssignedRooms.forEach(roomProviderMap1 -> voidRoomProviderMap(roomProviderMap1, "Api call"));
-			
-			return dao.createOrUpdate(roomProviderMap);
+			RoomProviderMapSearchCriteria criteria = new RoomProviderMapSearchCriteria();
+			criteria.setProviders(Collections.singletonList(roomProviderMap.getProvider()));
+			criteria.setQueueRooms(Collections.singletonList(roomProviderMap.getQueueRoom()));
+			for (RoomProviderMap existingAssignedRoom : getRoomProviderMaps(criteria)) {
+				voidRoomProviderMap(existingAssignedRoom, "Api call");
+			}
 		}
-		roomProviderMap.setDateChanged(new Date());
 		return dao.createOrUpdate(roomProviderMap);
 	}
 	
 	@Override
-	public List<RoomProviderMap> getRoomProvider(Provider provider, QueueRoom queueRoom) {
-		return dao.getRoomProvider(provider, queueRoom);
+	public List<RoomProviderMap> getRoomProviderMaps(RoomProviderMapSearchCriteria searchCriteria) {
+		return dao.getRoomProviderMaps(searchCriteria);
 	}
 	
 	@Override

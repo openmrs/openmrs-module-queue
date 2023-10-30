@@ -18,13 +18,12 @@ import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.openmrs.Location;
 import org.openmrs.api.APIException;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.queue.api.QueueRoomService;
 import org.openmrs.module.queue.api.dao.QueueRoomDao;
-import org.openmrs.module.queue.model.Queue;
+import org.openmrs.module.queue.api.search.QueueRoomSearchCriteria;
 import org.openmrs.module.queue.model.QueueRoom;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,8 +54,8 @@ public class QueueRoomServiceImpl extends BaseOpenmrsService implements QueueRoo
 	}
 	
 	@Override
-	public List<QueueRoom> getQueueRoomsByServiceAndLocation(Queue queue, Location location) {
-		return dao.getQueueRoomsByServiceAndLocation(queue, location);
+	public List<QueueRoom> getQueueRooms(QueueRoomSearchCriteria searchCriteria) {
+		return dao.getQueueRooms(searchCriteria);
 	}
 	
 	@Override

@@ -16,8 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.openmrs.Visit;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueEntryService;
+import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.QueueEntry;
-import org.openmrs.module.queue.utils.QueueEntrySearchCriteria;
 
 /**
  * This iterates over all active VisitQueueEntries If the Visit associated with any of these has

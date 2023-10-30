@@ -7,7 +7,7 @@
  * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
  * graphic logo is a trademark of OpenMRS Inc.
  */
-package org.openmrs.module.queue.web;
+package org.openmrs.module.queue.web.resources.parser;
 
 import java.util.Arrays;
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
-import org.openmrs.module.queue.utils.QueueSearchCriteria;
+import org.openmrs.module.queue.api.search.RoomProviderMapSearchCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,18 +24,18 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class QueueSearchCriteriaParser {
+public class RoomProviderMapSearchCriteriaParser {
 	
-	public static final String SEARCH_PARAM_LOCATION = "location";
+	public static final String SEARCH_PARAM_QUEUE_ROOMS = "queueRoom";
 	
-	public static final String SEARCH_PARAM_SERVICE = "service";
+	public static final String SEARCH_PARAM_PROVIDER = "provider";
 	
-	public static final List<String> SEARCH_PARAMETERS = Arrays.asList(SEARCH_PARAM_LOCATION, SEARCH_PARAM_SERVICE);
+	public static final List<String> SEARCH_PARAMETERS = Arrays.asList(SEARCH_PARAM_QUEUE_ROOMS, SEARCH_PARAM_PROVIDER);
 	
 	private final QueueServicesWrapper services;
 	
 	@Autowired
-	public QueueSearchCriteriaParser(QueueServicesWrapper services) {
+	public RoomProviderMapSearchCriteriaParser(QueueServicesWrapper services) {
 		this.services = services;
 	}
 	
@@ -54,21 +54,21 @@ public class QueueSearchCriteriaParser {
 	
 	/**
 	 * @param parameterMap a Map from parameter name to array of parameter values
-	 * @return QueueSearchCriteria that is configured based on the parameters in the request
+	 * @return QueueEntrySearchCriteria that is configured based on the parameters in the request
 	 */
-	public QueueSearchCriteria constructFromRequest(Map<String, String[]> parameterMap) {
-		QueueSearchCriteria criteria = new QueueSearchCriteria();
+	public RoomProviderMapSearchCriteria constructFromRequest(Map<String, String[]> parameterMap) {
+		RoomProviderMapSearchCriteria criteria = new RoomProviderMapSearchCriteria();
 		if (parameterMap == null) {
 			return criteria;
 		}
 		for (String parameterName : parameterMap.keySet()) {
 			switch (parameterName) {
-				case SEARCH_PARAM_LOCATION: {
-					criteria.setLocations(services.getLocations(parameterMap.get(SEARCH_PARAM_LOCATION)));
+				case SEARCH_PARAM_QUEUE_ROOMS: {
+					criteria.setQueueRooms(services.getQueueRooms(parameterMap.get(SEARCH_PARAM_QUEUE_ROOMS)));
 					break;
 				}
-				case SEARCH_PARAM_SERVICE: {
-					criteria.setServices(services.getConcepts(parameterMap.get(SEARCH_PARAM_SERVICE)));
+				case SEARCH_PARAM_PROVIDER: {
+					criteria.setProviders(services.getProviders(parameterMap.get(SEARCH_PARAM_PROVIDER)));
 					break;
 				}
 				default: {

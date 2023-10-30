@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.openmrs.api.APIException;
+import org.openmrs.module.queue.api.search.QueueSearchCriteria;
 import org.openmrs.module.queue.model.Queue;
-import org.openmrs.module.queue.utils.QueueSearchCriteria;
 
 /**
  * This interface defines methods for Queue objects

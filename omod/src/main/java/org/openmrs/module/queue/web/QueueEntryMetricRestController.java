@@ -17,9 +17,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.openmrs.module.queue.api.QueueServicesWrapper;
+import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.QueueEntry;
-import org.openmrs.module.queue.utils.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.utils.QueueUtils;
+import org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser;
 import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.v1_0.controller.BaseRestController;
