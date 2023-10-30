@@ -16,6 +16,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import org.junit.Before;
@@ -82,7 +83,8 @@ public class QueueEntrySubResourceTest extends BaseQueueResourceTest<QueueEntry,
 		when(queueServicesWrapper.getPatientService()).thenReturn(patientService);
 		
 		when(queueEntry.getUuid()).thenReturn(QUEUE_ENTRY_UUID);
-		when(Context.getService(QueueEntryService.class)).thenReturn(queueEntryService);
+		when(Context.getRegisteredComponents(QueueServicesWrapper.class))
+		        .thenReturn(Collections.singletonList(queueServicesWrapper));
 		
 		this.setResource(new QueueEntrySubResource());
 		this.setObject(queueEntry);

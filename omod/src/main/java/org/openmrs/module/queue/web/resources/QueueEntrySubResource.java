@@ -16,7 +16,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 import org.openmrs.api.context.Context;
-import org.openmrs.module.queue.api.QueueEntryService;
+import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.webservices.rest.web.RequestContext;
@@ -41,14 +41,14 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
         "2.3 - 9.*" }, order = 10)
 public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Queue, QueueResource> {
 	
-	private final QueueEntryService queueEntryService;
+	private final QueueServicesWrapper services;
 	
 	public QueueEntrySubResource() {
-		this.queueEntryService = Context.getService(QueueEntryService.class);
+		this.services = Context.getRegisteredComponents(QueueServicesWrapper.class).get(0);
 	}
 	
-	public QueueEntrySubResource(QueueEntryService queueEntryService) {
-		this.queueEntryService = queueEntryService;
+	public QueueEntrySubResource(QueueServicesWrapper services) {
+		this.services = services;
 	}
 	
 	@Override
@@ -69,7 +69,7 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 	
 	@Override
 	public QueueEntry getByUniqueId(@NotNull String uuid) {
-		Optional<QueueEntry> queueEntryOptional = queueEntryService.getQueueEntryByUuid(uuid);
+		Optional<QueueEntry> queueEntryOptional = services.getQueueEntryService().getQueueEntryByUuid(uuid);
 		if (!queueEntryOptional.isPresent()) {
 			throw new ObjectNotFoundException("Could not find queue entry with UUID " + uuid);
 		}
@@ -78,7 +78,7 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 	
 	@Override
 	protected void delete(QueueEntry queueEntry, String voidReason, RequestContext requestContext) throws ResponseException {
-		queueEntryService.voidQueueEntry(queueEntry, voidReason);
+		services.getQueueEntryService().voidQueueEntry(queueEntry, voidReason);
 	}
 	
 	@Override
@@ -88,12 +88,12 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 	
 	@Override
 	public QueueEntry save(QueueEntry queueEntry) {
-		return queueEntryService.createQueueEntry(queueEntry);
+		return services.getQueueEntryService().createQueueEntry(queueEntry);
 	}
 	
 	@Override
 	public void purge(QueueEntry queueEntry, RequestContext requestContext) throws ResponseException {
-		queueEntryService.purgeQueueEntry(queueEntry);
+		services.getQueueEntryService().purgeQueueEntry(queueEntry);
 	}
 	
 	@Override
