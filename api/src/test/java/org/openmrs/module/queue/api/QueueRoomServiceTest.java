@@ -10,9 +10,11 @@
 package org.openmrs.module.queue.api;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -27,6 +29,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.openmrs.Location;
+import org.openmrs.User;
+import org.openmrs.api.context.Context;
+import org.openmrs.api.context.UserContext;
 import org.openmrs.module.queue.api.dao.QueueRoomDao;
 import org.openmrs.module.queue.api.impl.QueueRoomServiceImpl;
 import org.openmrs.module.queue.model.Queue;
@@ -80,19 +85,28 @@ public class QueueRoomServiceTest {
 	}
 	
 	@Test
-	public void shouldVoidQueue() {
-		when(dao.get(QUEUE_ROOM_UUID)).thenReturn(Optional.empty());
-		
-		queueRoomService.voidQueueRoom(QUEUE_ROOM_UUID, "API Call");
-		
-		assertThat(queueRoomService.getQueueRoomByUuid(QUEUE_ROOM_UUID).isPresent(), is(false));
+	public void shouldRetireQueueRoom() {
+		User user = new User();
+		UserContext userContext = mock(UserContext.class);
+		when(userContext.getAuthenticatedUser()).thenReturn(user);
+		Context.setUserContext(userContext);
+		QueueRoom queueRoom = new QueueRoom();
+		when(dao.createOrUpdate(queueRoom)).thenReturn(queueRoom);
+		assertThat(queueRoom.getRetired(), equalTo(false));
+		assertThat(queueRoom.getDateRetired(), nullValue());
+		assertThat(queueRoom.getRetiredBy(), nullValue());
+		assertThat(queueRoom.getRetireReason(), nullValue());
+		queueRoomService.retireQueueRoom(queueRoom, "retireReason");
+		assertThat(queueRoom.getRetired(), equalTo(true));
+		assertThat(queueRoom.getDateRetired(), notNullValue());
+		assertThat(queueRoom.getRetiredBy(), equalTo(user));
+		assertThat(queueRoom.getRetireReason(), equalTo("retireReason"));
 	}
 	
 	@Test
-	public void shouldPurgeQueue() {
+	public void shouldPurgeQueueRoom() {
 		QueueRoom queueRoom = mock(QueueRoom.class);
 		when(dao.get(QUEUE_ROOM_UUID)).thenReturn(Optional.empty());
-		
 		queueRoomService.purgeQueueRoom(queueRoom);
 		assertThat(queueRoomService.getQueueRoomByUuid(QUEUE_ROOM_UUID).isPresent(), is(false));
 	}

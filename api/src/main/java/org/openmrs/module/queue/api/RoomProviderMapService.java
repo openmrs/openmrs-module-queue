@@ -29,7 +29,7 @@ public interface RoomProviderMapService {
 	
 	List<RoomProviderMap> getRoomProvider(Provider provider, QueueRoom queueRoom);
 	
-	void voidRoomProviderMap(@NotNull String roomProviderMapUuid, String voidReason);
+	void voidRoomProviderMap(@NotNull RoomProviderMap roomProviderMap, String voidReason);
 	
 	void purgeRoomProviderMap(RoomProviderMap roomProviderMap) throws APIException;
 	

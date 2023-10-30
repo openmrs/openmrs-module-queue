@@ -10,9 +10,11 @@
 package org.openmrs.module.queue.api;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -27,6 +29,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.openmrs.Provider;
+import org.openmrs.User;
+import org.openmrs.api.context.Context;
+import org.openmrs.api.context.UserContext;
 import org.openmrs.module.queue.api.dao.RoomProviderMapDao;
 import org.openmrs.module.queue.api.impl.RoomProviderMapServiceImpl;
 import org.openmrs.module.queue.model.QueueRoom;
@@ -77,11 +82,21 @@ public class RoomProviderMapServiceTest {
 	
 	@Test
 	public void shouldVoidRoomProviderMap() {
-		when(dao.get(ROOM_PROVIDER_MAP_UUID)).thenReturn(Optional.empty());
-		
-		roomProviderMapService.voidRoomProviderMap(ROOM_PROVIDER_MAP_UUID, "API Call");
-		
-		assertThat(roomProviderMapService.getRoomProviderMapByUuid(ROOM_PROVIDER_MAP_UUID).isPresent(), is(false));
+		User user = new User();
+		UserContext userContext = mock(UserContext.class);
+		when(userContext.getAuthenticatedUser()).thenReturn(user);
+		Context.setUserContext(userContext);
+		RoomProviderMap roomProviderMap = new RoomProviderMap();
+		when(dao.createOrUpdate(roomProviderMap)).thenReturn(roomProviderMap);
+		assertThat(roomProviderMap.getVoided(), equalTo(false));
+		assertThat(roomProviderMap.getDateVoided(), nullValue());
+		assertThat(roomProviderMap.getVoidedBy(), nullValue());
+		assertThat(roomProviderMap.getVoidReason(), nullValue());
+		roomProviderMapService.voidRoomProviderMap(roomProviderMap, "voidReason");
+		assertThat(roomProviderMap.getVoided(), equalTo(true));
+		assertThat(roomProviderMap.getDateVoided(), notNullValue());
+		assertThat(roomProviderMap.getVoidedBy(), equalTo(user));
+		assertThat(roomProviderMap.getVoidReason(), equalTo("voidReason"));
 	}
 	
 	@Test

@@ -41,37 +41,35 @@ public class QueueRoomServiceImpl extends BaseOpenmrsService implements QueueRoo
 	
 	@Override
 	public Optional<QueueRoom> getQueueRoomByUuid(String uuid) {
-		return this.dao.get(uuid);
+		return dao.get(uuid);
 	}
 	
 	@Override
 	public Optional<QueueRoom> getQueueRoomById(int id) {
-		return this.dao.get(id);
+		return dao.get(id);
 	}
 	
 	@Override
 	public QueueRoom createQueueRoom(QueueRoom queueRoom) {
-		return this.dao.createOrUpdate(queueRoom);
+		return dao.createOrUpdate(queueRoom);
 	}
 	
 	@Override
 	public List<QueueRoom> getQueueRoomsByServiceAndLocation(Queue queue, Location location) {
-		return this.dao.getQueueRoomsByServiceAndLocation(queue, location);
+		return dao.getQueueRoomsByServiceAndLocation(queue, location);
 	}
 	
 	@Override
-	public void voidQueueRoom(@NotNull String queueRoomUuid, String voidReason) {
-		this.dao.get(queueRoomUuid).ifPresent(queueRoom -> {
-			queueRoom.setRetired(true);
-			queueRoom.setDateRetired(new Date());
-			queueRoom.setRetireReason(voidReason);
-			queueRoom.setRetiredBy(Context.getAuthenticatedUser());
-			this.dao.createOrUpdate(queueRoom);
-		});
+	public void retireQueueRoom(@NotNull QueueRoom queueRoom, String retireReason) {
+		queueRoom.setRetired(true);
+		queueRoom.setDateRetired(new Date());
+		queueRoom.setRetireReason(retireReason);
+		queueRoom.setRetiredBy(Context.getAuthenticatedUser());
+		dao.createOrUpdate(queueRoom);
 	}
 	
 	@Override
 	public void purgeQueueRoom(QueueRoom queueRoom) throws APIException {
-		this.dao.delete(queueRoom);
+		dao.delete(queueRoom);
 	}
 }

@@ -58,7 +58,7 @@ public class RoomProviderMapResource extends DelegatingCrudResource<RoomProvider
 		if (!this.roomProviderMapService.getRoomProviderMapByUuid(roomProviderMap.getUuid()).isPresent()) {
 			throw new ObjectNotFoundException("Could not find provider's room with uuid " + roomProviderMap.getUuid());
 		}
-		this.roomProviderMapService.voidRoomProviderMap(roomProviderMap.getUuid(), voidReason);
+		this.roomProviderMapService.voidRoomProviderMap(roomProviderMap, voidReason);
 	}
 	
 	@Override

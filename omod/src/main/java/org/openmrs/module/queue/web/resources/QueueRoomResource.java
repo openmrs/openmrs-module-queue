@@ -58,7 +58,7 @@ public class QueueRoomResource extends DelegatingCrudResource<QueueRoom> {
 		if (!this.queueRoomService.getQueueRoomByUuid(queueRoom.getUuid()).isPresent()) {
 			throw new ObjectNotFoundException("Could not find queue room with uuid " + queueRoom.getUuid());
 		}
-		this.queueRoomService.voidQueueRoom(queueRoom.getUuid(), retireReason);
+		this.queueRoomService.retireQueueRoom(queueRoom, retireReason);
 	}
 	
 	@Override

@@ -39,12 +39,12 @@ public class RoomProviderMapServiceImpl extends BaseOpenmrsService implements Ro
 	
 	@Override
 	public Optional<RoomProviderMap> getRoomProviderMapByUuid(String uuid) {
-		return this.dao.get(uuid);
+		return dao.get(uuid);
 	}
 	
 	@Override
 	public Optional<RoomProviderMap> getRoomProviderMapById(int id) {
-		return this.dao.get(id);
+		return dao.get(id);
 	}
 	
 	@Override
@@ -52,32 +52,30 @@ public class RoomProviderMapServiceImpl extends BaseOpenmrsService implements Ro
 		if (roomProviderMap.getId() == null) {
 			List<RoomProviderMap> existingAssignedRooms = getRoomProvider(roomProviderMap.getProvider(),
 			    roomProviderMap.getQueueRoom());
-			existingAssignedRooms.forEach(roomProviderMap1 -> voidRoomProviderMap(roomProviderMap1.getUuid(), "Api call"));
+			existingAssignedRooms.forEach(roomProviderMap1 -> voidRoomProviderMap(roomProviderMap1, "Api call"));
 			
-			return this.dao.createOrUpdate(roomProviderMap);
+			return dao.createOrUpdate(roomProviderMap);
 		}
 		roomProviderMap.setDateChanged(new Date());
-		return this.dao.createOrUpdate(roomProviderMap);
+		return dao.createOrUpdate(roomProviderMap);
 	}
 	
 	@Override
 	public List<RoomProviderMap> getRoomProvider(Provider provider, QueueRoom queueRoom) {
-		return this.dao.getRoomProvider(provider, queueRoom);
+		return dao.getRoomProvider(provider, queueRoom);
 	}
 	
 	@Override
-	public void voidRoomProviderMap(String roomProviderMapUuid, String voidReason) {
-		this.dao.get(roomProviderMapUuid).ifPresent(obj -> {
-			obj.setVoided(true);
-			obj.setDateVoided(new Date());
-			obj.setVoidReason(voidReason);
-			obj.setVoidedBy(Context.getAuthenticatedUser());
-			this.dao.createOrUpdate(obj);
-		});
+	public void voidRoomProviderMap(RoomProviderMap roomProviderMap, String voidReason) {
+		roomProviderMap.setVoided(true);
+		roomProviderMap.setDateVoided(new Date());
+		roomProviderMap.setVoidReason(voidReason);
+		roomProviderMap.setVoidedBy(Context.getAuthenticatedUser());
+		dao.createOrUpdate(roomProviderMap);
 	}
 	
 	@Override
 	public void purgeRoomProviderMap(RoomProviderMap roomProviderMap) throws APIException {
-		this.dao.delete(roomProviderMap);
+		dao.delete(roomProviderMap);
 	}
 }

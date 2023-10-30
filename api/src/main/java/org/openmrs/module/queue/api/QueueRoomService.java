@@ -29,7 +29,7 @@ public interface QueueRoomService {
 	
 	List<QueueRoom> getQueueRoomsByServiceAndLocation(Queue queue, Location location);
 	
-	void voidQueueRoom(@NotNull String queueRoomUuid, String voidReason);
+	void retireQueueRoom(@NotNull QueueRoom queueRoom, String voidReason);
 	
 	void purgeQueueRoom(QueueRoom queueRoom) throws APIException;
 }
