@@ -37,8 +37,13 @@ import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOp
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
 @SuppressWarnings("unused")
-@SubResource(parent = QueueResource.class, path = "entry", supportedClass = QueueEntry.class, supportedOpenmrsVersions = {
-        "2.3 - 9.*" }, order = 10)
+@SubResource(
+		parent = QueueResource.class,
+		path = "entry",
+		supportedClass = QueueEntry.class,
+		supportedOpenmrsVersions = { "2.3 - 9.*" },
+		order = 10
+)
 public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Queue, QueueResource> {
 	
 	private final QueueEntryService queueEntryService;

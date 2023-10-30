@@ -33,8 +33,11 @@ import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceD
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
-@Resource(name = RestConstants.VERSION_1
-        + "/queue-entry-number", supportedClass = QueueEntryNumber.class, supportedOpenmrsVersions = { "2.3 - 9.*" })
+@Resource(
+		name = RestConstants.VERSION_1 + "/queue-entry-number",
+		supportedClass = QueueEntryNumber.class,
+		supportedOpenmrsVersions = { "2.3 - 9.*" }
+)
 public class QueueEntryNumberResource extends DelegatingCrudResource<SimpleObject> {
 	
 	@Override
