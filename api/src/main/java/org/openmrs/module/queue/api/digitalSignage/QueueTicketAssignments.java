@@ -11,26 +11,25 @@ package org.openmrs.module.queue.api.digitalSignage;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Iterator;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.node.JsonNodeFactory;
-import org.codehaus.jackson.node.ObjectNode;
 
 /**
  * A utility class for updating details of active queue tickets
  */
 public class QueueTicketAssignments {
-	
+
 	/**
 	 * The object has: service point/room name as key for ease of search and update and object with
 	 * status and ticket number
 	 */
-	private static ObjectNode ACTIVE_QUEUE_TICKETS = JsonNodeFactory.instance.objectNode();
-	
+	private static final Map<String, TicketAssignment> ACTIVE_QUEUE_TICKETS = new HashMap<>();
+
 	/**
 	 * We want to control access to the ACTIVE_QUEUE_TICKETS so that requests are queued
-	 * 
+	 *
 	 * @param servicePointName
 	 * @param ticketNumber
 	 * @param status
@@ -38,15 +37,13 @@ public class QueueTicketAssignments {
 	synchronized public static void updateTicketAssignment(String servicePointName, String ticketNumber, String status) {
 		if (StringUtils.isNotBlank(servicePointName) && StringUtils.isNotBlank(ticketNumber)
 		        && StringUtils.isNotBlank(status)) {
-			
+
 			/** remove the ticket number from any assignment */
-			
-			Iterator<String> keys = ACTIVE_QUEUE_TICKETS.getFieldNames();
-			
-			while (keys.hasNext()) {
-				String key = keys.next();
-				ObjectNode obj = (ObjectNode) ACTIVE_QUEUE_TICKETS.get(key);
-				if (obj.get("ticketNumber").getTextValue().equals(ticketNumber)) {
+
+			// Remove the ticket number from any assignment
+			for (String key : ACTIVE_QUEUE_TICKETS.keySet()) {
+				TicketAssignment assignment = ACTIVE_QUEUE_TICKETS.get(key);
+				if (assignment.getTicketNumber().equals(ticketNumber)) {
 					ACTIVE_QUEUE_TICKETS.remove(key);
 					if (status.equals("completed")) {
 						return;
@@ -54,51 +51,71 @@ public class QueueTicketAssignments {
 					break;
 				}
 			}
-			
+
 			/** Assign ticket to a room if the room already exist */
-			if (ACTIVE_QUEUE_TICKETS.has(servicePointName)) {
-				ObjectNode tNode = (ObjectNode) ACTIVE_QUEUE_TICKETS.get(servicePointName);
-				tNode.put("status", status);
-				tNode.put("ticketNumber", ticketNumber);
-				ACTIVE_QUEUE_TICKETS.put(servicePointName, tNode);
-				
-				/** Else create a new assignment */
+			// Assign ticket to a room if the room already exists
+			if (ACTIVE_QUEUE_TICKETS.containsKey(servicePointName)) {
+				TicketAssignment tAssignment = ACTIVE_QUEUE_TICKETS.get(servicePointName);
+				tAssignment.setStatus(status);
+				tAssignment.setTicketNumber(ticketNumber);
+				ACTIVE_QUEUE_TICKETS.put(servicePointName, tAssignment);
 			} else {
-				ObjectNode ticketAssignment = JsonNodeFactory.instance.objectNode();
-				ticketAssignment.put("status", status);
-				ticketAssignment.put("ticketNumber", ticketNumber);
-				
+				// Else create a new assignment
+				TicketAssignment ticketAssignment = new TicketAssignment(status, ticketNumber);
 				ACTIVE_QUEUE_TICKETS.put(servicePointName, ticketAssignment);
-				
 			}
 		}
 	}
-	
-	public static ObjectNode getActiveTicketAssignments() {
+
+	public static Map<String, TicketAssignment> getActiveTicketAssignments() {
 		return ACTIVE_QUEUE_TICKETS;
 	}
-	
+
 	/**
-	 * Extracts the request body and return it as string
+	 * Extracts the request body and returns it as a string
 	 *
 	 * @param reader
 	 * @return
 	 */
 	public static String fetchRequestBody(BufferedReader reader) {
-		String requestBodyJsonStr = "";
+		StringBuilder requestBodyJsonStr = new StringBuilder();
 		try {
-			
-			BufferedReader br = new BufferedReader(reader);
-			String output = "";
+			String output;
 			while ((output = reader.readLine()) != null) {
-				requestBodyJsonStr += output;
+				requestBodyJsonStr.append(output);
 			}
 		}
 		catch (IOException e) {
-			
 			System.out.println("IOException: " + e.getMessage());
-			
 		}
-		return requestBodyJsonStr;
+		return requestBodyJsonStr.toString();
+	}
+
+	public static class TicketAssignment {
+
+		private String status;
+
+		private String ticketNumber;
+
+		public TicketAssignment(String status, String ticketNumber) {
+			this.status = status;
+			this.ticketNumber = ticketNumber;
+		}
+
+		public String getStatus() {
+			return status;
+		}
+
+		public void setStatus(String status) {
+			this.status = status;
+		}
+
+		public String getTicketNumber() {
+			return ticketNumber;
+		}
+
+		public void setTicketNumber(String ticketNumber) {
+			this.ticketNumber = ticketNumber;
+		}
 	}
 }
