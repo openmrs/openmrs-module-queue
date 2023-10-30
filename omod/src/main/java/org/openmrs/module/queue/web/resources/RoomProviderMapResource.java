@@ -9,10 +9,6 @@
  */
 package org.openmrs.module.queue.web.resources;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.api.search.RoomProviderMapSearchCriteria;
@@ -35,6 +31,11 @@ import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+@SuppressWarnings("unused")
 @Resource(name = RestConstants.VERSION_1
         + "/roomprovidermap", supportedClass = RoomProviderMap.class, supportedOpenmrsVersions = { "2.3 - 9.*" })
 public class RoomProviderMapResource extends DelegatingCrudResource<RoomProviderMap> {
@@ -44,7 +45,7 @@ public class RoomProviderMapResource extends DelegatingCrudResource<RoomProvider
 	private final RoomProviderMapSearchCriteriaParser searchCriteriaParser;
 	
 	public RoomProviderMapResource() {
-		this.services = Context.getService(QueueServicesWrapper.class);
+		this.services = Context.getRegisteredComponents(QueueServicesWrapper.class).get(0);
 		this.searchCriteriaParser = Context.getRegisteredComponents(RoomProviderMapSearchCriteriaParser.class).get(0);
 	}
 	
