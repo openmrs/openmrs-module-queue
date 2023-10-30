@@ -9,6 +9,11 @@
  */
 package org.openmrs.module.queue.web.resources;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.api.search.RoomProviderMapSearchCriteria;
@@ -31,14 +36,9 @@ import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 @SuppressWarnings("unused")
 @Resource(name = RestConstants.VERSION_1
-        + "/roomprovidermap", supportedClass = RoomProviderMap.class, supportedOpenmrsVersions = { "2.3 - 9.*" })
+        + "/queue-room-provider", supportedClass = RoomProviderMap.class, supportedOpenmrsVersions = { "2.3 - 9.*" })
 public class RoomProviderMapResource extends DelegatingCrudResource<RoomProviderMap> {
 	
 	private final QueueServicesWrapper services;
@@ -54,7 +54,7 @@ public class RoomProviderMapResource extends DelegatingCrudResource<RoomProvider
 		this.services = services;
 		this.searchCriteriaParser = parser;
 	}
-
+	
 	@Override
 	public NeedsPaging<RoomProviderMap> doGetAll(RequestContext ctx) throws ResponseException {
 		return new NeedsPaging<>(new ArrayList<>(services.getRoomProviderMapService().getAllRoomProviderMaps()), ctx);

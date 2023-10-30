@@ -9,6 +9,12 @@
  */
 package org.openmrs.module.queue.api.impl;
 
+import javax.validation.constraints.NotNull;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
 import lombok.AccessLevel;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -20,11 +26,6 @@ import org.openmrs.module.queue.api.dao.QueueRoomDao;
 import org.openmrs.module.queue.api.search.QueueRoomSearchCriteria;
 import org.openmrs.module.queue.model.QueueRoom;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.validation.constraints.NotNull;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Transactional
@@ -53,13 +54,13 @@ public class QueueRoomServiceImpl extends BaseOpenmrsService implements QueueRoo
 	public QueueRoom createQueueRoom(QueueRoom queueRoom) {
 		return dao.createOrUpdate(queueRoom);
 	}
-
+	
 	@Override
 	@Transactional(readOnly = true)
 	public List<QueueRoom> getAllQueueRooms() {
 		return getQueueRooms(new QueueRoomSearchCriteria());
 	}
-
+	
 	@Override
 	@Transactional(readOnly = true)
 	public List<QueueRoom> getQueueRooms(QueueRoomSearchCriteria searchCriteria) {

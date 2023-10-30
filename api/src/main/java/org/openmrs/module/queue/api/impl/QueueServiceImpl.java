@@ -11,7 +11,6 @@ package org.openmrs.module.queue.api.impl;
 
 import javax.validation.constraints.NotNull;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
