@@ -30,7 +30,6 @@ import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
-import org.openmrs.module.webservices.rest.web.resource.impl.EmptySearchResult;
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
@@ -93,9 +92,6 @@ public class RoomProviderMapResource extends DelegatingCrudResource<RoomProvider
 	@SuppressWarnings("unchecked")
 	protected PageableResult doSearch(RequestContext requestContext) {
 		Map<String, String[]> parameters = requestContext.getRequest().getParameterMap();
-		if (!searchCriteriaParser.hasSearchParameter(parameters)) {
-			return new EmptySearchResult();
-		}
 		RoomProviderMapSearchCriteria criteria = searchCriteriaParser.constructFromRequest(parameters);
 		List<RoomProviderMap> rpms = services.getRoomProviderMapService().getRoomProviderMaps(criteria);
 		return new NeedsPaging<>(rpms, requestContext);

@@ -64,20 +64,18 @@ public class QueueEntryMetricRestController extends BaseRestController {
 		String[] metricArray = parameters.get(METRIC);
 		List<String> metrics = (metricArray == null ? new ArrayList<>() : Arrays.asList(metricArray));
 		
-		if (searchCriteriaParser.hasSearchParameter(parameters)) {
-			QueueEntrySearchCriteria criteria = searchCriteriaParser.constructFromRequest(parameters);
-			
-			// If we only want count, then use the ore efficient service to get counts
-			if (metrics.size() == 1 && metrics.get(0).equals(COUNT)) {
-				ret.add(COUNT, services.getQueueEntryService().getCountOfQueueEntries(criteria).intValue());
-			} else {
-				List<QueueEntry> queueEntries = services.getQueueEntryService().getQueueEntries(criteria);
-				if (metrics.isEmpty() || metrics.contains(COUNT)) {
-					ret.add(COUNT, queueEntries.size());
-				}
-				if (metrics.isEmpty() || metrics.contains(AVERAGE_WAIT_TIME)) {
-					ret.add(AVERAGE_WAIT_TIME, QueueUtils.computeAverageWaitTimeInMinutes(queueEntries));
-				}
+		QueueEntrySearchCriteria criteria = searchCriteriaParser.constructFromRequest(parameters);
+		
+		// If we only want count, then use the ore efficient service to get counts
+		if (metrics.size() == 1 && metrics.get(0).equals(COUNT)) {
+			ret.add(COUNT, services.getQueueEntryService().getCountOfQueueEntries(criteria).intValue());
+		} else {
+			List<QueueEntry> queueEntries = services.getQueueEntryService().getQueueEntries(criteria);
+			if (metrics.isEmpty() || metrics.contains(COUNT)) {
+				ret.add(COUNT, queueEntries.size());
+			}
+			if (metrics.isEmpty() || metrics.contains(AVERAGE_WAIT_TIME)) {
+				ret.add(AVERAGE_WAIT_TIME, QueueUtils.computeAverageWaitTimeInMinutes(queueEntries));
 			}
 		}
 		

@@ -102,7 +102,6 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 	@Override
 	@SuppressWarnings("unchecked")
 	protected PageableResult doSearch(RequestContext requestContext) {
-		boolean criteriaFound = false;
 		Map<String, String[]> parameters = requestContext.getRequest().getParameterMap();
 		if (!searchCriteriaParser.hasSearchParameter(parameters)) {
 			return new EmptySearchResult();
