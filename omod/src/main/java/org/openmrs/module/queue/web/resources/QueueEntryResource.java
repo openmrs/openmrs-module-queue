@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
+import org.openmrs.PersonName;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
@@ -24,6 +25,7 @@ import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
+import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.CustomRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
@@ -33,7 +35,6 @@ import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingCrudResource;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
-import org.openmrs.module.webservices.rest.web.resource.impl.EmptySearchResult;
 import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ObjectNotFoundException;
 import org.openmrs.module.webservices.rest.web.response.ResourceDoesNotSupportOperationException;
@@ -103,9 +104,6 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 	@SuppressWarnings("unchecked")
 	protected PageableResult doSearch(RequestContext requestContext) {
 		Map<String, String[]> parameters = requestContext.getRequest().getParameterMap();
-		if (!searchCriteriaParser.hasSearchParameter(parameters)) {
-			return new EmptySearchResult();
-		}
 		QueueEntrySearchCriteria criteria = searchCriteriaParser.constructFromRequest(parameters);
 		List<QueueEntry> queueEntries = services.getQueueEntryService().getQueueEntries(criteria);
 		return new NeedsPaging<>(queueEntries, requestContext);
@@ -203,6 +201,12 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 	private void addSharedResourceDescriptionProperties(DelegatingResourceDescription resourceDescription) {
 		resourceDescription.addSelfLink();
 		resourceDescription.addProperty("uuid");
+	}
+	
+	@PropertyGetter("display")
+	public String getDisplay(QueueEntry queueEntry) {
+		PersonName personName = queueEntry.getPatient().getPersonName();
+		return (personName == null ? queueEntry.getPatient().toString() : personName.getFullName());
 	}
 	
 	@Override

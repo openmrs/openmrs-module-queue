@@ -45,6 +45,7 @@ import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.RestUtil;
+import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.api.Converter;
 import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
@@ -91,7 +92,7 @@ public class Legacy1xRestController extends BaseRestController {
 		SimpleObject result = new SimpleObject();
 		List<SimpleObject> visitQueueEntries = new ArrayList<>();
 		result.add("results", visitQueueEntries);
-		RequestContext requestContext = RestUtil.getRequestContext(request, response);
+		RequestContext requestContext = RestUtil.getRequestContext(request, response, Representation.REF);
 		SimpleObject searchResult = queueEntryResource.search(requestContext);
 		List<SimpleObject> queueEntries = (List<SimpleObject>) PropertyUtils.getProperty(searchResult, "results");
 		for (SimpleObject queueEntry : queueEntries) {
@@ -108,14 +109,14 @@ public class Legacy1xRestController extends BaseRestController {
 	@RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/queueroom", method = GET)
 	@ResponseBody
 	public Object getQueueRooms(HttpServletRequest request, HttpServletResponse response) {
-		RequestContext requestContext = RestUtil.getRequestContext(request, response);
+		RequestContext requestContext = RestUtil.getRequestContext(request, response, Representation.REF);
 		return queueRoomResource.search(requestContext);
 	}
 	
 	@RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/roomprovidermap", method = GET)
 	@ResponseBody
 	public Object getRoomProviderMaps(HttpServletRequest request, HttpServletResponse response) {
-		RequestContext requestContext = RestUtil.getRequestContext(request, response);
+		RequestContext requestContext = RestUtil.getRequestContext(request, response, Representation.REF);
 		return roomProviderMapResource.search(requestContext);
 	}
 	
