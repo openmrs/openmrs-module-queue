@@ -77,7 +77,7 @@ public class RoomProviderMapServiceTest {
 		when(roomProviderMap.getUuid()).thenReturn(ROOM_PROVIDER_MAP_UUID);
 		when(dao.createOrUpdate(roomProviderMap)).thenReturn(roomProviderMap);
 		
-		RoomProviderMap result = roomProviderMapService.createRoomProviderMap(roomProviderMap);
+		RoomProviderMap result = roomProviderMapService.saveRoomProviderMap(roomProviderMap);
 		assertThat(result, notNullValue());
 		assertThat(result.getUuid(), is(ROOM_PROVIDER_MAP_UUID));
 	}

@@ -46,7 +46,7 @@ public interface QueueEntryService {
 	 * @param queueEntry the queue entry to be saved
 	 * @return saved {@link org.openmrs.module.queue.model.QueueEntry}
 	 */
-	QueueEntry createQueueEntry(@NotNull QueueEntry queueEntry);
+	QueueEntry saveQueueEntry(@NotNull QueueEntry queueEntry);
 	
 	/**
 	 * Voids a queue entry

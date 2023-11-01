@@ -26,7 +26,7 @@ public interface QueueRoomService {
 	
 	List<QueueRoom> getAllQueueRooms();
 	
-	QueueRoom createQueueRoom(@NotNull QueueRoom queueRoom);
+	QueueRoom saveQueueRoom(@NotNull QueueRoom queueRoom);
 	
 	List<QueueRoom> getQueueRooms(QueueRoomSearchCriteria searchCriteria);
 	

@@ -94,7 +94,7 @@ public class QueueServiceTest {
 		when(queue.getUuid()).thenReturn(QUEUE_UUID);
 		when(queue.getName()).thenReturn(QUEUE_NAME);
 		when(dao.createOrUpdate(queue)).thenReturn(queue);
-		Queue result = queueService.createQueue(queue);
+		Queue result = queueService.saveQueue(queue);
 		assertThat(result, notNullValue());
 		assertThat(result.getUuid(), is(QUEUE_UUID));
 		assertThat(result.getName(), is(QUEUE_NAME));

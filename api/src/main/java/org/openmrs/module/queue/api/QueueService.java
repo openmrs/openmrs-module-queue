@@ -45,7 +45,7 @@ public interface QueueService {
 	 * @param queue the queue to be saved
 	 * @return saved {@link org.openmrs.module.queue.model.Queue}
 	 */
-	Queue createQueue(@NotNull Queue queue);
+	Queue saveQueue(@NotNull Queue queue);
 	
 	/**
 	 * @return all queues

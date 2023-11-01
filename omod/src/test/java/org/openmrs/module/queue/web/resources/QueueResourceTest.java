@@ -149,7 +149,7 @@ public class QueueResourceTest extends BaseQueueResourceTest<Queue, QueueResourc
 	
 	@Test
 	public void shouldCreateNewResource() {
-		when(queueService.createQueue(getObject())).thenReturn(getObject());
+		when(queueService.saveQueue(getObject())).thenReturn(getObject());
 		
 		Queue newlyCreatedObject = getResource().save(getObject());
 		assertThat(newlyCreatedObject, notNullValue());

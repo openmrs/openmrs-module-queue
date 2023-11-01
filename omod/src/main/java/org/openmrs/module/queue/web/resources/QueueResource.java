@@ -87,7 +87,7 @@ public class QueueResource extends DelegatingCrudResource<Queue> {
 	
 	@Override
 	public Queue save(Queue queue) {
-		return services.getQueueService().createQueue(queue);
+		return services.getQueueService().saveQueue(queue);
 	}
 	
 	@Override

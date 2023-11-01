@@ -74,13 +74,13 @@ public class QueueRoomServiceTest {
 	}
 	
 	@Test
-	public void shouldCreateNewQueue() {
+	public void shouldCreateNewQueueRoom() {
 		QueueRoom queueRoom = mock(QueueRoom.class);
 		when(queueRoom.getUuid()).thenReturn(QUEUE_ROOM_UUID);
 		when(queueRoom.getName()).thenReturn(QUEUE_ROOM_NAME);
 		when(dao.createOrUpdate(queueRoom)).thenReturn(queueRoom);
 		
-		QueueRoom result = queueRoomService.createQueueRoom(queueRoom);
+		QueueRoom result = queueRoomService.saveQueueRoom(queueRoom);
 		assertThat(result, notNullValue());
 		assertThat(result.getUuid(), is(QUEUE_ROOM_UUID));
 		assertThat(result.getName(), is(QUEUE_ROOM_NAME));

@@ -51,7 +51,7 @@ public class QueueRoomServiceImpl extends BaseOpenmrsService implements QueueRoo
 	}
 	
 	@Override
-	public QueueRoom createQueueRoom(QueueRoom queueRoom) {
+	public QueueRoom saveQueueRoom(QueueRoom queueRoom) {
 		return dao.createOrUpdate(queueRoom);
 	}
 	

@@ -74,10 +74,10 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	}
 	
 	/**
-	 * @see QueueEntryService#createQueueEntry(org.openmrs.module.queue.model.QueueEntry)
+	 * @see QueueEntryService#saveQueueEntry(org.openmrs.module.queue.model.QueueEntry)
 	 */
 	@Override
-	public QueueEntry createQueueEntry(QueueEntry queueEntry) {
+	public QueueEntry saveQueueEntry(QueueEntry queueEntry) {
 		if (queueEntry.getVisit() != null) {
 			if (!queueEntry.getVisit().getPatient().equals(queueEntry.getPatient())) {
 				throw new IllegalArgumentException("Patient mismatch - visit.patient does not match patient");

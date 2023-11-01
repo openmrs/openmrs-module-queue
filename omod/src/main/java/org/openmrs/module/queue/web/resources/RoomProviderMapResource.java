@@ -80,7 +80,7 @@ public class RoomProviderMapResource extends DelegatingCrudResource<RoomProvider
 	
 	@Override
 	public RoomProviderMap save(RoomProviderMap roomProviderMap) {
-		return services.getRoomProviderMapService().createRoomProviderMap(roomProviderMap);
+		return services.getRoomProviderMapService().saveRoomProviderMap(roomProviderMap);
 	}
 	
 	@Override

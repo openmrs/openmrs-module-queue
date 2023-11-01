@@ -88,7 +88,7 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 	
 	@Override
 	public QueueEntry save(QueueEntry queueEntry) {
-		return services.getQueueEntryService().createQueueEntry(queueEntry);
+		return services.getQueueEntryService().saveQueueEntry(queueEntry);
 	}
 	
 	@Override

@@ -50,7 +50,7 @@ public class RoomProviderMapServiceImpl extends BaseOpenmrsService implements Ro
 	}
 	
 	@Override
-	public RoomProviderMap createRoomProviderMap(RoomProviderMap roomProviderMap) {
+	public RoomProviderMap saveRoomProviderMap(RoomProviderMap roomProviderMap) {
 		if (roomProviderMap.getId() == null) {
 			RoomProviderMapSearchCriteria criteria = new RoomProviderMapSearchCriteria();
 			criteria.setProviders(Collections.singletonList(roomProviderMap.getProvider()));

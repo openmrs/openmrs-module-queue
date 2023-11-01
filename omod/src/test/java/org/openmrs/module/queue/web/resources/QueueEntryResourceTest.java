@@ -201,7 +201,7 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	
 	@Test
 	public void shouldCreateNewResource() {
-		when(queueEntryService.createQueueEntry(getObject())).thenReturn(getObject());
+		when(queueEntryService.saveQueueEntry(getObject())).thenReturn(getObject());
 		QueueEntry newlyCreatedObject = getResource().save(getObject());
 		assertThat(newlyCreatedObject, notNullValue());
 		assertThat(newlyCreatedObject.getUuid(), is(QUEUE_ENTRY_UUID));
