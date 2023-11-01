@@ -95,7 +95,6 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 	@Override
 	protected PageableResult doGetAll(RequestContext requestContext) throws ResponseException {
 		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
-		criteria.setIsEnded(false);
 		List<QueueEntry> activeEntries = services.getQueueEntryService().getQueueEntries(criteria);
 		return new NeedsPaging<>(new ArrayList<>(activeEntries), requestContext);
 	}
