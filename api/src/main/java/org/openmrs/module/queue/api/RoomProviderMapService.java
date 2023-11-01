@@ -14,9 +14,8 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-import org.openmrs.Provider;
 import org.openmrs.api.APIException;
-import org.openmrs.module.queue.model.QueueRoom;
+import org.openmrs.module.queue.api.search.RoomProviderMapSearchCriteria;
 import org.openmrs.module.queue.model.RoomProviderMap;
 
 public interface RoomProviderMapService {
@@ -25,12 +24,14 @@ public interface RoomProviderMapService {
 	
 	Optional<RoomProviderMap> getRoomProviderMapById(@NotNull int id);
 	
-	RoomProviderMap createRoomProviderMap(@NotNull RoomProviderMap roomProviderMap);
+	RoomProviderMap saveRoomProviderMap(@NotNull RoomProviderMap roomProviderMap);
 	
-	List<RoomProviderMap> getRoomProvider(Provider provider, QueueRoom queueRoom);
+	List<RoomProviderMap> getAllRoomProviderMaps();
 	
-	void voidRoomProviderMap(@NotNull String roomProviderMapUuid, String voidReason);
+	List<RoomProviderMap> getRoomProviderMaps(RoomProviderMapSearchCriteria searchCriteria);
 	
-	void purgeRoomProviderMap(RoomProviderMap roomProviderMap) throws APIException;
+	void voidRoomProviderMap(@NotNull RoomProviderMap roomProviderMap, String voidReason);
+	
+	void purgeRoomProviderMap(@NotNull RoomProviderMap roomProviderMap) throws APIException;
 	
 }

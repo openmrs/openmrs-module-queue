@@ -31,6 +31,7 @@ import org.openmrs.Concept;
 import org.openmrs.Location;
 import org.openmrs.Patient;
 import org.openmrs.Provider;
+import org.openmrs.Visit;
 
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
@@ -56,6 +57,10 @@ public class QueueEntry extends BaseChangeableOpenmrsData {
 	@ManyToOne
 	@JoinColumn(name = "patient_id", nullable = false)
 	private Patient patient;
+	
+	@ManyToOne
+	@JoinColumn(name = "visit_id")
+	private Visit visit;
 	
 	@ManyToOne
 	@JoinColumn(name = "priority", referencedColumnName = "concept_id", nullable = false)

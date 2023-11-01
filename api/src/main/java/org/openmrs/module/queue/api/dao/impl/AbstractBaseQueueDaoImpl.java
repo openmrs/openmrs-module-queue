@@ -15,6 +15,7 @@ import javax.validation.constraints.NotNull;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import lombok.AccessLevel;
@@ -24,16 +25,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Conjunction;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.openmrs.Auditable;
-import org.openmrs.ConceptName;
 import org.openmrs.OpenmrsObject;
 import org.openmrs.Retireable;
 import org.openmrs.Voidable;
-import org.openmrs.api.ConceptNameType;
 import org.openmrs.module.queue.api.dao.BaseQueueDao;
 
 @Slf4j
@@ -85,12 +81,12 @@ public class AbstractBaseQueueDaoImpl<Q extends OpenmrsObject & Auditable> imple
 	}
 	
 	@Override
-	public Collection<Q> findAll() {
+	public List<Q> findAll() {
 		return this.findAll(false);
 	}
 	
 	@Override
-	public Collection<Q> findAll(boolean includeVoided) {
+	public List<Q> findAll(boolean includeVoided) {
 		Criteria criteria = getCurrentSession().createCriteria(clazz);
 		includeVoidedObjects(criteria, includeVoided);
 		return criteria.list();
@@ -123,22 +119,47 @@ public class AbstractBaseQueueDaoImpl<Q extends OpenmrsObject & Auditable> imple
 	}
 	
 	/**
-	 * Creates concept names subQuery
-	 *
-	 * @param conceptName Concept name
-	 * @return {@link DetachedCriteria} conceptName subQuery
+	 * If the passed value is null, return without limiting If the passed value is not null, add clause
+	 * that the property must be equal to the value
 	 */
-	protected DetachedCriteria conceptByNameDetachedCriteria(@NotNull String conceptName, boolean localePreferred,
-	        ConceptNameType conceptNameType) {
-		DetachedCriteria detachedCriteria = DetachedCriteria.forClass(ConceptName.class, "cn");
-		Conjunction and = Restrictions.conjunction();
-		and.add(Restrictions.eq("cn.name", conceptName));
-		//An option to restrict by localePreferred
-		and.add(Restrictions.eq("cn.localePreferred", localePreferred));
-		and.add(Restrictions.eq("cn.conceptNameType", conceptNameType));
-		
-		detachedCriteria.add(and);
-		detachedCriteria.setProjection(Projections.property("cn.concept"));
-		return detachedCriteria;
+	protected void limitToEqualsProperty(Criteria criteria, String property, Object value) {
+		if (value != null) {
+			criteria.add(Restrictions.eq(property, value));
+		}
+	}
+	
+	/**
+	 * If the passed value is null, return without limiting If the passed value is not null, add clause
+	 * that the property must greater or equal to the value
+	 */
+	protected void limitToGreaterThanOrEqualToProperty(Criteria criteria, String property, Object value) {
+		if (value != null) {
+			criteria.add(Restrictions.ge(property, value));
+		}
+	}
+	
+	/**
+	 * If the passed value is null, return without limiting If the passed value is not null, add clause
+	 * that the property must be less or equal to the value
+	 */
+	protected void limitToLessThanOrEqualToProperty(Criteria criteria, String property, Object value) {
+		if (value != null) {
+			criteria.add(Restrictions.le(property, value));
+		}
+	}
+	
+	/**
+	 * If the passed values is null, return without limiting If the passed values is empty, add clause
+	 * that the property must be null If the passed values is not empty, add clause that the property
+	 * must be one of the given values
+	 */
+	protected void limitByCollectionProperty(Criteria criteria, String property, Collection<?> values) {
+		if (values != null) {
+			if (values.isEmpty()) {
+				criteria.add(Restrictions.isNull(property));
+			} else {
+				criteria.add(Restrictions.in(property, values));
+			}
+		}
 	}
 }

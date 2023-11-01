@@ -11,51 +11,24 @@ package org.openmrs.module.queue.api.dao;
 
 import javax.validation.constraints.NotNull;
 
-import java.util.Collection;
 import java.util.List;
 
 import org.openmrs.Auditable;
-import org.openmrs.Location;
 import org.openmrs.OpenmrsObject;
-import org.openmrs.api.ConceptNameType;
-import org.openmrs.module.queue.model.Queue;
+import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.QueueEntry;
 
 public interface QueueEntryDao<Q extends OpenmrsObject & Auditable> extends BaseQueueDao<Q> {
 	
 	/**
-	 * Searches queue entries by conceptStatus
-	 *
-	 * @param conceptStatus the queueEntry conceptStatus
-	 * @param includeVoided Include/exclude voided queue entries
-	 * @return {@link java.util.Collection} of queue entries with the specified conceptStatus
+	 * @return {@link List} of queue entries that match the given %{@link QueueEntrySearchCriteria}
 	 */
-	Collection<QueueEntry> SearchQueueEntriesByConceptStatus(@NotNull String conceptStatus, ConceptNameType conceptNameType,
-	        boolean localePreferred, boolean includeVoided);
+	List<QueueEntry> getQueueEntries(@NotNull QueueEntrySearchCriteria searchCriteria);
 	
 	/**
-	 * Gets count of queue entries by given status
-	 *
-	 * @param conceptStatus the queue entry status
-	 * @param conceptNameType the conceptNameType e.g. FULLY_SPECIFIED
-	 * @param localePreferred locale preferred either true or false
-	 * @return {@link java.lang.Long} count of queue entries by status
+	 * @return {@link Long} of the number of queue entries that match the given
+	 *         %{@link QueueEntrySearchCriteria}
 	 */
-	Long getQueueEntriesCountByConceptStatus(@NotNull String conceptStatus, ConceptNameType conceptNameType,
-	        boolean localePreferred);
-	
-	/**
-	 * @param location
-	 * @param queue
-	 * @return VisitQueueNumber - used to identify patients in the queue instead of using patient name
-	 */
-	String generateVisitQueueNumber(@NotNull Location location, @NotNull Queue queue);
-	
-	/**
-	 * Gets active queue entries
-	 * 
-	 * @return List of active queue entries
-	 */
-	List<QueueEntry> getActiveQueueEntries();
+	Long getCountOfQueueEntries(@NotNull QueueEntrySearchCriteria searchCriteria);
 	
 }

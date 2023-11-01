@@ -18,13 +18,12 @@ import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.openmrs.Location;
 import org.openmrs.api.APIException;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.queue.api.QueueRoomService;
 import org.openmrs.module.queue.api.dao.QueueRoomDao;
-import org.openmrs.module.queue.model.Queue;
+import org.openmrs.module.queue.api.search.QueueRoomSearchCriteria;
 import org.openmrs.module.queue.model.QueueRoom;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,38 +39,45 @@ public class QueueRoomServiceImpl extends BaseOpenmrsService implements QueueRoo
 	}
 	
 	@Override
+	@Transactional(readOnly = true)
 	public Optional<QueueRoom> getQueueRoomByUuid(String uuid) {
-		return this.dao.get(uuid);
+		return dao.get(uuid);
 	}
 	
 	@Override
+	@Transactional(readOnly = true)
 	public Optional<QueueRoom> getQueueRoomById(int id) {
-		return this.dao.get(id);
+		return dao.get(id);
 	}
 	
 	@Override
-	public QueueRoom createQueueRoom(QueueRoom queueRoom) {
-		return this.dao.createOrUpdate(queueRoom);
+	public QueueRoom saveQueueRoom(QueueRoom queueRoom) {
+		return dao.createOrUpdate(queueRoom);
 	}
 	
 	@Override
-	public List<QueueRoom> getQueueRoomsByServiceAndLocation(Queue queue, Location location) {
-		return this.dao.getQueueRoomsByServiceAndLocation(queue, location);
+	@Transactional(readOnly = true)
+	public List<QueueRoom> getAllQueueRooms() {
+		return getQueueRooms(new QueueRoomSearchCriteria());
 	}
 	
 	@Override
-	public void voidQueueRoom(@NotNull String queueRoomUuid, String voidReason) {
-		this.dao.get(queueRoomUuid).ifPresent(queueRoom -> {
-			queueRoom.setRetired(true);
-			queueRoom.setDateRetired(new Date());
-			queueRoom.setRetireReason(voidReason);
-			queueRoom.setRetiredBy(Context.getAuthenticatedUser());
-			this.dao.createOrUpdate(queueRoom);
-		});
+	@Transactional(readOnly = true)
+	public List<QueueRoom> getQueueRooms(QueueRoomSearchCriteria searchCriteria) {
+		return dao.getQueueRooms(searchCriteria);
+	}
+	
+	@Override
+	public void retireQueueRoom(@NotNull QueueRoom queueRoom, String retireReason) {
+		queueRoom.setRetired(true);
+		queueRoom.setDateRetired(new Date());
+		queueRoom.setRetireReason(retireReason);
+		queueRoom.setRetiredBy(Context.getAuthenticatedUser());
+		dao.createOrUpdate(queueRoom);
 	}
 	
 	@Override
 	public void purgeQueueRoom(QueueRoom queueRoom) throws APIException {
-		this.dao.delete(queueRoom);
+		dao.delete(queueRoom);
 	}
 }

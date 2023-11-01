@@ -14,9 +14,8 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-import org.openmrs.Location;
 import org.openmrs.api.APIException;
-import org.openmrs.module.queue.model.Queue;
+import org.openmrs.module.queue.api.search.QueueRoomSearchCriteria;
 import org.openmrs.module.queue.model.QueueRoom;
 
 public interface QueueRoomService {
@@ -25,11 +24,13 @@ public interface QueueRoomService {
 	
 	Optional<QueueRoom> getQueueRoomById(@NotNull int id);
 	
-	QueueRoom createQueueRoom(@NotNull QueueRoom queueRoom);
+	List<QueueRoom> getAllQueueRooms();
 	
-	List<QueueRoom> getQueueRoomsByServiceAndLocation(Queue queue, Location location);
+	QueueRoom saveQueueRoom(@NotNull QueueRoom queueRoom);
 	
-	void voidQueueRoom(@NotNull String queueRoomUuid, String voidReason);
+	List<QueueRoom> getQueueRooms(QueueRoomSearchCriteria searchCriteria);
 	
-	void purgeQueueRoom(QueueRoom queueRoom) throws APIException;
+	void retireQueueRoom(@NotNull QueueRoom queueRoom, String voidReason);
+	
+	void purgeQueueRoom(@NotNull QueueRoom queueRoom) throws APIException;
 }

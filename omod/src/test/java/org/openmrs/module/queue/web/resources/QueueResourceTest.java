@@ -10,33 +10,46 @@
 package org.openmrs.module.queue.web.resources;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.mockito.Mockito.verify;
+import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_LOCATION;
+import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_SERVICE;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
+import javax.servlet.http.HttpServletRequest;
+
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.openmrs.Concept;
 import org.openmrs.Location;
-import org.openmrs.api.LocationService;
-import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueService;
+import org.openmrs.module.queue.api.QueueServicesWrapper;
+import org.openmrs.module.queue.api.search.QueueSearchCriteria;
 import org.openmrs.module.queue.model.Queue;
+import org.openmrs.module.queue.web.resources.parser.QueueSearchCriteriaParser;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.representation.CustomRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
-import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
@@ -51,10 +64,20 @@ public class QueueResourceTest extends BaseQueueResourceTest<Queue, QueueResourc
 	@Mock
 	private QueueService queueService;
 	
-	@Mock
-	private LocationService locationService;
-	
 	private Queue queue;
+	
+	@Mock
+	private QueueServicesWrapper queueServicesWrapper;
+	
+	private QueueResource resource;
+	
+	RequestContext requestContext;
+	
+	HttpServletRequest request;
+	
+	Map<String, String[]> parameterMap;
+	
+	ArgumentCaptor<QueueSearchCriteria> queueSearchCriteriaCaptor;
 	
 	@Before
 	public void setup() {
@@ -63,10 +86,19 @@ public class QueueResourceTest extends BaseQueueResourceTest<Queue, QueueResourc
 		queue.setName(QUEUE_NAME);
 		
 		this.prepareMocks();
-		when(Context.getService(QueueService.class)).thenReturn(queueService);
+		when(queueServicesWrapper.getQueueService()).thenReturn(queueService);
 		
-		this.setResource(new QueueResource());
+		QueueSearchCriteriaParser parser = new QueueSearchCriteriaParser(queueServicesWrapper);
+		resource = new QueueResource(queueServicesWrapper, parser);
+		this.setResource(resource);
 		this.setObject(queue);
+		
+		requestContext = mock(RequestContext.class);
+		request = mock(HttpServletRequest.class);
+		when(requestContext.getRequest()).thenReturn(request);
+		parameterMap = new HashMap<>();
+		when(request.getParameterMap()).thenReturn(parameterMap);
+		queueSearchCriteriaCaptor = ArgumentCaptor.forClass(QueueSearchCriteria.class);
 	}
 	
 	@Test
@@ -117,7 +149,7 @@ public class QueueResourceTest extends BaseQueueResourceTest<Queue, QueueResourc
 	
 	@Test
 	public void shouldCreateNewResource() {
-		when(queueService.createQueue(getObject())).thenReturn(getObject());
+		when(queueService.saveQueue(getObject())).thenReturn(getObject());
 		
 		Queue newlyCreatedObject = getResource().save(getObject());
 		assertThat(newlyCreatedObject, notNullValue());
@@ -136,30 +168,34 @@ public class QueueResourceTest extends BaseQueueResourceTest<Queue, QueueResourc
 	}
 	
 	@Test
-	@SuppressWarnings("unchecked")
-	public void shouldFindQueuesByLocation() {
-		Queue queue = mock(Queue.class);
-		Location location = mock(Location.class);
-		RequestContext context = mock(RequestContext.class);
-		
-		when(Context.getLocationService()).thenReturn(locationService);
-		when(locationService.getLocationByUuid(LOCATION_UUID)).thenReturn(location);
-		when(queue.getLocation()).thenReturn(location);
-		when(location.getUuid()).thenReturn(LOCATION_UUID);
-		when(context.getParameter("location")).thenReturn(LOCATION_UUID);
-		when(queueService.getAllQueuesByLocation(LOCATION_UUID)).thenReturn(Collections.singletonList(queue));
-		
-		NeedsPaging<Queue> result = (NeedsPaging<Queue>) getResource().doSearch(context);
-		
-		assertThat(result, notNullValue());
-		assertThat(result.getTotalCount(), is(1L));
-		result.getPageOfResults().forEach(q -> assertThat(q.getLocation().getUuid(), is(LOCATION_UUID)));
+	public void shouldSearchQueueEntriesByLocation() {
+		List<Location> vals = Arrays.asList(new Location(), new Location());
+		String[] refs = new String[] { "ref1", "ref2" };
+		parameterMap.put(SEARCH_PARAM_LOCATION, refs);
+		when(queueServicesWrapper.getLocations(refs)).thenReturn(vals);
+		resource.doSearch(requestContext);
+		verify(queueService).getQueues(queueSearchCriteriaCaptor.capture());
+		QueueSearchCriteria criteria = queueSearchCriteriaCaptor.getValue();
+		assertThat(criteria.getLocations(), Matchers.hasSize(2));
+		assertThat(criteria.getLocations(), containsInAnyOrder(vals.get(0), vals.get(1)));
+	}
+	
+	@Test
+	public void shouldSearchQueueEntriesByService() {
+		List<Concept> vals = Arrays.asList(new Concept(), new Concept());
+		String[] refs = new String[] { "ref1", "ref2" };
+		parameterMap.put(SEARCH_PARAM_SERVICE, refs);
+		when(queueServicesWrapper.getConcepts(refs)).thenReturn(vals);
+		resource.doSearch(requestContext);
+		verify(queueService).getQueues(queueSearchCriteriaCaptor.capture());
+		QueueSearchCriteria criteria = queueSearchCriteriaCaptor.getValue();
+		assertThat(criteria.getServices(), Matchers.hasSize(2));
+		assertThat(criteria.getServices(), containsInAnyOrder(vals.get(0), vals.get(1)));
 	}
 	
 	@Test
 	public void shouldGetAllQueues() {
 		Queue queueMock = mock(Queue.class);
-		
 		when(queueService.getAllQueues()).thenReturn(Collections.singletonList(queueMock));
 		Collection<Queue> result = queueService.getAllQueues();
 		assertThat(result, hasSize(1));

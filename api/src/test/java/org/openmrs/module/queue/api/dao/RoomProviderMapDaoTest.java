@@ -16,6 +16,7 @@ import static org.hamcrest.Matchers.notNullValue;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,6 +25,8 @@ import org.junit.Test;
 import org.openmrs.Provider;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.SpringTestConfiguration;
+import org.openmrs.module.queue.api.QueueServicesWrapper;
+import org.openmrs.module.queue.api.search.RoomProviderMapSearchCriteria;
 import org.openmrs.module.queue.model.QueueRoom;
 import org.openmrs.module.queue.model.RoomProviderMap;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
@@ -58,8 +61,7 @@ public class RoomProviderMapDaoTest extends BaseModuleContextSensitiveTest {
 	private RoomProviderMapDao dao;
 	
 	@Autowired
-	@Qualifier("queueRoomDao")
-	private QueueRoomDao queueRoomDao;
+	private QueueServicesWrapper services;
 	
 	@Before
 	public void setup() {
@@ -92,7 +94,7 @@ public class RoomProviderMapDaoTest extends BaseModuleContextSensitiveTest {
 	
 	@Test
 	public void shouldCreateNewRoomProviderMap() {
-		QueueRoom queueRoom = queueRoomDao.get(QUEUE_ROOM_UUID).get();
+		QueueRoom queueRoom = services.getQueueRoomService().getQueueRoomByUuid(QUEUE_ROOM_UUID).orElse(null);
 		Provider provider = Context.getProviderService().getProviderByUuid(PROVIDER_UUID);
 		
 		RoomProviderMap providerRoom = new RoomProviderMap();
@@ -167,10 +169,10 @@ public class RoomProviderMapDaoTest extends BaseModuleContextSensitiveTest {
 	
 	@Test
 	public void shouldFindByQueueRoom() {
-		Optional<QueueRoom> queueRoom = queueRoomDao.get(QUEUE_ROOM_UUID);
-		
-		List<RoomProviderMap> result = dao.getRoomProvider(null, queueRoom.get());
-		
+		QueueRoom queueRoom = services.getQueueRoomService().getQueueRoomByUuid(QUEUE_ROOM_UUID).orElse(null);
+		RoomProviderMapSearchCriteria criteria = new RoomProviderMapSearchCriteria();
+		criteria.setQueueRooms(Collections.singletonList(queueRoom));
+		List<RoomProviderMap> result = dao.getRoomProviderMaps(criteria);
 		assertThat(result, notNullValue());
 		assertThat(result, hasSize(1));
 		result.forEach(room -> assertThat(room.getQueueRoom().getUuid(), is(QUEUE_ROOM_UUID)));
@@ -178,10 +180,10 @@ public class RoomProviderMapDaoTest extends BaseModuleContextSensitiveTest {
 	
 	@Test
 	public void shouldFindByProvider() {
-		Provider provider = Context.getProviderService().getProviderByUuid(PROVIDER_UUID);
-		
-		List<RoomProviderMap> result = dao.getRoomProvider(provider, null);
-		
+		Provider provider = services.getProviderService().getProviderByUuid(PROVIDER_UUID);
+		RoomProviderMapSearchCriteria criteria = new RoomProviderMapSearchCriteria();
+		criteria.setProviders(Collections.singletonList(provider));
+		List<RoomProviderMap> result = dao.getRoomProviderMaps(criteria);
 		assertThat(result, notNullValue());
 		assertThat(result, hasSize(1));
 		result.forEach(room -> assertThat(room.getProvider().getUuid(), is(PROVIDER_UUID)));

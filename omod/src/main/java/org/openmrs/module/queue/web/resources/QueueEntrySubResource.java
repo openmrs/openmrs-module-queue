@@ -16,7 +16,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 import org.openmrs.api.context.Context;
-import org.openmrs.module.queue.api.QueueEntryService;
+import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.webservices.rest.web.RequestContext;
@@ -41,6 +41,16 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
         "2.3 - 9.*" }, order = 10)
 public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Queue, QueueResource> {
 	
+	private final QueueServicesWrapper services;
+	
+	public QueueEntrySubResource() {
+		this.services = Context.getRegisteredComponents(QueueServicesWrapper.class).get(0);
+	}
+	
+	public QueueEntrySubResource(QueueServicesWrapper services) {
+		this.services = services;
+	}
+	
 	@Override
 	public Queue getParent(QueueEntry queueEntry) {
 		return queueEntry.getQueue();
@@ -59,7 +69,7 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 	
 	@Override
 	public QueueEntry getByUniqueId(@NotNull String uuid) {
-		Optional<QueueEntry> queueEntryOptional = Context.getService(QueueEntryService.class).getQueueEntryByUuid(uuid);
+		Optional<QueueEntry> queueEntryOptional = services.getQueueEntryService().getQueueEntryByUuid(uuid);
 		if (!queueEntryOptional.isPresent()) {
 			throw new ObjectNotFoundException("Could not find queue entry with UUID " + uuid);
 		}
@@ -68,7 +78,7 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 	
 	@Override
 	protected void delete(QueueEntry queueEntry, String voidReason, RequestContext requestContext) throws ResponseException {
-		Context.getService(QueueEntryService.class).voidQueueEntry(queueEntry.getUuid(), voidReason);
+		services.getQueueEntryService().voidQueueEntry(queueEntry, voidReason);
 	}
 	
 	@Override
@@ -78,12 +88,12 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 	
 	@Override
 	public QueueEntry save(QueueEntry queueEntry) {
-		return Context.getService(QueueEntryService.class).createQueueEntry(queueEntry);
+		return services.getQueueEntryService().saveQueueEntry(queueEntry);
 	}
 	
 	@Override
 	public void purge(QueueEntry queueEntry, RequestContext requestContext) throws ResponseException {
-		Context.getService(QueueEntryService.class).purgeQueueEntry(queueEntry);
+		services.getQueueEntryService().purgeQueueEntry(queueEntry);
 	}
 	
 	@Override
@@ -115,8 +125,8 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 		DelegatingResourceDescription resourceDescription = new DelegatingResourceDescription();
 		if (representation instanceof RefRepresentation) {
 			this.addSharedResourceDescriptionProperties(resourceDescription);
-			resourceDescription.addProperty("queue", Representation.REF);
 			resourceDescription.addProperty("status", Representation.REF);
+			resourceDescription.addProperty("patient", Representation.REF);
 			resourceDescription.addProperty("patient", Representation.REF);
 			resourceDescription.addProperty("priority", Representation.REF);
 			resourceDescription.addProperty("locationWaitingFor", Representation.REF);
@@ -125,9 +135,9 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 			resourceDescription.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
 		} else if (representation instanceof DefaultRepresentation) {
 			this.addSharedResourceDescriptionProperties(resourceDescription);
-			resourceDescription.addProperty("queue", Representation.DEFAULT);
 			resourceDescription.addProperty("status", Representation.DEFAULT);
 			resourceDescription.addProperty("patient", Representation.DEFAULT);
+			resourceDescription.addProperty("visit", Representation.DEFAULT);
 			resourceDescription.addProperty("priority", Representation.DEFAULT);
 			resourceDescription.addProperty("locationWaitingFor", Representation.DEFAULT);
 			resourceDescription.addProperty("queueComingFrom", Representation.DEFAULT);
@@ -138,9 +148,9 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 			resourceDescription.addProperty("voided");
 			resourceDescription.addProperty("voidReason");
 			resourceDescription.addProperty("auditInfo");
-			resourceDescription.addProperty("queue", Representation.FULL);
 			resourceDescription.addProperty("status", Representation.FULL);
 			resourceDescription.addProperty("patient", Representation.FULL);
+			resourceDescription.addProperty("visit", Representation.FULL);
 			resourceDescription.addProperty("priority", Representation.FULL);
 			resourceDescription.addProperty("locationWaitingFor", Representation.FULL);
 			resourceDescription.addProperty("queueComingFrom", Representation.FULL);

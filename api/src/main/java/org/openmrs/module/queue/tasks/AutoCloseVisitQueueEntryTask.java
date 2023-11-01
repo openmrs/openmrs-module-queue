@@ -9,16 +9,15 @@
  */
 package org.openmrs.module.queue.tasks;
 
-import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 import org.openmrs.Visit;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueEntryService;
-import org.openmrs.module.queue.api.VisitQueueEntryService;
+import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.QueueEntry;
-import org.openmrs.module.queue.model.VisitQueueEntry;
 
 /**
  * This iterates over all active VisitQueueEntries If the Visit associated with any of these has
@@ -39,19 +38,16 @@ public class AutoCloseVisitQueueEntryTask implements Runnable {
 		log.debug("Executing: " + getClass());
 		try {
 			currentlyExecuting = true;
-			Collection<VisitQueueEntry> queueEntries = getActiveVisitQueueEntries();
+			List<QueueEntry> queueEntries = getActiveVisitQueueEntries();
 			log.debug("There are " + queueEntries.size() + " active visit queue entries");
-			for (VisitQueueEntry visitQueueEntry : queueEntries) {
-				Visit visit = visitQueueEntry.getVisit();
-				QueueEntry queueEntry = visitQueueEntry.getQueueEntry();
-				if (visit != null) {
-					Date visitStopDatetime = visit.getStopDatetime();
-					if (visitStopDatetime != null) {
-						log.debug("Visit " + visit.getVisitId() + " is closed at " + visitStopDatetime);
-						log.debug("Auto closing queue entry " + queueEntry.getQueueEntryId());
-						queueEntry.setEndedAt(visitStopDatetime);
-						saveQueueEntry(queueEntry);
-					}
+			for (QueueEntry queueEntry : queueEntries) {
+				Visit visit = queueEntry.getVisit();
+				Date visitStopDatetime = visit.getStopDatetime();
+				if (visitStopDatetime != null) {
+					log.debug("Visit " + visit.getVisitId() + " is closed at " + visitStopDatetime);
+					log.debug("Auto closing queue entry " + queueEntry.getQueueEntryId());
+					queueEntry.setEndedAt(visitStopDatetime);
+					saveQueueEntry(queueEntry);
 				}
 			}
 		}
@@ -63,8 +59,11 @@ public class AutoCloseVisitQueueEntryTask implements Runnable {
 	/**
 	 * @return the active VisitQueueEntries
 	 */
-	protected Collection<VisitQueueEntry> getActiveVisitQueueEntries() {
-		return Context.getService(VisitQueueEntryService.class).getActiveVisitQueueEntries();
+	protected List<QueueEntry> getActiveVisitQueueEntries() {
+		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
+		criteria.setIsEnded(false);
+		criteria.setHasVisit(true);
+		return Context.getService(QueueEntryService.class).getQueueEntries(criteria);
 	}
 	
 	/**
@@ -72,6 +71,6 @@ public class AutoCloseVisitQueueEntryTask implements Runnable {
 	 * @return the saved QueueEntry
 	 */
 	protected void saveQueueEntry(QueueEntry queueEntry) {
-		Context.getService(QueueEntryService.class).createQueueEntry(queueEntry);
+		Context.getService(QueueEntryService.class).saveQueueEntry(queueEntry);
 	}
 }

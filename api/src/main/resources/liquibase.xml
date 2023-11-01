@@ -385,4 +385,37 @@
             <where>schedulable_class = 'org.openmrs.module.queue.tasks.AutoCloseQueueEntryTask'</where>
         </delete>
     </changeSet>
+
+    <changeSet id="add_visit_id_to_queue_entry_20231025" author="mseaton">
+        <preConditions onError="WARN" onFail="MARK_RAN">
+            <tableExists tableName="queue_entry"/>
+            <not><columnExists tableName="queue_entry" columnName="visit_id"/></not>
+        </preConditions>
+        <comment>
+            Add column visit_id to queue entry table
+        </comment>
+        <addColumn tableName="queue_entry">
+            <column name="visit_id" type="int"/>
+        </addColumn>
+        <addForeignKeyConstraint baseColumnNames="visit_id" baseTableName="queue_entry" constraintName="queue_entry_visit_id_fk" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="visit_id" referencedTableName="visit"/>
+    </changeSet>
+
+    <changeSet id="migrate_visit_id_to_queue_entry_20231025" author="mseaton">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="visit_queue_entries"/>
+        </preConditions>
+        <sql>
+            update queue_entry qe
+            inner join visit_queue_entries vqe on qe.queue_entry_id = vqe.queue_entry_id
+            set qe.visit_id = vqe.visit_id;
+        </sql>
+    </changeSet>
+
+    <changeSet id="drop_visit_queue_entries_20231025" author="mseaton">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="visit_queue_entries"/>
+        </preConditions>
+        <dropTable tableName="visit_queue_entries"/>
+    </changeSet>
+
 </databaseChangeLog>

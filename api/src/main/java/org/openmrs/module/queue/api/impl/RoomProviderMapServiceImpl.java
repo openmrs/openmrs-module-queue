@@ -9,6 +9,7 @@
  */
 package org.openmrs.module.queue.api.impl;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -16,13 +17,12 @@ import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.openmrs.Provider;
 import org.openmrs.api.APIException;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.queue.api.RoomProviderMapService;
 import org.openmrs.module.queue.api.dao.RoomProviderMapDao;
-import org.openmrs.module.queue.model.QueueRoom;
+import org.openmrs.module.queue.api.search.RoomProviderMapSearchCriteria;
 import org.openmrs.module.queue.model.RoomProviderMap;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,47 +37,54 @@ public class RoomProviderMapServiceImpl extends BaseOpenmrsService implements Ro
 		this.dao = dao;
 	}
 	
+	@Transactional(readOnly = true)
 	@Override
 	public Optional<RoomProviderMap> getRoomProviderMapByUuid(String uuid) {
-		return this.dao.get(uuid);
+		return dao.get(uuid);
 	}
 	
+	@Transactional(readOnly = true)
 	@Override
 	public Optional<RoomProviderMap> getRoomProviderMapById(int id) {
-		return this.dao.get(id);
+		return dao.get(id);
 	}
 	
 	@Override
-	public RoomProviderMap createRoomProviderMap(RoomProviderMap roomProviderMap) {
+	public RoomProviderMap saveRoomProviderMap(RoomProviderMap roomProviderMap) {
 		if (roomProviderMap.getId() == null) {
-			List<RoomProviderMap> existingAssignedRooms = getRoomProvider(roomProviderMap.getProvider(),
-			    roomProviderMap.getQueueRoom());
-			existingAssignedRooms.forEach(roomProviderMap1 -> voidRoomProviderMap(roomProviderMap1.getUuid(), "Api call"));
-			
-			return this.dao.createOrUpdate(roomProviderMap);
+			RoomProviderMapSearchCriteria criteria = new RoomProviderMapSearchCriteria();
+			criteria.setProviders(Collections.singletonList(roomProviderMap.getProvider()));
+			criteria.setQueueRooms(Collections.singletonList(roomProviderMap.getQueueRoom()));
+			for (RoomProviderMap existingAssignedRoom : getRoomProviderMaps(criteria)) {
+				voidRoomProviderMap(existingAssignedRoom, "Api call");
+			}
 		}
-		roomProviderMap.setDateChanged(new Date());
-		return this.dao.createOrUpdate(roomProviderMap);
+		return dao.createOrUpdate(roomProviderMap);
 	}
 	
 	@Override
-	public List<RoomProviderMap> getRoomProvider(Provider provider, QueueRoom queueRoom) {
-		return this.dao.getRoomProvider(provider, queueRoom);
+	@Transactional(readOnly = true)
+	public List<RoomProviderMap> getAllRoomProviderMaps() {
+		return getRoomProviderMaps(new RoomProviderMapSearchCriteria());
+	}
+	
+	@Transactional(readOnly = true)
+	@Override
+	public List<RoomProviderMap> getRoomProviderMaps(RoomProviderMapSearchCriteria searchCriteria) {
+		return dao.getRoomProviderMaps(searchCriteria);
 	}
 	
 	@Override
-	public void voidRoomProviderMap(String roomProviderMapUuid, String voidReason) {
-		this.dao.get(roomProviderMapUuid).ifPresent(obj -> {
-			obj.setVoided(true);
-			obj.setDateVoided(new Date());
-			obj.setVoidReason(voidReason);
-			obj.setVoidedBy(Context.getAuthenticatedUser());
-			this.dao.createOrUpdate(obj);
-		});
+	public void voidRoomProviderMap(RoomProviderMap roomProviderMap, String voidReason) {
+		roomProviderMap.setVoided(true);
+		roomProviderMap.setDateVoided(new Date());
+		roomProviderMap.setVoidReason(voidReason);
+		roomProviderMap.setVoidedBy(Context.getAuthenticatedUser());
+		dao.createOrUpdate(roomProviderMap);
 	}
 	
 	@Override
 	public void purgeRoomProviderMap(RoomProviderMap roomProviderMap) throws APIException {
-		this.dao.delete(roomProviderMap);
+		dao.delete(roomProviderMap);
 	}
 }

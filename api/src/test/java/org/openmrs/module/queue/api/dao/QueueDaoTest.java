@@ -16,13 +16,18 @@ import static org.hamcrest.Matchers.notNullValue;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.openmrs.Concept;
+import org.openmrs.Location;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.SpringTestConfiguration;
+import org.openmrs.module.queue.api.QueueServicesWrapper;
+import org.openmrs.module.queue.api.search.QueueSearchCriteria;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,27 +54,26 @@ public class QueueDaoTest extends BaseModuleContextSensitiveTest {
 	
 	private static final String NEW_QUEUE_LOCATION_UUID = "d0938432-1691-11df-97a5-7038c098";
 	
-	private static final String LOCATION_UUID = "d0938432-1691-11df-97a5-7038c098";
-	
 	private static final String CONCEPT_UUID = "67b910bd-298c-4ecf-a632-661ae2f446op";
-	
-	private static final String QUEUE_UUID_WAIT_TIME = "5ob7fe43-2813-4kbc-80dc-2e5d30252bb3";
-	
-	private static final String CONCEPT_UUID_WAIT_TIME = "56b910bd-298c-4ecf-a632-661ae2f7865y";
 	
 	@Autowired
 	@Qualifier("queueDao")
-	private QueueDao<Queue> dao;
+	private QueueDao dao;
+	
+	@Autowired
+	private QueueServicesWrapper services;
+	
+	private QueueSearchCriteria criteria;
 	
 	@Before
 	public void setup() {
 		QUEUE_INITIAL_DATASET_XML.forEach(this::executeDataSet);
+		criteria = new QueueSearchCriteria();
 	}
 	
 	@Test
 	public void shouldGetQueueByUuid() {
 		Optional<Queue> queue = dao.get(QUEUE_UUID);
-		
 		assertThat(queue, notNullValue());
 		assertThat(queue.isPresent(), is(true));
 		queue.ifPresent(queue1 -> assertThat(queue1.getUuid(), is(QUEUE_UUID)));
@@ -139,37 +143,65 @@ public class QueueDaoTest extends BaseModuleContextSensitiveTest {
 	@Test
 	public void shouldDeleteQueueByUuid() {
 		dao.delete(QUEUE_UUID);
-		
 		Optional<Queue> result = dao.get(QUEUE_UUID);
-		//verify delete operation
 		assertThat(result.isPresent(), is(false));
 	}
 	
 	@Test
 	public void shouldDeleteQueueByEntity() {
 		dao.get(QUEUE_UUID).ifPresent((queue) -> dao.delete(queue));
-		
 		Optional<Queue> result = dao.get(QUEUE_UUID);
-		//verify delete operation
 		assertThat(result.isPresent(), is(false));
 	}
 	
 	@Test
-	public void shouldFindQueuesByLocation() {
-		List<Queue> queuesByLocation = dao.getAllQueuesByLocation(LOCATION_UUID);
-		
-		assertThat(queuesByLocation, notNullValue());
-		assertThat(queuesByLocation, hasSize(3));
-		queuesByLocation.forEach(queue -> assertThat(queue.getLocation().getUuid(), is(LOCATION_UUID)));
+	public void shouldGetQueuesByLocation() {
+		Location location1 = services.getLocationService().getLocation(1);
+		Location location3 = services.getLocationService().getLocation(3);
+		assertResults(criteria, 1, 3, 4);
+		criteria.setLocations(Collections.emptyList());
+		assertResults(criteria);
+		criteria.setLocations(Collections.singletonList(location1));
+		assertResults(criteria, 1, 4);
+		criteria.setLocations(Collections.singletonList(location3));
+		assertResults(criteria, 3);
+		criteria.setLocations(Arrays.asList(location1, location3));
+		assertResults(criteria, 1, 3, 4);
 	}
 	
 	@Test
-	public void shouldFindAllQueuesIncludingRetiredByLocation() {
-		List<Queue> queuesByLocation = dao.getAllQueuesByLocation(LOCATION_UUID, true);
-		
-		assertThat(queuesByLocation, notNullValue());
-		assertThat(queuesByLocation, hasSize(4));
-		queuesByLocation.forEach(queue -> assertThat(queue.getLocation().getUuid(), is(LOCATION_UUID)));
+	public void shouldGetQueuesByService() {
+		Concept concept1 = services.getConceptService().getConcept(2001);
+		Concept concept2 = services.getConceptService().getConcept(2002);
+		assertResults(criteria, 1, 3, 4);
+		criteria.setServices(Collections.emptyList());
+		assertResults(criteria);
+		criteria.setServices(Collections.singletonList(concept1));
+		assertResults(criteria, 1);
+		criteria.setServices(Collections.singletonList(concept2));
+		assertResults(criteria, 3, 4);
+		criteria.setServices(Arrays.asList(concept1, concept2));
+		assertResults(criteria, 1, 3, 4);
 	}
 	
+	@Test
+	public void shouldGetQueuesByIncludeRetired() {
+		assertResults(criteria, 1, 3, 4);
+		criteria.setIncludeRetired(true);
+		assertResults(criteria, 1, 2, 3, 4);
+	}
+	
+	/**
+	 * Utility method that tests criteria against both DAO methods to getQueueEntries and
+	 * getCountOfQueueEntries
+	 */
+	private void assertResults(QueueSearchCriteria criteria, Integer... queueIds) {
+		List<Queue> queues = dao.getQueues(criteria);
+		assertThat(queues, hasSize(queueIds.length));
+		for (Integer queueId : queueIds) {
+			Queue expected = dao.get(queueId).orElse(null);
+			assertThat(expected, notNullValue());
+			assertThat(queues.contains(expected), is(true));
+		}
+	}
 }

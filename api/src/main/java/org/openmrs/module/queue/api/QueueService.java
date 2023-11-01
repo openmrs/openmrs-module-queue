@@ -11,12 +11,11 @@ package org.openmrs.module.queue.api;
 
 import javax.validation.constraints.NotNull;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import org.openmrs.Concept;
 import org.openmrs.api.APIException;
+import org.openmrs.module.queue.api.search.QueueSearchCriteria;
 import org.openmrs.module.queue.model.Queue;
 
 /**
@@ -46,30 +45,25 @@ public interface QueueService {
 	 * @param queue the queue to be saved
 	 * @return saved {@link org.openmrs.module.queue.model.Queue}
 	 */
-	Queue createQueue(@NotNull Queue queue);
+	Queue saveQueue(@NotNull Queue queue);
 	
 	/**
-	 * Gets all queues related to a specified location.
-	 *
-	 * @param locationUuid UUID of the location being queried.
-	 * @return {@link java.util.List} of {@link org.openmrs.module.queue.model.Queue}
-	 */
-	List<Queue> getAllQueuesByLocation(@NotNull String locationUuid);
-	
-	/**
-	 * Gets all queues
-	 *
 	 * @return all queues
 	 */
-	Collection<Queue> getAllQueues();
+	List<Queue> getAllQueues();
+	
+	/**
+	 * @return {@link List} of queues that match the given %{@link QueueSearchCriteria}
+	 */
+	List<Queue> getQueues(@NotNull QueueSearchCriteria searchCriteria);
 	
 	/**
 	 * Voids a queue
 	 *
-	 * @param queueUuid uuid of the queue to be voided
-	 * @param voidReason the reason for voiding the queue
+	 * @param queue the queue to retire
+	 * @param retireReason the reason for voiding the queue
 	 */
-	void voidQueue(@NotNull String queueUuid, String voidReason);
+	void retireQueue(@NotNull Queue queue, String retireReason);
 	
 	/**
 	 * Completely remove a queue from the database
@@ -78,12 +72,4 @@ public interface QueueService {
 	 * @throws APIException <strong>Should</strong> delete the given queue from the database
 	 */
 	void purgeQueue(@NotNull Queue queue) throws APIException;
-	
-	/**
-	 * Returns average weight time for patients in a queue
-	 * 
-	 * @param queue
-	 * @return
-	 */
-	Double getQueueAverageWaitTime(@NotNull Queue queue, Concept status);
 }

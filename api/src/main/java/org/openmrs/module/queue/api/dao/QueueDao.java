@@ -11,19 +11,15 @@ package org.openmrs.module.queue.api.dao;
 
 import javax.validation.constraints.NotNull;
 
-import java.time.LocalDate;
 import java.util.List;
 
-import org.openmrs.Auditable;
-import org.openmrs.Concept;
-import org.openmrs.OpenmrsObject;
+import org.openmrs.module.queue.api.search.QueueSearchCriteria;
 import org.openmrs.module.queue.model.Queue;
 
-public interface QueueDao<Q extends OpenmrsObject & Auditable> extends BaseQueueDao<Q> {
+public interface QueueDao extends BaseQueueDao<Queue> {
 	
-	List<Q> getAllQueuesByLocation(@NotNull String locationUuid);
-	
-	List<Q> getAllQueuesByLocation(@NotNull String locationUuid, boolean includeVoided);
-	
-	Double getQueueAverageWaitTime(@NotNull Queue queue, Concept status, LocalDate today);
+	/**
+	 * @return {@link List} of queues that match the given %{@link QueueSearchCriteria}
+	 */
+	List<Queue> getQueues(@NotNull QueueSearchCriteria searchCriteria);
 }

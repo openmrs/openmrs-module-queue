@@ -18,6 +18,7 @@ import static org.hamcrest.Matchers.nullValue;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -27,12 +28,15 @@ import org.junit.Test;
 import org.openmrs.Concept;
 import org.openmrs.Location;
 import org.openmrs.Patient;
-import org.openmrs.api.ConceptNameType;
+import org.openmrs.Provider;
+import org.openmrs.Visit;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.SpringTestConfiguration;
-import org.openmrs.module.queue.api.QueueEntryService;
+import org.openmrs.module.queue.api.QueueServicesWrapper;
+import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
+import org.openmrs.module.queue.utils.QueueUtils;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -58,27 +62,25 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	private static final List<String> QUEUE_INITIAL_DATASET_XML = Arrays.asList(
 	    "org/openmrs/module/queue/api/dao/QueueDaoTest_locationInitialDataset.xml",
 	    "org/openmrs/module/queue/api/dao/QueueEntryDaoTest_conceptsInitialDataset.xml",
-	    "org/openmrs/module/queue/api/dao/QueueDaoTest_initialDataset.xml",
 	    "org/openmrs/module/queue/api/dao/QueueEntryDaoTest_patientInitialDataset.xml",
-	    "org/openmrs/module/queue/api/dao/QueueEntryDaoTest_initialDataset.xml",
 	    "org/openmrs/module/queue/api/dao/VisitQueueEntryDaoTest_visitInitialDataset.xml",
-	    "org/openmrs/module/queue/api/dao/visitQueueEntryDaoTest_visitQueueNumberInitialDataset.xml");
-	
-	private static final String QUEUE_ENTRY_STATUS = "Waiting for service";
-	
-	private static final String BAD_QUEUE_ENTRY_STATUS = "Bad Waiting for service";
+	    "org/openmrs/module/queue/api/dao/QueueDaoTest_initialDataset.xml",
+	    "org/openmrs/module/queue/api/dao/QueueEntryDaoTest_initialDataset.xml");
 	
 	@Autowired
 	@Qualifier("queueEntryDao")
 	private QueueEntryDao<QueueEntry> dao;
 	
 	@Autowired
-	@Qualifier("queueDao")
-	private QueueDao<Queue> queueDao;
+	private QueueServicesWrapper services;
+	
+	private QueueEntrySearchCriteria criteria;
 	
 	@Before
 	public void setup() {
 		QUEUE_INITIAL_DATASET_XML.forEach(this::executeDataSet);
+		criteria = new QueueEntrySearchCriteria();
+		criteria.setIsEnded(null);
 	}
 	
 	@Test
@@ -99,7 +101,7 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	@Test
 	public void shouldCreateNewQueueEntry() {
 		//Verify queue created
-		Optional<Queue> optionalQueue = queueDao.get(QUEUE_UUID);
+		Optional<Queue> optionalQueue = services.getQueueService().getQueueByUuid(QUEUE_UUID);
 		assertThat(optionalQueue.isPresent(), is(true));
 		
 		QueueEntry queueEntry = new QueueEntry();
@@ -152,31 +154,27 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	public void shouldFindAllQueueEntries() {
 		Collection<QueueEntry> queues = dao.findAll();
 		assertThat(queues.isEmpty(), is(false));
-		assertThat(queues, hasSize(2));
+		assertThat(queues, hasSize(4));
 	}
 	
 	@Test
 	public void shouldFindAllQueueEntriesIncludingRetired() {
 		Collection<QueueEntry> queues = dao.findAll(true);
 		assertThat(queues.isEmpty(), is(false));
-		assertThat(queues, hasSize(3));
+		assertThat(queues, hasSize(5));
 	}
 	
 	@Test
 	public void shouldDeleteQueueEntryByUuid() {
 		dao.delete(QUEUE_ENTRY_UUID);
-		
 		Optional<QueueEntry> result = dao.get(QUEUE_ENTRY_UUID);
-		//verify delete operation
 		assertThat(result.isPresent(), is(false));
 	}
 	
 	@Test
 	public void shouldDeleteQueueEntryByEntity() {
 		dao.get(QUEUE_ENTRY_UUID).ifPresent((queueEntry) -> dao.delete(queueEntry));
-		
 		Optional<QueueEntry> result = dao.get(QUEUE_ENTRY_UUID);
-		//verify delete operation
 		assertThat(result.isPresent(), is(false));
 	}
 	
@@ -202,58 +200,264 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	}
 	
 	@Test
-	public void shouldSearchQueueEntriesByStatus() {
-		Collection<QueueEntry> queueEntries = dao.SearchQueueEntriesByConceptStatus(QUEUE_ENTRY_STATUS,
-		    ConceptNameType.FULLY_SPECIFIED, false, false);
-		
-		assertThat(queueEntries.isEmpty(), is(false));
-		assertThat(queueEntries, hasSize(1));
-		queueEntries.forEach(queueEntry -> {
-			assertThat(queueEntry.getStatus(), notNullValue());
-			assertThat(queueEntry.getStatus().getName().getName(), is(QUEUE_ENTRY_STATUS));
-		});
+	public void shouldSearchAndCountQueueEntriesByQueue() {
+		Queue queue1 = services.getQueueService().getQueueById(1).orElse(null);
+		Queue queue2 = services.getQueueService().getQueueById(2).orElse(null);
+		Queue queue3 = services.getQueueService().getQueueById(3).orElse(null);
+		assertNumberOfResults(criteria, 4);
+		criteria.setQueues(Collections.emptyList());
+		assertNumberOfResults(criteria, 0);
+		criteria.setQueues(Collections.singletonList(queue1));
+		assertResults(criteria, 1);
+		criteria.setQueues(Collections.singletonList(queue2));
+		assertResults(criteria, 2);
+		criteria.setQueues(Collections.singletonList(queue3));
+		assertResults(criteria, 3, 4);
+		criteria.setQueues(Arrays.asList(queue2, queue3));
+		assertResults(criteria, 2, 3, 4);
+		criteria.setIncludedVoided(true);
+		assertResults(criteria, 2, 3, 4, 10);
 	}
 	
 	@Test
-	public void shouldSearchQueueEntriesByStatusIncludingVoidedQueueEntries() {
-		Collection<QueueEntry> queueEntries = dao.SearchQueueEntriesByConceptStatus(QUEUE_ENTRY_STATUS,
-		    ConceptNameType.FULLY_SPECIFIED, false, true);
-		
-		assertThat(queueEntries.isEmpty(), is(false));
-		assertThat(queueEntries, hasSize(2));
-		queueEntries.forEach(queueEntry -> {
-			assertThat(queueEntry.getStatus(), notNullValue());
-			assertThat(queueEntry.getStatus().getName().getName(), is(QUEUE_ENTRY_STATUS));
-		});
+	public void shouldSearchAndCountQueueEntriesByQueueLocation() {
+		Location location1 = services.getLocationService().getLocation(1);
+		Location location3 = services.getLocationService().getLocation(3);
+		assertNumberOfResults(criteria, 4);
+		criteria.setLocations(Collections.emptyList());
+		assertNumberOfResults(criteria, 0);
+		criteria.setLocations(Collections.singletonList(location1));
+		assertResults(criteria, 1, 2);
+		criteria.setLocations(Collections.singletonList(location3));
+		assertResults(criteria, 3, 4);
+		criteria.setLocations(Arrays.asList(location1, location3));
+		assertResults(criteria, 1, 2, 3, 4);
+		criteria.setIncludedVoided(true);
+		assertResults(criteria, 1, 2, 3, 4, 10);
 	}
 	
 	@Test
-	public void shouldCountQueueEntriesByStatus() {
-		Long queueEntriesCountByStatusCount = dao.getQueueEntriesCountByConceptStatus(QUEUE_ENTRY_STATUS,
-		    ConceptNameType.FULLY_SPECIFIED, false);
-		
-		assertThat(queueEntriesCountByStatusCount, notNullValue());
-		assertThat(queueEntriesCountByStatusCount, is(1L));
+	public void shouldSearchAndCountQueueEntriesByQueueService() {
+		Concept service1 = services.getConceptService().getConcept(2001);
+		Concept service2 = services.getConceptService().getConcept(2002);
+		assertNumberOfResults(criteria, 4);
+		criteria.setServices(Collections.emptyList());
+		assertNumberOfResults(criteria, 0);
+		criteria.setServices(Collections.singletonList(service1));
+		assertResults(criteria, 1, 2);
+		criteria.setServices(Collections.singletonList(service2));
+		assertResults(criteria, 3, 4);
+		criteria.setServices(Arrays.asList(service1, service2));
+		assertResults(criteria, 1, 2, 3, 4);
+		criteria.setIncludedVoided(true);
+		assertResults(criteria, 1, 2, 3, 4, 10);
 	}
 	
 	@Test
-	public void shouldZeroCountQueueEntriesByBadStatus() {
-		Long queueEntriesCountByStatusCount = dao.getQueueEntriesCountByConceptStatus(BAD_QUEUE_ENTRY_STATUS,
-		    ConceptNameType.FULLY_SPECIFIED, false);
-		
-		assertThat(queueEntriesCountByStatusCount, notNullValue());
-		assertThat(queueEntriesCountByStatusCount, is(0L));
+	public void shouldSearchAndCountQueueEntriesByPatient() {
+		Patient patient1 = services.getPatientService().getPatient(100);
+		Patient patient2 = services.getPatientService().getPatient(2);
+		assertNumberOfResults(criteria, 4);
+		criteria.setPatient(patient1);
+		assertResults(criteria, 1, 2, 3);
+		criteria.setPatient(patient2);
+		assertResults(criteria, 4);
 	}
 	
 	@Test
-	public void shouldGenerateVisitQueueNumber() {
-		QueueEntry queueEntry = Context.getService(QueueEntryService.class)
-		        .getQueueEntryByUuid("7ub8fe43-2813-4kbc-80dc-2e5d30252cc5").get();
-		Location location = Context.getLocationService().getLocationByUuid("d0938432-1691-11df-97a5-7038c098");
-		
-		String queueNumber = dao.generateVisitQueueNumber(location, queueEntry.getQueue());
-		
-		assertThat(queueNumber, notNullValue());
-		assertThat(queueNumber, equalTo("CON-001"));
+	public void shouldSearchAndCountQueueEntriesByVisit() {
+		Visit visit1 = services.getVisitService().getVisit(101);
+		Visit visit2 = services.getVisitService().getVisit(102);
+		assertNumberOfResults(criteria, 4);
+		criteria.setVisit(visit1);
+		assertResults(criteria, 1, 2);
+		criteria.setVisit(visit2);
+		assertResults(criteria, 3);
+		criteria.setVisit(null);
+		criteria.setHasVisit(true);
+		assertResults(criteria, 1, 2, 3);
+		criteria.setHasVisit(false);
+		assertResults(criteria, 4);
+	}
+	
+	@Test
+	public void shouldSearchAndCountQueueEntriesByPriority() {
+		Concept priority1 = services.getConceptService().getConcept(1001);
+		Concept priority2 = services.getConceptService().getConcept(1002);
+		Concept nonPriority = services.getConceptService().getConcept(3001);
+		assertNumberOfResults(criteria, 4);
+		criteria.setPriorities(Collections.emptyList());
+		assertNumberOfResults(criteria, 0);
+		criteria.setPriorities(Collections.singletonList(nonPriority));
+		assertNumberOfResults(criteria, 0);
+		criteria.setPriorities(Collections.singletonList(priority1));
+		assertResults(criteria, 1, 3, 4);
+		criteria.setPriorities(Collections.singletonList(priority2));
+		assertResults(criteria, 2);
+		criteria.setPriorities(Arrays.asList(priority1, priority2));
+		assertResults(criteria, 1, 2, 3, 4);
+		criteria.setIncludedVoided(true);
+		assertResults(criteria, 1, 2, 3, 4, 10);
+	}
+	
+	@Test
+	public void shouldSearchAndCountQueueEntriesByStatus() {
+		Concept status1 = services.getConceptService().getConcept(3001);
+		Concept status2 = services.getConceptService().getConcept(3002);
+		Concept nonStatus = services.getConceptService().getConcept(1001);
+		assertNumberOfResults(criteria, 4);
+		criteria.setStatuses(Collections.emptyList());
+		assertNumberOfResults(criteria, 0);
+		criteria.setStatuses(Collections.singletonList(nonStatus));
+		assertNumberOfResults(criteria, 0);
+		criteria.setStatuses(Collections.singletonList(status1));
+		assertResults(criteria, 1);
+		criteria.setStatuses(Collections.singletonList(status2));
+		assertResults(criteria, 2, 3, 4);
+		criteria.setStatuses(Arrays.asList(status1, status2));
+		assertResults(criteria, 1, 2, 3, 4);
+		criteria.setIncludedVoided(true);
+		assertResults(criteria, 1, 2, 3, 4, 10);
+	}
+	
+	@Test
+	public void shouldSearchAndCountQueueEntriesByLocationWaitingFor() {
+		Location location1 = services.getLocationService().getLocation(1);
+		Location location3 = services.getLocationService().getLocation(3);
+		assertNumberOfResults(criteria, 4);
+		criteria.setLocationsWaitingFor(Collections.emptyList());
+		assertResults(criteria, 3); // Empty list = entries with null value
+		criteria.setLocationsWaitingFor(Collections.singletonList(location1));
+		assertResults(criteria, 4);
+		criteria.setLocationsWaitingFor(Collections.singletonList(location3));
+		assertResults(criteria, 1, 2);
+		criteria.setLocationsWaitingFor(Arrays.asList(location1, location3));
+		assertResults(criteria, 1, 2, 4);
+	}
+	
+	@Test
+	public void shouldSearchAndCountQueueEntriesByProviderWaitingFor() {
+		Provider provider1 = services.getProviderService().getProvider(1);
+		assertNumberOfResults(criteria, 4);
+		criteria.setProvidersWaitingFor(Collections.emptyList());
+		assertResults(criteria, 2, 4); // Empty list = entries with null value
+		criteria.setProvidersWaitingFor(Collections.singletonList(provider1));
+		assertResults(criteria, 1, 3);
+	}
+	
+	@Test
+	public void shouldSearchAndCountQueueEntriesByQueueComingFrom() {
+		Queue queue1 = services.getQueueService().getQueueById(1).orElse(null);
+		assertNumberOfResults(criteria, 4);
+		criteria.setQueuesComingFrom(Collections.emptyList());
+		assertResults(criteria, 1, 3, 4);
+		criteria.setQueuesComingFrom(Collections.singletonList(queue1));
+		assertResults(criteria, 2);
+	}
+	
+	@Test
+	// 2022-02-02 16:40:56.0, 2022-02-02 18:40:56.0, 2022-02-03 16:40:56.0, 2022-03-02 16:40:56.0
+	public void shouldSearchAndCountQueueEntriesStartedOnOrAfterDate() {
+		assertNumberOfResults(criteria, 4);
+		criteria.setStartedOnOrAfter(date("2022-02-02 16:40:56"));
+		assertResults(criteria, 1, 2, 3, 4);
+		criteria.setStartedOnOrAfter(date("2022-02-02 16:40:57"));
+		assertResults(criteria, 2, 3, 4);
+		criteria.setStartedOnOrAfter(date("2022-02-02 18:40:56"));
+		assertResults(criteria, 2, 3, 4);
+		criteria.setStartedOnOrAfter(date("2022-02-02 18:40:57"));
+		assertResults(criteria, 3, 4);
+		criteria.setStartedOnOrAfter(date("2022-02-03 16:40:56"));
+		assertResults(criteria, 3, 4);
+		criteria.setStartedOnOrAfter(date("2022-02-03 16:40:57"));
+		assertResults(criteria, 4);
+		criteria.setStartedOnOrAfter(date("2022-03-02 16:40:56"));
+		assertResults(criteria, 4);
+		criteria.setStartedOnOrAfter(date("2022-03-02 16:40:57"));
+		assertNumberOfResults(criteria, 0);
+	}
+	
+	@Test
+	// 2022-02-02 16:40:56.0, 2022-02-02 18:40:56.0, 2022-02-03 16:40:56.0, 2022-03-02 16:40:56.0
+	public void shouldSearchAndCountQueueEntriesStartedOnOrBeforeDate() {
+		assertNumberOfResults(criteria, 4);
+		criteria.setStartedOnOrBefore(date("2022-02-02 16:40:55"));
+		assertNumberOfResults(criteria, 0);
+		criteria.setStartedOnOrBefore(date("2022-02-02 16:40:56"));
+		assertResults(criteria, 1);
+		criteria.setStartedOnOrBefore(date("2022-02-02 18:40:56"));
+		assertResults(criteria, 1, 2);
+		criteria.setStartedOnOrBefore(date("2022-02-03 16:40:56"));
+		assertResults(criteria, 1, 2, 3);
+		criteria.setStartedOnOrBefore(date("2022-03-02 16:40:56"));
+		assertResults(criteria, 1, 2, 3, 4);
+	}
+	
+	@Test
+	// 2022-02-02 18:40:56.0, 2022-02-02 18:41:56.0
+	public void shouldSearchAndCountQueueEntriesEndedOnOrBeforeDate() {
+		assertNumberOfResults(criteria, 4);
+		criteria.setEndedOnOrBefore(date("2022-02-02 18:40:55"));
+		assertNumberOfResults(criteria, 0);
+		criteria.setEndedOnOrBefore(date("2022-02-02 18:40:56"));
+		assertResults(criteria, 1);
+		criteria.setEndedOnOrBefore(date("2022-02-02 18:41:56"));
+		assertResults(criteria, 1, 4);
+		criteria.setEndedOnOrBefore(null);
+		criteria.setIsEnded(true);
+		assertResults(criteria, 1, 4);
+		criteria.setIsEnded(false);
+		assertResults(criteria, 2, 3);
+	}
+	
+	@Test
+	// 2022-02-02 18:40:56.0, 2022-02-02 18:41:56.0
+	public void shouldSearchAndCountQueueEntriesEndedOnOrAfterDate() {
+		assertNumberOfResults(criteria, 4);
+		criteria.setEndedOnOrAfter(date("2022-02-02 18:41:57"));
+		assertNumberOfResults(criteria, 0);
+		criteria.setEndedOnOrAfter(date("2022-02-02 18:41:56"));
+		assertResults(criteria, 4);
+		criteria.setEndedOnOrAfter(date("2022-02-02 18:40:56"));
+		assertResults(criteria, 1, 4);
+		criteria.setEndedOnOrAfter(null);
+		criteria.setIsEnded(true);
+		assertResults(criteria, 1, 4);
+		criteria.setIsEnded(false);
+		assertResults(criteria, 2, 3);
+	}
+	
+	/**
+	 * Utility method that tests criteria against both DAO methods to getQueueEntries and
+	 * getCountOfQueueEntries
+	 */
+	private void assertNumberOfResults(QueueEntrySearchCriteria criteria, int expectedNumber) {
+		List<QueueEntry> queueEntries = dao.getQueueEntries(criteria);
+		assertThat(queueEntries, hasSize(expectedNumber));
+		Long numResults = dao.getCountOfQueueEntries(criteria);
+		assertThat(numResults.intValue(), equalTo(expectedNumber));
+	}
+	
+	/**
+	 * Utility method that tests criteria against both DAO methods to getQueueEntries and
+	 * getCountOfQueueEntries
+	 */
+	private void assertResults(QueueEntrySearchCriteria criteria, Integer... queueEntryIds) {
+		List<QueueEntry> queueEntries = dao.getQueueEntries(criteria);
+		assertThat(queueEntries, hasSize(queueEntryIds.length));
+		for (Integer queueEntryId : queueEntryIds) {
+			QueueEntry expected = dao.get(queueEntryId).orElse(null);
+			assertThat(expected, notNullValue());
+			assertThat(queueEntries.contains(expected), is(true));
+		}
+		Long numResults = dao.getCountOfQueueEntries(criteria);
+		assertThat(numResults.intValue(), equalTo(queueEntryIds.length));
+	}
+	
+	/**
+	 * @return the date for the given string value
+	 */
+	private Date date(String dateVal) {
+		return QueueUtils.parseDate(dateVal);
 	}
 }

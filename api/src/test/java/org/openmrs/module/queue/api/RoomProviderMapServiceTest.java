@@ -10,26 +10,30 @@
 package org.openmrs.module.queue.api;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.openmrs.Provider;
+import org.openmrs.User;
+import org.openmrs.api.context.Context;
+import org.openmrs.api.context.UserContext;
 import org.openmrs.module.queue.api.dao.RoomProviderMapDao;
 import org.openmrs.module.queue.api.impl.RoomProviderMapServiceImpl;
-import org.openmrs.module.queue.model.QueueRoom;
+import org.openmrs.module.queue.api.search.RoomProviderMapSearchCriteria;
 import org.openmrs.module.queue.model.RoomProviderMap;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -45,6 +49,9 @@ public class RoomProviderMapServiceTest {
 	
 	@Mock
 	private RoomProviderMapDao dao;
+	
+	@Captor
+	ArgumentCaptor<RoomProviderMapSearchCriteria> roomProviderMapSearchCriteriaArgumentCaptor;
 	
 	@Before
 	public void setupMocks() {
@@ -70,18 +77,28 @@ public class RoomProviderMapServiceTest {
 		when(roomProviderMap.getUuid()).thenReturn(ROOM_PROVIDER_MAP_UUID);
 		when(dao.createOrUpdate(roomProviderMap)).thenReturn(roomProviderMap);
 		
-		RoomProviderMap result = roomProviderMapService.createRoomProviderMap(roomProviderMap);
+		RoomProviderMap result = roomProviderMapService.saveRoomProviderMap(roomProviderMap);
 		assertThat(result, notNullValue());
 		assertThat(result.getUuid(), is(ROOM_PROVIDER_MAP_UUID));
 	}
 	
 	@Test
 	public void shouldVoidRoomProviderMap() {
-		when(dao.get(ROOM_PROVIDER_MAP_UUID)).thenReturn(Optional.empty());
-		
-		roomProviderMapService.voidRoomProviderMap(ROOM_PROVIDER_MAP_UUID, "API Call");
-		
-		assertThat(roomProviderMapService.getRoomProviderMapByUuid(ROOM_PROVIDER_MAP_UUID).isPresent(), is(false));
+		User user = new User();
+		UserContext userContext = mock(UserContext.class);
+		when(userContext.getAuthenticatedUser()).thenReturn(user);
+		Context.setUserContext(userContext);
+		RoomProviderMap roomProviderMap = new RoomProviderMap();
+		when(dao.createOrUpdate(roomProviderMap)).thenReturn(roomProviderMap);
+		assertThat(roomProviderMap.getVoided(), equalTo(false));
+		assertThat(roomProviderMap.getDateVoided(), nullValue());
+		assertThat(roomProviderMap.getVoidedBy(), nullValue());
+		assertThat(roomProviderMap.getVoidReason(), nullValue());
+		roomProviderMapService.voidRoomProviderMap(roomProviderMap, "voidReason");
+		assertThat(roomProviderMap.getVoided(), equalTo(true));
+		assertThat(roomProviderMap.getDateVoided(), notNullValue());
+		assertThat(roomProviderMap.getVoidedBy(), equalTo(user));
+		assertThat(roomProviderMap.getVoidReason(), equalTo("voidReason"));
 	}
 	
 	@Test
@@ -94,26 +111,11 @@ public class RoomProviderMapServiceTest {
 	}
 	
 	@Test
-	public void shouldGetAllRoomProviderMapByProvider() {
-		RoomProviderMap roomProviderMap = mock(RoomProviderMap.class);
-		Provider provider = new Provider();
-		provider.setUuid(PROVIDER_UUID);
-		when(dao.getRoomProvider(provider, null)).thenReturn(Collections.singletonList(roomProviderMap));
-		
-		List<RoomProviderMap> result = roomProviderMapService.getRoomProvider(provider, null);
-		assertThat(result, notNullValue());
-		assertThat(result, hasSize(1));
-	}
-	
-	@Test
-	public void shouldGetAllRoomProviderMapByQueueRoom() {
-		QueueRoom queueRoom = new QueueRoom();
-		queueRoom.setUuid(QUEUE_ROOM_UUID);
-		RoomProviderMap roomProviderMap = mock(RoomProviderMap.class);
-		when(dao.getRoomProvider(null, queueRoom)).thenReturn(Collections.singletonList(roomProviderMap));
-		
-		List<RoomProviderMap> result = roomProviderMapService.getRoomProvider(null, queueRoom);
-		assertThat(result, notNullValue());
-		assertThat(result, hasSize(1));
+	public void shouldGetRoomProviderMapsByCriteria() {
+		RoomProviderMapSearchCriteria criteria = new RoomProviderMapSearchCriteria();
+		roomProviderMapService.getRoomProviderMaps(criteria);
+		verify(dao).getRoomProviderMaps(roomProviderMapSearchCriteriaArgumentCaptor.capture());
+		RoomProviderMapSearchCriteria daoCriteria = roomProviderMapSearchCriteriaArgumentCaptor.getValue();
+		assertThat(daoCriteria, equalTo(criteria));
 	}
 }
