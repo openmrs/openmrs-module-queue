@@ -20,13 +20,13 @@ import org.apache.commons.lang3.StringUtils;
  * A utility class for updating details of active queue tickets
  */
 public class QueueTicketAssignments {
-
+	
 	/**
 	 * The object has: service point/room name as key for ease of search and update and object with
 	 * status and ticket number
 	 */
 	private static final Map<String, TicketAssignment> ACTIVE_QUEUE_TICKETS = new HashMap<>();
-
+	
 	/**
 	 * We want to control access to the ACTIVE_QUEUE_TICKETS so that requests are queued
 	 *
@@ -37,9 +37,9 @@ public class QueueTicketAssignments {
 	synchronized public static void updateTicketAssignment(String servicePointName, String ticketNumber, String status) {
 		if (StringUtils.isNotBlank(servicePointName) && StringUtils.isNotBlank(ticketNumber)
 		        && StringUtils.isNotBlank(status)) {
-
+			
 			/** remove the ticket number from any assignment */
-
+			
 			// Remove the ticket number from any assignment
 			for (String key : ACTIVE_QUEUE_TICKETS.keySet()) {
 				TicketAssignment assignment = ACTIVE_QUEUE_TICKETS.get(key);
@@ -51,7 +51,7 @@ public class QueueTicketAssignments {
 					break;
 				}
 			}
-
+			
 			/** Assign ticket to a room if the room already exist */
 			// Assign ticket to a room if the room already exists
 			if (ACTIVE_QUEUE_TICKETS.containsKey(servicePointName)) {
@@ -66,11 +66,11 @@ public class QueueTicketAssignments {
 			}
 		}
 	}
-
+	
 	public static Map<String, TicketAssignment> getActiveTicketAssignments() {
 		return ACTIVE_QUEUE_TICKETS;
 	}
-
+	
 	/**
 	 * Extracts the request body and returns it as a string
 	 *
@@ -90,30 +90,30 @@ public class QueueTicketAssignments {
 		}
 		return requestBodyJsonStr.toString();
 	}
-
+	
 	public static class TicketAssignment {
-
+		
 		private String status;
-
+		
 		private String ticketNumber;
-
+		
 		public TicketAssignment(String status, String ticketNumber) {
 			this.status = status;
 			this.ticketNumber = ticketNumber;
 		}
-
+		
 		public String getStatus() {
 			return status;
 		}
-
+		
 		public void setStatus(String status) {
 			this.status = status;
 		}
-
+		
 		public String getTicketNumber() {
 			return ticketNumber;
 		}
-
+		
 		public void setTicketNumber(String ticketNumber) {
 			this.ticketNumber = ticketNumber;
 		}

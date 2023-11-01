@@ -32,7 +32,6 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.node.ObjectNode;
 import org.openmrs.Location;
 import org.openmrs.Visit;
 import org.openmrs.VisitAttributeType;
@@ -194,8 +193,7 @@ public class Legacy1xRestController extends BaseRestController {
 	
 	@RequestMapping(method = GET, value = "/rest/" + RestConstants.VERSION_1 + "/queueutil/active-tickets")
 	public Object getActiveTickets() {
-		ObjectNode ticketAssignments = QueueTicketAssignments.getActiveTicketAssignments();
-		return new ResponseEntity<Object>(ticketAssignments, new HttpHeaders(), HttpStatus.OK);
+		return new ResponseEntity<>(QueueTicketAssignments.getActiveTicketAssignments(), new HttpHeaders(), HttpStatus.OK);
 	}
 	
 	@RequestMapping(method = { GET, POST }, value = "/rest/" + RestConstants.VERSION_1 + "/queue-entry-number")
