@@ -9,6 +9,21 @@
  */
 package org.openmrs.module.queue.web;
 
+import static org.openmrs.module.queue.web.QueueEntryMetricRestController.AVERAGE_WAIT_TIME;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.NotNull;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -46,19 +61,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotNull;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.openmrs.module.queue.web.QueueEntryMetricRestController.AVERAGE_WAIT_TIME;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
-
 /**
  * REST controller that exposes REST endpoints that are compatible with version 1.x of this module
  */
@@ -92,9 +94,10 @@ public class Legacy1xRestController extends BaseRestController {
 		List<SimpleObject> visitQueueEntries = new ArrayList<>();
 		result.add("results", visitQueueEntries);
 		RequestContext requestContext = RestUtil.getRequestContext(request, response, Representation.REF);
-		SimpleObject searchResult = queueEntryResource.search(requestContext);
-		List<SimpleObject> queueEntries = (List<SimpleObject>) PropertyUtils.getProperty(searchResult, "results");
-		for (SimpleObject queueEntry : queueEntries) {
+		Map<String, Object> searchResult = queueEntryResource.search(requestContext);
+		List<Map<String, Object>> queueEntries = (List<Map<String, Object>>) PropertyUtils.getProperty(searchResult,
+		    "results");
+		for (Map<String, Object> queueEntry : queueEntries) {
 			SimpleObject visitQueueEntry = new SimpleObject();
 			visitQueueEntry.add("visit", queueEntry.get("visit"));
 			visitQueueEntry.add("queueEntry", queueEntry);
@@ -102,19 +105,21 @@ public class Legacy1xRestController extends BaseRestController {
 		}
 		return result;
 	}
-
+	
 	@RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/visit-queue-entry", method = POST)
 	@ResponseBody
 	public Object postVisitQueueEntry(HttpServletRequest request, HttpServletResponse response,
-									  @RequestBody SimpleObject post) {
+	        @RequestBody SimpleObject post) {
 		RequestContext requestContext = RestUtil.getRequestContext(request, response);
-		SimpleObject nestedQueueEntry = post.get("queueEntry");
-		nestedQueueEntry.put("visit", post.get("visit"));
-		Object created = roomProviderMapResource.create(nestedQueueEntry, requestContext);
+		SimpleObject queueEntry = new SimpleObject();
+		Map<String, Object> postedQueueEntry = post.get("queueEntry");
+		for (String key : postedQueueEntry.keySet()) {
+			queueEntry.add(key, postedQueueEntry.get(key));
+		}
+		queueEntry.add("visit", post.get("visit"));
+		Object created = queueEntryResource.create(queueEntry, requestContext);
 		return RestUtil.created(response, created);
 	}
-	
-	// TODO: /ws/rest/v1/visit-queue-entry -> POST
 	
 	@RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/queueroom", method = GET)
 	@ResponseBody
