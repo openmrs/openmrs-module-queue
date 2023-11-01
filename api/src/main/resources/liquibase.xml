@@ -411,12 +411,11 @@
         </sql>
     </changeSet>
 
-    <!-- TODO: Uncomment this to remove the legacy visit_queue_entries table
     <changeSet id="drop_visit_queue_entries_20231025" author="mseaton">
         <preConditions onFail="MARK_RAN">
             <tableExists tableName="visit_queue_entries"/>
         </preConditions>
         <dropTable tableName="visit_queue_entries"/>
     </changeSet>
-    -->
+
 </databaseChangeLog>
