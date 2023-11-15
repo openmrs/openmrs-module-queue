@@ -177,6 +177,15 @@ public class Legacy1xRestController extends BaseRestController {
 		if (requestBody != null) {
 			ObjectMapper mapper = new ObjectMapper();
 			JsonNode actualObj = mapper.readTree(requestBody);
+			
+			if (!actualObj.has("ticketNumber")) {
+				return new ResponseEntity<Object>(
+						"No ticketNumber passed, skipping ticket assignment",
+						new HttpHeaders(),
+				        HttpStatus.OK
+				);
+			}
+			
 			String servicePointName = actualObj.get("servicePointName").textValue();
 			String ticketNumber = actualObj.get("ticketNumber").textValue();
 			String status = actualObj.get("status").textValue();
