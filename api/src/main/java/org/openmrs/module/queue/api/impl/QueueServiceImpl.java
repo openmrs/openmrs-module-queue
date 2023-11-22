@@ -55,6 +55,14 @@ public class QueueServiceImpl extends BaseOpenmrsService implements QueueService
 	}
 	
 	/**
+	 * @see org.openmrs.module.queue.api.QueueService#createQueue(Queue)
+	 */
+	@Override
+	public Queue createQueue(@NotNull Queue queue) {
+		return saveQueue(queue);
+	}
+	
+	/**
 	 * @see org.openmrs.module.queue.api.QueueService#saveQueue(Queue)
 	 */
 	@Override
