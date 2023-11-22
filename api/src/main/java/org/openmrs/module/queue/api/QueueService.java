@@ -40,6 +40,14 @@ public interface QueueService {
 	Optional<Queue> getQueueById(@NotNull Integer id);
 	
 	/**
+	 * Saves a queue. This is here mainly for backwards-compatibility, it delegates to saveQueue(Queue)
+	 *
+	 * @param queue the queue to be saved
+	 * @return saved {@link org.openmrs.module.queue.model.Queue}
+	 */
+	Queue createQueue(@NotNull Queue queue);
+	
+	/**
 	 * Saves a queue
 	 *
 	 * @param queue the queue to be saved
