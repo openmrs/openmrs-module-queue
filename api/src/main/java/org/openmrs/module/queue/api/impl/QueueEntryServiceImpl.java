@@ -83,6 +83,12 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 				throw new IllegalArgumentException("Patient mismatch - visit.patient does not match patient");
 			}
 		}
+		QueueEntrySearchCriteria searchCriteria = new QueueEntrySearchCriteria();
+		searchCriteria.setPatient(queueEntry.getPatient());
+		searchCriteria.setQueues(Collections.singletonList(queueEntry.getQueue()));
+		if (getQueueEntries(searchCriteria).size() > 0) {
+			throw new APIException("Patient already in the queue");
+		}
 		return dao.createOrUpdate(queueEntry);
 	}
 	
