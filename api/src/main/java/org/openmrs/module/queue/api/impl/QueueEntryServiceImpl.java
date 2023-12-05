@@ -31,6 +31,7 @@ import org.openmrs.api.APIException;
 import org.openmrs.api.VisitService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
+import org.openmrs.module.queue.api.DuplicateQueueEntryException;
 import org.openmrs.module.queue.api.QueueEntryService;
 import org.openmrs.module.queue.api.dao.QueueEntryDao;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
@@ -86,8 +87,15 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		QueueEntrySearchCriteria searchCriteria = new QueueEntrySearchCriteria();
 		searchCriteria.setPatient(queueEntry.getPatient());
 		searchCriteria.setQueues(Collections.singletonList(queueEntry.getQueue()));
-		if (getQueueEntries(searchCriteria).size() > 0) {
-			throw new APIException("Patient already in the queue");
+		List<QueueEntry> queueEntries = getQueueEntries(searchCriteria);
+		for (QueueEntry entry : queueEntries) {
+			if (!((queueEntry.getStartedAt().before(entry.getStartedAt())
+			        && (queueEntry.getEndedAt() != null && queueEntry.getEndedAt().before(entry.getStartedAt())))
+			        || ((entry.getEndedAt() != null) && (queueEntry.getStartedAt().after(entry.getEndedAt()))))) {
+				//if the new queueEntry endDate is NOT before the entry startDate OR the new queueEntry startDate is NOT after the entry endDate,
+				//then the new queueEntry overlaps with the existing entry
+				throw new DuplicateQueueEntryException("queue.entry.duplicate.patient");
+			}
 		}
 		return dao.createOrUpdate(queueEntry);
 	}
