@@ -31,11 +31,10 @@ import org.openmrs.api.APIException;
 import org.openmrs.api.VisitService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
-import org.openmrs.messagesource.MessageSourceService;
-import org.openmrs.module.queue.api.DuplicateQueueEntryException;
 import org.openmrs.module.queue.api.QueueEntryService;
 import org.openmrs.module.queue.api.dao.QueueEntryDao;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
+import org.openmrs.module.queue.exception.DuplicateQueueEntryException;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.utils.QueueUtils;
@@ -50,18 +49,12 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	
 	private VisitService visitService;
 	
-	private MessageSourceService messageSourceService;
-	
 	public void setDao(QueueEntryDao<QueueEntry> dao) {
 		this.dao = dao;
 	}
 	
 	public void setVisitService(VisitService visitService) {
 		this.visitService = visitService;
-	}
-	
-	public void setMessageSourceService(MessageSourceService messageSourceService) {
-		this.messageSourceService = messageSourceService;
 	}
 	
 	/**
@@ -96,10 +89,11 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		searchCriteria.setPatient(queueEntry.getPatient());
 		searchCriteria.setQueues(Collections.singletonList(queueEntry.getQueue()));
 		List<QueueEntry> queueEntries = getQueueEntries(searchCriteria);
-		for (QueueEntry entry : queueEntries) {
-			if (QueueUtils.datesOverlap(entry.getStartedAt(), entry.getEndedAt(), queueEntry.getStartedAt(),
-			    queueEntry.getEndedAt())) {
-				throw new DuplicateQueueEntryException(messageSourceService.getMessage("queue.entry.duplicate.patient"));
+		for (QueueEntry qe : queueEntries) {
+			if (!qe.equals(queueEntry)) {
+				if (QueueUtils.datesOverlap(qe.getStartedAt(), qe.getEndedAt(), qe.getStartedAt(), qe.getEndedAt())) {
+					throw new DuplicateQueueEntryException("queue.entry.duplicate.patient");
+				}
 			}
 		}
 		return dao.createOrUpdate(queueEntry);

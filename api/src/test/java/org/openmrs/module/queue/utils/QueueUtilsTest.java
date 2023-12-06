@@ -12,102 +12,44 @@ package org.openmrs.module.queue.utils;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-import java.util.Calendar;
 import java.util.Date;
 
 import org.junit.Test;
 
 public class QueueUtilsTest {
 	
-	@Test
-	public void shouldReturnFalseWhenDatesAreNull() {
-		assertThat(QueueUtils.datesOverlap(null, null, null, null), is(false));
-	}
+	private static final Date NULL = null;
+	
+	private static final Date AUG_1 = QueueUtils.parseDate("2023-08-01 10:00:00");
+	
+	private static final Date AUG_2 = QueueUtils.parseDate("2023-08-02 10:00:00");
+	
+	private static final Date AUG_3 = QueueUtils.parseDate("2023-08-03 10:00:00");
+	
+	private static final Date AUG_4 = QueueUtils.parseDate("2023-08-04 10:00:00");
 	
 	@Test
-	public void shouldReturnFalseWhenSecondTimeIntervalIsBeforeFirstTimeInterval() {
-		// time interval startDate2-endDate2(t-12hr, t-10hr) is to the left of time interval startDate1-endDate1
-		Calendar calendar = Calendar.getInstance();
-		Date startDate1 = calendar.getTime();
-		calendar.add(Calendar.HOUR, -12);
-		Date startDate2 = calendar.getTime();
-		calendar.add(Calendar.HOUR, 2);
-		Date endDate2 = calendar.getTime();
-		assertThat(QueueUtils.datesOverlap(startDate1, null, startDate2, endDate2), is(false));
-	}
-	
-	@Test
-	public void shouldReturnFalseWhenSecondTimeIntervalEndsWhenFirstTimeIntervalStarts() {
-		// time interval startDate2-endDate2(t-12hr, t) ends when time interval startDate1-endDate1(t) starts
-		Calendar calendar = Calendar.getInstance();
-		Date startDate1 = calendar.getTime();
-		Date endDate2 = calendar.getTime();
-		calendar.add(Calendar.HOUR, -12);
-		Date startDate2 = calendar.getTime();
-		assertThat(QueueUtils.datesOverlap(startDate1, null, startDate2, endDate2), is(false));
-	}
-	
-	@Test
-	public void shouldReturnTrueWhenDatesOverlap() {
-		Calendar calendar = Calendar.getInstance();
-		Date startDate1 = calendar.getTime();
-		calendar.add(Calendar.HOUR, 1);
-		Date startDate2 = calendar.getTime();
-		assertThat(QueueUtils.datesOverlap(startDate1, null, startDate2, null), is(true));
-	}
-	
-	@Test
-	public void shouldReturnTrueWhenDateIntervalsAreBoundedAndInclusive() {
-		// Dt1 = t,         t+12
-		// Dt2 =   t+1,t+8
-		Calendar calendar = Calendar.getInstance();
-		Date startDate1 = calendar.getTime();
-		calendar.add(Calendar.HOUR, 1);
-		Date startDate2 = calendar.getTime();
-		calendar.add(Calendar.HOUR, 7);
-		Date endDate2 = calendar.getTime();
-		calendar.add(Calendar.HOUR, 5);
-		Date endDate1 = calendar.getTime();
-		assertThat(QueueUtils.datesOverlap(startDate1, endDate1, startDate2, endDate2), is(true));
-	}
-	
-	@Test
-	public void shouldReturnTrueWhenDateIntervalsAreBoundedAndOverlap() {
-		// DT1 = t,      t+4
-		// DT2 =   t+1,       t+8
-		Calendar calendar = Calendar.getInstance();
-		Date startDate1 = calendar.getTime();
-		calendar.add(Calendar.HOUR, 1);
-		Date startDate2 = calendar.getTime();
-		calendar.add(Calendar.HOUR, 3);
-		Date endDate1 = calendar.getTime();
-		calendar.add(Calendar.HOUR, 4);
-		Date endDate2 = calendar.getTime();
-		assertThat(QueueUtils.datesOverlap(startDate1, endDate1, startDate2, endDate2), is(true));
-	}
-	
-	@Test
-	public void shouldReturnFalseWhenSecondTimeIntervalStartsAfterFirstTimeIntervalEndsl() {
-		// time interval startDate2-endDate2(t) is to the right of time interval startDate1-endDate1(t-12hr, t-10hr)
-		Calendar calendar = Calendar.getInstance();
-		Date startDate2 = calendar.getTime();
-		calendar.add(Calendar.HOUR, -10);
-		Date endDate1 = calendar.getTime();
-		calendar.add(Calendar.HOUR, -2);
-		Date startDate1 = calendar.getTime();
-		assertThat(QueueUtils.datesOverlap(startDate1, endDate1, startDate2, null), is(false));
-	}
-	
-	@Test
-	public void shouldReturnFalseWhenSecondTimeIntervalStartsWhenFirstTimeIntervalEndsl() {
-		// time interval startDate2(t) starts when first time interval startDate1-endDate1(t-12hr, t) ends
-		// DT1 = t-12, t
-		// DT2 =       t
-		Calendar calendar = Calendar.getInstance();
-		Date startDate2 = calendar.getTime();
-		Date endDate1 = calendar.getTime();
-		calendar.add(Calendar.HOUR, -12);
-		Date startDate1 = calendar.getTime();
-		assertThat(QueueUtils.datesOverlap(startDate1, endDate1, startDate2, null), is(false));
+	public void shouldReturnTrueIfDatesOverlap() {
+		// Test that nulls are handled as open-ended dates
+		assertThat(QueueUtils.datesOverlap(NULL, NULL, NULL, NULL), is(true));
+		assertThat(QueueUtils.datesOverlap(NULL, AUG_2, AUG_3, AUG_4), is(false));
+		assertThat(QueueUtils.datesOverlap(AUG_1, NULL, AUG_3, AUG_4), is(true));
+		assertThat(QueueUtils.datesOverlap(AUG_1, AUG_2, NULL, AUG_4), is(true));
+		assertThat(QueueUtils.datesOverlap(AUG_1, AUG_2, AUG_3, NULL), is(false));
+		
+		// Test that order of date periods does not matter
+		assertThat(QueueUtils.datesOverlap(AUG_1, AUG_2, AUG_3, AUG_4), is(false));
+		assertThat(QueueUtils.datesOverlap(AUG_1, AUG_3, AUG_2, AUG_4), is(true));
+		assertThat(QueueUtils.datesOverlap(AUG_3, AUG_4, AUG_1, AUG_2), is(false));
+		assertThat(QueueUtils.datesOverlap(AUG_2, AUG_4, AUG_1, AUG_3), is(true));
+		
+		// Test date overlaps without nulls
+		assertThat(QueueUtils.datesOverlap(AUG_1, AUG_2, AUG_3, AUG_4), is(false)); // one before two
+		assertThat(QueueUtils.datesOverlap(AUG_1, AUG_2, AUG_2, AUG_3), is(false)); // one ends when two begins
+		assertThat(QueueUtils.datesOverlap(AUG_1, AUG_3, AUG_2, AUG_4), is(true)); // one ends within two
+		assertThat(QueueUtils.datesOverlap(AUG_1, AUG_4, AUG_2, AUG_3), is(true)); // one ends after two ends
+		assertThat(QueueUtils.datesOverlap(AUG_2, AUG_4, AUG_1, AUG_3), is(true)); // one starts within two
+		assertThat(QueueUtils.datesOverlap(AUG_3, AUG_4, AUG_1, AUG_2), is(false)); // one after two
+		assertThat(QueueUtils.datesOverlap(AUG_1, AUG_2, AUG_1, AUG_3), is(true)); // one starts when two starts
 	}
 }

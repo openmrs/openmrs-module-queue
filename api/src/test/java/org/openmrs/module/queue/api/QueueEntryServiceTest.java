@@ -10,15 +10,10 @@
 package org.openmrs.module.queue.api;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.Collections;
 import java.util.Date;
@@ -41,10 +36,10 @@ import org.openmrs.VisitAttributeType;
 import org.openmrs.api.VisitService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.context.UserContext;
-import org.openmrs.messagesource.MessageSourceService;
 import org.openmrs.module.queue.api.dao.QueueEntryDao;
 import org.openmrs.module.queue.api.impl.QueueEntryServiceImpl;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
+import org.openmrs.module.queue.exception.DuplicateQueueEntryException;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
 
@@ -63,9 +58,6 @@ public class QueueEntryServiceTest {
 	@Mock
 	private VisitService visitService;
 	
-	@Mock
-	private MessageSourceService messageSourceService;
-	
 	@Captor
 	ArgumentCaptor<QueueEntrySearchCriteria> queueEntrySearchCriteriaArgumentCaptor;
 	
@@ -75,7 +67,6 @@ public class QueueEntryServiceTest {
 		queueEntryService = new QueueEntryServiceImpl();
 		queueEntryService.setDao(dao);
 		queueEntryService.setVisitService(visitService);
-		queueEntryService.setMessageSourceService(messageSourceService);
 	}
 	
 	@Test
@@ -120,56 +111,44 @@ public class QueueEntryServiceTest {
 	
 	@Test
 	public void shouldNotCreateDuplicateOverlappingQueueEntryRecords() {
-		Queue queue = mock(Queue.class);
-		QueueEntry queueEntry = mock(QueueEntry.class);
-		
-		Patient patient = mock(Patient.class);
-		Concept conceptStatus = mock(Concept.class);
-		Concept conceptPriority = mock(Concept.class);
+		Queue queue = new Queue();
+		Patient patient = new Patient();
+		Concept conceptStatus = new Concept();
+		Concept conceptPriority = new Concept();
 		Date queueStartDate = new Date();
 		
-		when(queueEntry.getQueueEntryId()).thenReturn(QUEUE_ENTRY_ID);
-		when(queueEntry.getQueue()).thenReturn(queue);
-		when(queueEntry.getStatus()).thenReturn(conceptStatus);
-		when(queueEntry.getPriority()).thenReturn(conceptPriority);
-		when(queueEntry.getPatient()).thenReturn(patient);
-		when(queueEntry.getStartedAt()).thenReturn(queueStartDate);
-		when(queueEntry.getEndedAt()).thenReturn(null);
-		when(dao.createOrUpdate(queueEntry)).thenReturn(queueEntry);
+		QueueEntry savedQueueEntry = new QueueEntry();
+		savedQueueEntry.setQueueEntryId(QUEUE_ENTRY_ID);
+		savedQueueEntry.setQueue(queue);
+		savedQueueEntry.setPatient(patient);
+		savedQueueEntry.setStatus(conceptStatus);
+		savedQueueEntry.setPriority(conceptPriority);
+		savedQueueEntry.setStartedAt(queueStartDate);
 		
-		QueueEntry result = queueEntryService.saveQueueEntry(queueEntry);
-		assertThat(result, notNullValue());
-		assertThat(result.getQueueEntryId(), is(QUEUE_ENTRY_ID));
-		assertThat(result.getQueue(), is(queue));
-		assertThat(result.getStatus(), is(conceptStatus));
-		assertThat(result.getPriority(), is(conceptPriority));
-		assertThat(result.getPatient(), is(patient));
-		assertThat(result.getStartedAt(), is(queueStartDate));
-		
-		//attempt to add a second queue entry for the same patient to the same queue
-		Date secondQueueStartDate = new Date();
-		QueueEntry secondQueueEntry = mock(QueueEntry.class);
-		when(secondQueueEntry.getQueue()).thenReturn(queue);
-		when(secondQueueEntry.getPatient()).thenReturn(patient);
-		when(secondQueueEntry.getStartedAt()).thenReturn(secondQueueStartDate);
-		when(messageSourceService.getMessage("queue.entry.duplicate.patient")).thenReturn("Patient already in the queue");
+		QueueEntry duplicateQueueEntry = new QueueEntry();
+		duplicateQueueEntry.setQueue(queue);
+		duplicateQueueEntry.setPatient(patient);
+		duplicateQueueEntry.setStartedAt(queueStartDate);
 		
 		QueueEntrySearchCriteria searchCriteria = new QueueEntrySearchCriteria();
-		searchCriteria.setPatient(secondQueueEntry.getPatient());
+		searchCriteria.setPatient(patient);
 		searchCriteria.setQueues(Collections.singletonList(queue));
-		//tell the dao to return the first queueEntry that was successfully saved above
-		when(dao.getQueueEntries(searchCriteria)).thenReturn(Collections.singletonList(result));
 		
+		when(dao.createOrUpdate(savedQueueEntry)).thenReturn(savedQueueEntry);
+		when(dao.getQueueEntries(searchCriteria)).thenReturn(Collections.singletonList(savedQueueEntry));
+		
+		// Should be able to save and re-save a queue entry without causing validation failure
+		savedQueueEntry = queueEntryService.saveQueueEntry(savedQueueEntry);
+		queueEntryService.saveQueueEntry(savedQueueEntry);
+		
+		// Should hit a validation error if a new queue entry is saved with overlapping start date
 		try {
-			//attempt to add the same queue entry with the same patient to the same queue
-			queueEntryService.saveQueueEntry(secondQueueEntry);
-			//if the exception is not thrown, the test will fail
+			queueEntryService.saveQueueEntry(duplicateQueueEntry);
 			fail("Expected DuplicateQueueEntryException");
 		}
 		catch (DuplicateQueueEntryException e) {
-			assertThat(e.getMessage(), is(messageSourceService.getMessage("queue.entry.duplicate.patient")));
+			assertThat(e.getMessage(), is("queue.entry.duplicate.patient"));
 		}
-		
 	}
 	
 	@Test
