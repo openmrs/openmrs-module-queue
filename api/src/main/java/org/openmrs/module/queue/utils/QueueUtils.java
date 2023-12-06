@@ -74,4 +74,28 @@ public class QueueUtils {
 		}
 		return averageWaitTime;
 	}
+	
+	/**
+	 * @param startDate1, endDate1 - the start and end date of one timeframe
+	 * @param startDate2, endDate2 - the start and end date of second timeframe
+	 * @return boolean - indicating whether the timeframes overlap
+	 */
+	public static boolean datesOverlap(Date startDate1, Date endDate1, Date startDate2, Date endDate2) {
+		long startTime1 = (startDate1 == null ? Long.MIN_VALUE : startDate1.getTime());
+		long endTime1 = (endDate1 == null ? Long.MAX_VALUE : endDate1.getTime());
+		long startTime2 = (startDate2 == null ? Long.MIN_VALUE : startDate2.getTime());
+		long endTime2 = (endDate2 == null ? Long.MAX_VALUE : endDate2.getTime());
+		// If time1 starts earlier, then it overlaps time2 if it ends after time2 starts
+		if (startTime1 < startTime2) {
+			return endTime1 > startTime2;
+		}
+		// Otherwise, if time2 starts earlier, then it overlaps time1 if it ends after time1 starts
+		else if (startTime2 < startTime1) {
+			return endTime2 > startTime1;
+		}
+		// Otherwise, if both start at the same time, they overlap
+		else {
+			return true;
+		}
+	}
 }

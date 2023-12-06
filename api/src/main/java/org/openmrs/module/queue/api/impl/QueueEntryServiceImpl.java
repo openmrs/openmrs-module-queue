@@ -34,8 +34,10 @@ import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.queue.api.QueueEntryService;
 import org.openmrs.module.queue.api.dao.QueueEntryDao;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
+import org.openmrs.module.queue.exception.DuplicateQueueEntryException;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
+import org.openmrs.module.queue.utils.QueueUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
@@ -81,6 +83,17 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		if (queueEntry.getVisit() != null) {
 			if (!queueEntry.getVisit().getPatient().equals(queueEntry.getPatient())) {
 				throw new IllegalArgumentException("Patient mismatch - visit.patient does not match patient");
+			}
+		}
+		QueueEntrySearchCriteria searchCriteria = new QueueEntrySearchCriteria();
+		searchCriteria.setPatient(queueEntry.getPatient());
+		searchCriteria.setQueues(Collections.singletonList(queueEntry.getQueue()));
+		List<QueueEntry> queueEntries = getQueueEntries(searchCriteria);
+		for (QueueEntry qe : queueEntries) {
+			if (!qe.equals(queueEntry)) {
+				if (QueueUtils.datesOverlap(qe.getStartedAt(), qe.getEndedAt(), qe.getStartedAt(), qe.getEndedAt())) {
+					throw new DuplicateQueueEntryException("queue.entry.duplicate.patient");
+				}
 			}
 		}
 		return dao.createOrUpdate(queueEntry);
