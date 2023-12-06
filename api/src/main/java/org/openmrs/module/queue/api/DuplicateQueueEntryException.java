@@ -10,7 +10,6 @@
 package org.openmrs.module.queue.api;
 
 import org.openmrs.api.APIException;
-import org.openmrs.api.context.Context;
 
 public class DuplicateQueueEntryException extends APIException {
 	
@@ -23,7 +22,7 @@ public class DuplicateQueueEntryException extends APIException {
 	 * @param message
 	 */
 	public DuplicateQueueEntryException(String message) {
-		super(Context.getMessageSourceService().getMessage(message));
+		super(message);
 	}
 	
 	/**

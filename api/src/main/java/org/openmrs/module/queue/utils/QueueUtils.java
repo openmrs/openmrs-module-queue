@@ -74,4 +74,21 @@ public class QueueUtils {
 		}
 		return averageWaitTime;
 	}
+	
+	/**
+	 * @param date startDate1, endDate1 - the start and end date of one timeframe
+	 * @param date startDate2, endDate2 - the start and end date of second timeframe
+	 * @return boolean - indicating whether or not the timeframes overlap
+	 */
+	public static boolean datesOverlap(Date startDate1, Date endDate1, Date startDate2, Date endDate2) {
+		if (startDate1 != null && startDate2 != null) {
+			if (!((startDate2.before(startDate1) && (endDate2 != null && endDate2.compareTo(startDate1) <= 0))
+			        || ((endDate1 != null) && (startDate2.compareTo(endDate1) >= 0)))) {
+				//if the endDate2 is NOT before the startDate1 OR the startDate2 is NOT after the entry endDate1,
+				//then the time intervals overlap
+				return true;
+			}
+		}
+		return false;
+	}
 }

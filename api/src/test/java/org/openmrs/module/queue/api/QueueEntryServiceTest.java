@@ -41,6 +41,7 @@ import org.openmrs.VisitAttributeType;
 import org.openmrs.api.VisitService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.context.UserContext;
+import org.openmrs.messagesource.MessageSourceService;
 import org.openmrs.module.queue.api.dao.QueueEntryDao;
 import org.openmrs.module.queue.api.impl.QueueEntryServiceImpl;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
@@ -53,7 +54,6 @@ public class QueueEntryServiceTest {
 	private static final String QUEUE_ENTRY_UUID = "j8f0bb90-86f4-4d9c-8b6c-3713d748ef74";
 	
 	private static final Integer QUEUE_ENTRY_ID = 14;
-	private static final Integer SECOND_QUEUE_ENTRY_ID = 15;
 	
 	private QueueEntryServiceImpl queueEntryService;
 	
@@ -62,6 +62,9 @@ public class QueueEntryServiceTest {
 	
 	@Mock
 	private VisitService visitService;
+	
+	@Mock
+	private MessageSourceService messageSourceService;
 	
 	@Captor
 	ArgumentCaptor<QueueEntrySearchCriteria> queueEntrySearchCriteriaArgumentCaptor;
@@ -72,6 +75,7 @@ public class QueueEntryServiceTest {
 		queueEntryService = new QueueEntryServiceImpl();
 		queueEntryService.setDao(dao);
 		queueEntryService.setVisitService(visitService);
+		queueEntryService.setMessageSourceService(messageSourceService);
 	}
 	
 	@Test
@@ -141,17 +145,15 @@ public class QueueEntryServiceTest {
 		assertThat(result.getPriority(), is(conceptPriority));
 		assertThat(result.getPatient(), is(patient));
 		assertThat(result.getStartedAt(), is(queueStartDate));
-
+		
 		//attempt to add a second queue entry for the same patient to the same queue
 		Date secondQueueStartDate = new Date();
 		QueueEntry secondQueueEntry = mock(QueueEntry.class);
-		when(secondQueueEntry.getQueueEntryId()).thenReturn(SECOND_QUEUE_ENTRY_ID);
 		when(secondQueueEntry.getQueue()).thenReturn(queue);
-		when(secondQueueEntry.getStatus()).thenReturn(conceptStatus);
-		when(secondQueueEntry.getPriority()).thenReturn(conceptPriority);
 		when(secondQueueEntry.getPatient()).thenReturn(patient);
 		when(secondQueueEntry.getStartedAt()).thenReturn(secondQueueStartDate);
-
+		when(messageSourceService.getMessage("queue.entry.duplicate.patient")).thenReturn("Patient already in the queue");
+		
 		QueueEntrySearchCriteria searchCriteria = new QueueEntrySearchCriteria();
 		searchCriteria.setPatient(secondQueueEntry.getPatient());
 		searchCriteria.setQueues(Collections.singletonList(queue));
@@ -165,7 +167,7 @@ public class QueueEntryServiceTest {
 			fail("Expected DuplicateQueueEntryException");
 		}
 		catch (DuplicateQueueEntryException e) {
-			assertThat(e.getMessage(), is(Context.getMessageSourceService().getMessage("queue.entry.duplicate.patient")));
+			assertThat(e.getMessage(), is(messageSourceService.getMessage("queue.entry.duplicate.patient")));
 		}
 		
 	}
