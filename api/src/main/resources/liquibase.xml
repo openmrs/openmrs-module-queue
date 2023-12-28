@@ -350,7 +350,7 @@
         <addForeignKeyConstraint baseColumnNames="location_coming_from" baseTableName="queue_entry" constraintName="queue_entry_location_coming_from_id_fk" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="queue_id" referencedTableName="queue"/>
     </changeSet>
 
-    <changeSet id="rename_queue_entry_location_coming_from_column_20230914" author="cynthiakamau" dbms="mysql">
+    <changeSet id="rename_queue_entry_location_coming_from_column_20230914" author="cynthiakamau">
         <preConditions onFail="MARK_RAN">
             <columnExists tableName="queue_entry" columnName="location_coming_from"/>
         </preConditions>
@@ -358,7 +358,7 @@
         <renameColumn tableName="queue_entry" oldColumnName="location_coming_from" newColumnName="queue_coming_from" columnDataType="int" />
     </changeSet>
 
-    <changeSet id="drop_queue_entry_location_coming_from_fk_20230914" author="cynthiakamau" dbms="mysql">
+    <changeSet id="drop_queue_entry_location_coming_from_fk_20230914" author="cynthiakamau">
         <preConditions onFail="MARK_RAN">
             <foreignKeyConstraintExists foreignKeyName="queue_entry_location_coming_from_id_fk" />
         </preConditions>
