@@ -153,7 +153,7 @@ public class QueueEntryServiceTest {
 	
 	@Test
 	public void shouldVoidQueueEntry() {
-		User user = new User();
+		User user = new User(1);
 		UserContext userContext = mock(UserContext.class);
 		when(userContext.getAuthenticatedUser()).thenReturn(user);
 		Context.setUserContext(userContext);
@@ -168,6 +168,7 @@ public class QueueEntryServiceTest {
 		assertThat(queueEntry.getDateVoided(), notNullValue());
 		assertThat(queueEntry.getVoidedBy(), equalTo(user));
 		assertThat(queueEntry.getVoidReason(), equalTo("voidReason"));
+		Context.logout();
 	}
 	
 	@Test

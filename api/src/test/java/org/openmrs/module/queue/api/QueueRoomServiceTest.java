@@ -88,7 +88,7 @@ public class QueueRoomServiceTest {
 	
 	@Test
 	public void shouldRetireQueueRoom() {
-		User user = new User();
+		User user = new User(1);
 		UserContext userContext = mock(UserContext.class);
 		when(userContext.getAuthenticatedUser()).thenReturn(user);
 		Context.setUserContext(userContext);
