@@ -212,6 +212,14 @@
                     <version>3.1.2</version>
                 </plugin>
                 <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.1.2</version>
+                    <configuration>
+                        <runOrder>alphabetical</runOrder>
+                    </configuration>
+                </plugin>
+                <plugin>
                     <groupId>org.openmrs.maven.plugins</groupId>
                     <artifactId>maven-openmrs-plugin</artifactId>
                     <version>1.0.1</version>
