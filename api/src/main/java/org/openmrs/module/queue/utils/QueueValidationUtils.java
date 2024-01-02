@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.openmrs.Concept;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.QueueModuleConstants;
+import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.springframework.validation.Errors;
 
@@ -35,8 +36,12 @@ public class QueueValidationUtils {
 			throw new IllegalArgumentException("Please configure concept set name for " + concept.getDisplayString()
 			        + " via the global property " + property);
 		}
-		Concept conceptByName = Context.getConceptService().getConceptByName(value);
-		return Context.getConceptService().getConceptsByConceptSet(conceptByName).contains(concept);
+		QueueServicesWrapper servicesWrapper = Context.getRegisteredComponents(QueueServicesWrapper.class).get(0);
+		Concept conceptSet = servicesWrapper.getConcept(value);
+		if (conceptSet == null) {
+			throw new IllegalArgumentException("Invalid concept '" + value + "' specified for property: " + property);
+		}
+		return servicesWrapper.getConceptService().getConceptsByConceptSet(conceptSet).contains(concept);
 	}
 	
 	public static void validateQueueEntry(QueueEntry queueEntry, Errors errors) {

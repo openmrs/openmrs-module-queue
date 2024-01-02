@@ -104,14 +104,13 @@ public class QueueServicesWrapper {
 				return c;
 			}
 		}
-		//handle name
-		List<Concept> concepts = getConceptService().getConceptsByName(conceptRef);
-		if (concepts.size() == 1) {
-			return concepts.get(0);
-		} else if (concepts.size() > 1) {
-			throw new IllegalArgumentException("More than one concept is found with name: " + conceptRef);
+		//handle name.  this isn't ideal, as core will just log a warning if there are 2 concepts with the same name
+		//but there are no alternative suitable methods to get a List of Concepts that exactly match a given name
+		c = getConceptService().getConceptByName(conceptRef);
+		if (c == null) {
+			throw new IllegalArgumentException("Unable to find concept: " + conceptRef);
 		}
-		throw new IllegalArgumentException("Unable to find concept: " + conceptRef);
+		return c;
 	}
 	
 	/**
