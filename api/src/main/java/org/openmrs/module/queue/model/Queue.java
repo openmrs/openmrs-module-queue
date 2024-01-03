@@ -54,6 +54,14 @@ public class Queue extends BaseChangeableOpenmrsMetadata {
 	@JoinColumn(name = "service", referencedColumnName = "concept_id", nullable = false)
 	private Concept service;
 	
+	@ManyToOne
+	@JoinColumn(name = "priority_concept_set", referencedColumnName = "concept_id")
+	private Concept priorityConceptSet;
+	
+	@ManyToOne
+	@JoinColumn(name = "status_concept_set", referencedColumnName = "concept_id")
+	private Concept statusConceptSet;
+	
 	@OneToMany(mappedBy = "queue", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<QueueEntry> queueEntries;
 	

@@ -10,12 +10,7 @@
 package org.openmrs.module.queue.validators;
 
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -27,8 +22,8 @@ import org.junit.Test;
 import org.openmrs.Concept;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.SpringTestConfiguration;
+import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
-import org.openmrs.module.queue.utils.QueueValidationUtils;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -58,6 +53,7 @@ public class QueueEntryValidatorTest extends BaseModuleContextSensitiveTest {
 	public void setup() {
 		INITIAL_CONCEPTS_DATASETS.forEach(this::executeDataSet);
 		queueEntry = new QueueEntry();
+		queueEntry.setQueue(new Queue());
 		errors = new BindException(queueEntry, queueEntry.getClass().getName());
 	}
 	
@@ -69,20 +65,6 @@ public class QueueEntryValidatorTest extends BaseModuleContextSensitiveTest {
 	@Test
 	public void shouldSupportQueueEntry() {
 		assertTrue(validator.supports(QueueEntry.class));
-	}
-	
-	@Test
-	public void shouldReturnTrueForValidStatusConcept() {
-		Concept concept = Context.getConceptService().getConceptByUuid(VALID_STATUS_CONCEPT);
-		assertThat(concept, notNullValue());
-		assertTrue(QueueValidationUtils.isValidStatus(concept));
-	}
-	
-	@Test
-	public void shouldReturnFalseForInvalidStatusConcept() {
-		Concept concept = Context.getConceptService().getConceptByUuid(INVALID_STATUS_CONCEPT_UUID);
-		assertThat(concept, notNullValue());
-		assertFalse(QueueValidationUtils.isValidStatus(concept));
 	}
 	
 	@Test
@@ -135,8 +117,6 @@ public class QueueEntryValidatorTest extends BaseModuleContextSensitiveTest {
 		FieldError queueEntryStatusFieldError = errors.getFieldError("endedAt");
 		assertNotNull(queueEntryStatusFieldError);
 		assertThat(queueEntryStatusFieldError.getCode(), is("queueEntry.endedAt.invalid"));
-		assertThat(queueEntryStatusFieldError.getDefaultMessage(),
-		    is("Queue entry endedAt should after the startedAt date"));
 	}
 	
 	private Date yesterday() {

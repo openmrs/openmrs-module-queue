@@ -418,4 +418,32 @@
         <dropTable tableName="visit_queue_entries"/>
     </changeSet>
 
+    <changeSet id="add_priority_concept_set_to_queue_20240102" author="mseaton">
+        <preConditions onError="WARN" onFail="MARK_RAN">
+            <tableExists tableName="queue"/>
+            <not><columnExists tableName="queue" columnName="priority_concept_set"/></not>
+        </preConditions>
+        <comment>
+            Add column priority_concept_set to queue table
+        </comment>
+        <addColumn tableName="queue">
+            <column name="priority_concept_set" type="int"/>
+        </addColumn>
+        <addForeignKeyConstraint baseColumnNames="priority_concept_set" baseTableName="queue" constraintName="queue_priority_concept_set_fk" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="concept_id" referencedTableName="concept"/>
+    </changeSet>
+
+    <changeSet id="add_status_concept_set_to_queue_20240102" author="mseaton">
+        <preConditions onError="WARN" onFail="MARK_RAN">
+            <tableExists tableName="queue"/>
+            <not><columnExists tableName="queue" columnName="status_concept_set"/></not>
+        </preConditions>
+        <comment>
+            Add column status_concept_set to queue table
+        </comment>
+        <addColumn tableName="queue">
+            <column name="status_concept_set" type="int"/>
+        </addColumn>
+        <addForeignKeyConstraint baseColumnNames="status_concept_set" baseTableName="queue" constraintName="queue_status_concept_set_fk" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="concept_id" referencedTableName="concept"/>
+    </changeSet>
+
 </databaseChangeLog>
