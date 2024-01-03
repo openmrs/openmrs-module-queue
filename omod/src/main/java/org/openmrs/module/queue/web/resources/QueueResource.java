@@ -105,11 +105,19 @@ public class QueueResource extends DelegatingCrudResource<Queue> {
 			this.addSharedResourceDescriptionProperties(resourceDescription);
 			resourceDescription.addProperty("location", Representation.REF);
 			resourceDescription.addProperty("service", Representation.REF);
+			resourceDescription.addProperty("priorityConceptSet", Representation.REF);
+			resourceDescription.addProperty("statusConceptSet", Representation.REF);
+			resourceDescription.addProperty("allowedPriorities", Representation.REF);
+			resourceDescription.addProperty("allowedStatuses", Representation.REF);
 			resourceDescription.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
 		} else if (representation instanceof FullRepresentation) {
 			this.addSharedResourceDescriptionProperties(resourceDescription);
 			resourceDescription.addProperty("location", Representation.FULL);
 			resourceDescription.addProperty("service", Representation.FULL);
+			resourceDescription.addProperty("priorityConceptSet", Representation.REF);
+			resourceDescription.addProperty("statusConceptSet", Representation.REF);
+			resourceDescription.addProperty("allowedPriorities", Representation.REF);
+			resourceDescription.addProperty("allowedStatuses", Representation.REF);
 			resourceDescription.addProperty("auditInfo");
 		} else if (representation instanceof CustomRepresentation) {
 			//For custom representation, must be null
@@ -134,6 +142,8 @@ public class QueueResource extends DelegatingCrudResource<Queue> {
 		resourceDescription.addProperty("description");
 		resourceDescription.addProperty("location");
 		resourceDescription.addProperty("service");
+		resourceDescription.addProperty("priorityConceptSet");
+		resourceDescription.addProperty("statusConceptSet");
 		return resourceDescription;
 	}
 	
@@ -154,6 +164,16 @@ public class QueueResource extends DelegatingCrudResource<Queue> {
 	@PropertyGetter("display")
 	public String getDisplay(Queue queue) {
 		return queue.getName();
+	}
+	
+	@PropertyGetter("allowedPriorities")
+	public Object getAllowedPriorities(Queue delegate) {
+		return services.getAllowedPriorities(delegate);
+	}
+	
+	@PropertyGetter("allowedStatuses")
+	public Object getAllowedStatuses(Queue delegate) {
+		return services.getAllowedStatuses(delegate);
 	}
 	
 	@Override
