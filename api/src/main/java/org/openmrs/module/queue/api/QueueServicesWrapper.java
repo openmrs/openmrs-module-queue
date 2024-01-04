@@ -19,11 +19,13 @@ import org.openmrs.Location;
 import org.openmrs.Patient;
 import org.openmrs.Provider;
 import org.openmrs.Visit;
+import org.openmrs.api.AdministrationService;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.LocationService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.ProviderService;
 import org.openmrs.api.VisitService;
+import org.openmrs.module.queue.QueueModuleConstants;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueRoom;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +44,8 @@ public class QueueServicesWrapper {
 	
 	private final RoomProviderMapService roomProviderMapService;
 	
+	private final AdministrationService administrationService;
+	
 	private final ConceptService conceptService;
 	
 	private final LocationService locationService;
@@ -57,12 +61,14 @@ public class QueueServicesWrapper {
 	    @Qualifier("queue.QueueEntryService") QueueEntryService queueEntryService,
 	    @Qualifier("queue.QueueRoomService") QueueRoomService queueRoomService,
 	    @Qualifier("queue.RoomProviderMapService") RoomProviderMapService roomProviderMapService,
-	    ConceptService conceptService, LocationService locationService, PatientService patientService,
-	    VisitService visitService, ProviderService providerService) {
+	    @Qualifier("adminService") AdministrationService administrationService, ConceptService conceptService,
+	    LocationService locationService, PatientService patientService, VisitService visitService,
+	    ProviderService providerService) {
 		this.queueService = queueService;
 		this.queueEntryService = queueEntryService;
 		this.queueRoomService = queueRoomService;
 		this.roomProviderMapService = roomProviderMapService;
+		this.administrationService = administrationService;
 		this.conceptService = conceptService;
 		this.locationService = locationService;
 		this.patientService = patientService;
@@ -104,14 +110,13 @@ public class QueueServicesWrapper {
 				return c;
 			}
 		}
-		//handle name
-		List<Concept> concepts = getConceptService().getConceptsByName(conceptRef);
-		if (concepts.size() == 1) {
-			return concepts.get(0);
-		} else if (concepts.size() > 1) {
-			throw new IllegalArgumentException("More than one concept is found with name: " + conceptRef);
+		//handle name.  this isn't ideal, as core will just log a warning if there are 2 concepts with the same name
+		//but there are no alternative suitable methods to get a List of Concepts that exactly match a given name
+		c = getConceptService().getConceptByName(conceptRef);
+		if (c == null) {
+			throw new IllegalArgumentException("Unable to find concept: " + conceptRef);
 		}
-		throw new IllegalArgumentException("Unable to find concept: " + conceptRef);
+		return c;
 	}
 	
 	/**
@@ -256,5 +261,55 @@ public class QueueServicesWrapper {
 			return queueRoom;
 		}
 		throw new IllegalArgumentException("Unable to find queueRoom: " + queueRoomRef);
+	}
+	
+	/**
+	 * @return the allowed service concepts
+	 */
+	public List<Concept> getAllowedServices() {
+		Concept conceptSet = getConcept(getGlobalProperty(QueueModuleConstants.QUEUE_SERVICE));
+		if (conceptSet == null) {
+			throw new IllegalStateException("Missing global property: " + QueueModuleConstants.QUEUE_SERVICE);
+		}
+		return conceptSet.getSetMembers();
+	}
+	
+	/**
+	 * @param queue
+	 * @return the allowed status concepts for the given queue, either configured directly or from GP
+	 *         default
+	 */
+	public List<Concept> getAllowedStatuses(Queue queue) {
+		Concept conceptSet = queue.getStatusConceptSet();
+		if (conceptSet == null) {
+			conceptSet = getConcept(getGlobalProperty(QueueModuleConstants.QUEUE_STATUS));
+		}
+		if (conceptSet == null) {
+			throw new IllegalStateException("Missing global property: " + QueueModuleConstants.QUEUE_STATUS);
+		}
+		return conceptSet.getSetMembers();
+	}
+	
+	/**
+	 * @param queue
+	 * @return the allowed priority concepts for the given queue, either configured directly or from GP
+	 *         default
+	 */
+	public List<Concept> getAllowedPriorities(Queue queue) {
+		Concept conceptSet = queue.getPriorityConceptSet();
+		if (conceptSet == null) {
+			conceptSet = getConcept(getGlobalProperty(QueueModuleConstants.QUEUE_PRIORITY));
+		}
+		if (conceptSet == null) {
+			throw new IllegalStateException("Missing global property: " + QueueModuleConstants.QUEUE_PRIORITY);
+		}
+		return conceptSet.getSetMembers();
+	}
+	
+	/**
+	 * @return the value of the global property with the given name
+	 */
+	public String getGlobalProperty(String property) {
+		return administrationService.getGlobalProperty(property);
 	}
 }

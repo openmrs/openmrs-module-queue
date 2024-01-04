@@ -12,8 +12,10 @@ package org.openmrs.module.queue.validators;
 import static org.springframework.validation.ValidationUtils.rejectIfEmptyOrWhitespace;
 
 import org.openmrs.annotation.Handler;
+import org.openmrs.api.context.Context;
+import org.openmrs.module.queue.api.QueueServicesWrapper;
+import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
-import org.openmrs.module.queue.utils.QueueValidationUtils;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
@@ -30,19 +32,37 @@ public class QueueEntryValidator implements Validator {
 		if (!(target instanceof QueueEntry)) {
 			throw new IllegalArgumentException("the parameter target must be of type " + QueueEntry.class);
 		}
+		rejectIfEmptyOrWhitespace(errors, "queue", "queueEntry.queue.null", "The property queue should not be null");
 		rejectIfEmptyOrWhitespace(errors, "patient", "queueEntry.patient.null", "The property patient should not be null");
 		rejectIfEmptyOrWhitespace(errors, "startedAt", "queueEntry.startedAt.null",
 		    "The property startedAt should not be null");
 		
 		QueueEntry queueEntry = (QueueEntry) target;
+		Queue queue = queueEntry.getQueue();
+		
 		if (queueEntry.getEndedAt() != null) {
-			//queueEntry.endedAt >= queueEntry.startedAt
 			if (queueEntry.getStartedAt().after(queueEntry.getEndedAt())) {
 				errors.rejectValue("endedAt", "queueEntry.endedAt.invalid",
-				    "Queue entry endedAt should after the startedAt date");
+				    "Queue entry endedAt should be on or after the startedAt date");
 			}
 		}
 		
-		QueueValidationUtils.validateQueueEntry((QueueEntry) target, errors);
+		QueueServicesWrapper queueServices = Context.getRegisteredComponents(QueueServicesWrapper.class).get(0);
+		if (queueEntry.getStatus() == null) {
+			errors.rejectValue("status", "queueEntry.status.null", "The property status should not be null");
+		} else {
+			if (!queueServices.getAllowedStatuses(queue).contains(queueEntry.getStatus())) {
+				errors.rejectValue("status", "queueEntry.status.invalid",
+				    "The property status should be a member of configured queue status conceptSet.");
+			}
+		}
+		if (queueEntry.getPriority() == null) {
+			errors.rejectValue("priority", "queueEntry.priority.null", "The property priority should not be null");
+		} else {
+			if (!queueServices.getAllowedPriorities(queue).contains(queueEntry.getPriority())) {
+				errors.rejectValue("priority", "queueEntry.priority.invalid",
+				    "The property priority should be a member of configured queue priority conceptSet.");
+			}
+		}
 	}
 }

@@ -9,14 +9,11 @@
  */
 package org.openmrs.module.queue.validators;
 
-import javax.validation.constraints.NotNull;
-
 import lombok.extern.slf4j.Slf4j;
-import org.openmrs.Location;
 import org.openmrs.annotation.Handler;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.model.Queue;
-import org.openmrs.module.queue.utils.QueueValidationUtils;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
@@ -38,38 +35,22 @@ public class QueueValidator implements Validator {
 		log.debug("{}.validate", this.getClass().getName());
 		//instanceof checks for null
 		if (!(target instanceof Queue)) {
-			throw new IllegalArgumentException("The parameter target should not be null & must be of type" + Queue.class);
+			throw new IllegalArgumentException("Invalid Queue class: " + target.getClass().getName());
 		}
 		Queue queue = (Queue) target;
 		ValidationUtils.rejectIfEmptyOrWhitespace(errors, "name", "queue.name.null", "Queue name can't be null");
 		ValidationUtils.rejectIfEmptyOrWhitespace(errors, "location", "queue.location.null", "Location can't be null");
 		
-		if (!isValidLocation(queue.getLocation())) {
-			errors.rejectValue("location", "queue.location.null", "Location is null or doesn't exists");
-		}
+		// TODO: Check if the location is tagged as a Queue Location?
 		
+		QueueServicesWrapper queueServices = Context.getRegisteredComponents(QueueServicesWrapper.class).get(0);
 		if (queue.getService() == null) {
 			errors.rejectValue("service", "QueueEntry.service.null", "The property service should not be null");
 		} else {
-			if (!QueueValidationUtils.isValidService(queue.getService())) {
+			if (!queueServices.getAllowedServices().contains(queue.getService())) {
 				errors.rejectValue("service", "Queue.service.invalid",
 				    "The property service should be a member of configured queue service conceptSet.");
 			}
 		}
 	}
-	
-	/**
-	 * For now checks for existence
-	 * 
-	 * @param location location to check if it exists
-	 * @return true or false if the location exists
-	 */
-	public boolean isValidLocation(@NotNull Location location) {
-		if (location == null) {
-			return false;
-		}
-		Location isExistentLocation = Context.getLocationService().getLocationByUuid(location.getUuid());
-		return isExistentLocation != null;
-	}
-	
 }
