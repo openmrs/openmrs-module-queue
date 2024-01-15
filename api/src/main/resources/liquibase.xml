@@ -8,10 +8,10 @@
     Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
     graphic logo is a trademark of OpenMRS Inc.
 -->
-<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
-                  https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd">
     <changeSet id="add_queue_20220125" author="corneliouzbett">
         <preConditions onFail="MARK_RAN" onError="WARN">
             <not>
@@ -360,7 +360,7 @@
 
     <changeSet id="drop_queue_entry_location_coming_from_fk_20230914" author="cynthiakamau">
         <preConditions onFail="MARK_RAN">
-            <foreignKeyConstraintExists foreignKeyName="queue_entry_location_coming_from_id_fk" />
+            <foreignKeyConstraintExists foreignKeyTableName="queue_entry" foreignKeyName="queue_entry_location_coming_from_id_fk" />
         </preConditions>
         <comment>Dropping foreign key on location_coming_from in queue_entry table</comment>
         <dropForeignKeyConstraint baseTableName="queue_entry" constraintName="queue_entry_location_coming_from_id_fk"/>
