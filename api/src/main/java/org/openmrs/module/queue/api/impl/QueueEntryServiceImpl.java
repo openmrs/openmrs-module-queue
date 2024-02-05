@@ -91,7 +91,8 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		List<QueueEntry> queueEntries = getQueueEntries(searchCriteria);
 		for (QueueEntry qe : queueEntries) {
 			if (!qe.equals(queueEntry)) {
-				if (QueueUtils.datesOverlap(qe.getStartedAt(), qe.getEndedAt(), qe.getStartedAt(), qe.getEndedAt())) {
+				if (QueueUtils.datesOverlap(qe.getStartedAt(), qe.getEndedAt(), queueEntry.getStartedAt(),
+				    queueEntry.getEndedAt())) {
 					throw new DuplicateQueueEntryException("queue.entry.duplicate.patient");
 				}
 			}
