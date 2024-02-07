@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Location;
 import org.openmrs.Provider;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
@@ -121,7 +122,7 @@ public class QueueEntrySearchCriteriaParser {
 					break;
 				}
 				case SEARCH_PARAM_HAS_VISIT: {
-					criteria.setHasVisit(Boolean.parseBoolean(parameterMap.get(SEARCH_PARAM_HAS_VISIT)[0]));
+					criteria.setHasVisit(parseBoolean(parameterMap.get(SEARCH_PARAM_HAS_VISIT)[0]));
 					break;
 				}
 				case SEARCH_PARAM_PRIORITY: {
@@ -167,7 +168,7 @@ public class QueueEntrySearchCriteriaParser {
 					break;
 				}
 				case SEARCH_PARAM_IS_ENDED: {
-					criteria.setIsEnded(Boolean.parseBoolean(parameterMap.get(SEARCH_PARAM_IS_ENDED)[0]));
+					criteria.setIsEnded(parseBoolean(parameterMap.get(SEARCH_PARAM_IS_ENDED)[0]));
 					break;
 				}
 				case SEARCH_PARAM_INCLUDE_VOIDED: {
@@ -180,5 +181,12 @@ public class QueueEntrySearchCriteriaParser {
 			}
 		}
 		return criteria;
+	}
+	
+	private Boolean parseBoolean(String value) {
+		if (StringUtils.isBlank(value)) {
+			return null;
+		}
+		return Boolean.parseBoolean(value);
 	}
 }
