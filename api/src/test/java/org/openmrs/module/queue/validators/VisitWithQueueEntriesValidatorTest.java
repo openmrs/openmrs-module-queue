@@ -108,7 +108,7 @@ public class VisitWithQueueEntriesValidatorTest extends BaseModuleContextSensiti
 		validator.validate(visit, errors);
 		FieldError queueEntryStatusFieldError = errors.getFieldError("startDatetime");
 		assertNotNull(queueEntryStatusFieldError);
-		assertThat(queueEntryStatusFieldError.getCode(), is("Visit.queueEntriesCannotStartBeforeStartDate"));
+		assertThat(queueEntryStatusFieldError.getCode(), is("queue.entry.error.cannotStartBeforeVisitStartDate"));
 	}
 	
 	@Test
@@ -117,7 +117,7 @@ public class VisitWithQueueEntriesValidatorTest extends BaseModuleContextSensiti
 		validator.validate(visit, errors);
 		FieldError queueEntryStatusFieldError = errors.getFieldError("stopDatetime");
 		assertNotNull(queueEntryStatusFieldError);
-		assertThat(queueEntryStatusFieldError.getCode(), is("Visit.queueEntriesCannotStartAfterStopDate"));
+		assertThat(queueEntryStatusFieldError.getCode(), is("queue.entry.error.cannotStartAfterVisitStopDate"));
 	}
 	
 	@Test
@@ -128,6 +128,6 @@ public class VisitWithQueueEntriesValidatorTest extends BaseModuleContextSensiti
 		validator.validate(visit, errors);
 		FieldError queueEntryStatusFieldError = errors.getFieldError("stopDatetime");
 		assertNotNull(queueEntryStatusFieldError);
-		assertThat(queueEntryStatusFieldError.getCode(), is("Visit.queueEntriesCannotEndAfterStopDate"));
+		assertThat(queueEntryStatusFieldError.getCode(), is("queue.entry.error.cannotEndAfterVisitStopDate"));
 	}
 }

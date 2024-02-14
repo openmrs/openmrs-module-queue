@@ -55,18 +55,18 @@ public class VisitWithQueueEntriesValidator implements Validator {
 			List<QueueEntry> queueEntries = queueEntryService.getQueueEntries(criteria);
 			for (QueueEntry queueEntry : queueEntries) {
 				if (queueEntry.getStartedAt().before(startDateTime)) {
-					errors.rejectValue("startDatetime", "Visit.queueEntriesCannotStartBeforeStartDate",
+					errors.rejectValue("startDatetime", "queue.entry.error.cannotStartBeforeVisitStartDate",
 					    "This visit has queue entries whose dates cannot be before the start date");
 					break;
 				}
 				if (stopDateTime != null) {
 					if (queueEntry.getStartedAt().after(stopDateTime)) {
-						errors.rejectValue("stopDatetime", "Visit.queueEntriesCannotStartAfterStopDate",
+						errors.rejectValue("stopDatetime", "queue.entry.error.cannotStartAfterVisitStopDate",
 						    "This visit has queue entries which start after the stop date");
 						break;
 					}
 					if (queueEntry.getEndedAt() != null && queueEntry.getEndedAt().after(stopDateTime)) {
-						errors.rejectValue("stopDatetime", "Visit.queueEntriesCannotEndAfterStopDate",
+						errors.rejectValue("stopDatetime", "queue.entry.error.cannotEndAfterVisitStopDate",
 						    "This visit has queue entries which end after the stop date");
 						break;
 					}
