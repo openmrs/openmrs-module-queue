@@ -65,7 +65,7 @@ public class VisitWithQueueEntriesValidator implements Validator {
 						    "This visit has queue entries which start after the stop date");
 						break;
 					}
-					if (queueEntry.getEndedAt() != null && queueEntry.getEndedAt().after(stopDateTime)) {
+					if (queueEntry.getEndedAt() == null || queueEntry.getEndedAt().after(stopDateTime)) {
 						errors.rejectValue("stopDatetime", "queue.entry.error.cannotEndAfterVisitStopDate",
 						    "This visit has queue entries which end after the stop date");
 						break;

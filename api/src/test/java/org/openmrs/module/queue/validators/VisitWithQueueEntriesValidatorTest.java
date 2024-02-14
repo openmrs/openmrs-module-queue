@@ -88,6 +88,8 @@ public class VisitWithQueueEntriesValidatorTest extends BaseModuleContextSensiti
 	
 	@Test
 	public void shouldNotRejectIfQueueEntryStartedAtEqualsVisitEndDate() {
+		queueEntry.setEndedAt(queueEntry.getStartedAt());
+		queueEntryService.saveQueueEntry(queueEntry);
 		visit.setStopDatetime(queueEntry.getStartedAt());
 		validator.validate(visit, errors);
 		assertFalse(errors.hasErrors());
@@ -106,18 +108,18 @@ public class VisitWithQueueEntriesValidatorTest extends BaseModuleContextSensiti
 	public void shouldRejectIfQueueEntryStartedBeforeVisitStartDate() {
 		visit.setStartDatetime(DateUtils.addMilliseconds(queueEntry.getStartedAt(), 1));
 		validator.validate(visit, errors);
-		FieldError queueEntryStatusFieldError = errors.getFieldError("startDatetime");
-		assertNotNull(queueEntryStatusFieldError);
-		assertThat(queueEntryStatusFieldError.getCode(), is("queue.entry.error.cannotStartBeforeVisitStartDate"));
+		FieldError startDatetimeFieldError = errors.getFieldError("startDatetime");
+		assertNotNull(startDatetimeFieldError);
+		assertThat(startDatetimeFieldError.getCode(), is("queue.entry.error.cannotStartBeforeVisitStartDate"));
 	}
 	
 	@Test
 	public void shouldRejectIfQueueEntryStartedAfterVisitEndDate() {
 		visit.setStopDatetime(DateUtils.addMilliseconds(queueEntry.getStartedAt(), -1));
 		validator.validate(visit, errors);
-		FieldError queueEntryStatusFieldError = errors.getFieldError("stopDatetime");
-		assertNotNull(queueEntryStatusFieldError);
-		assertThat(queueEntryStatusFieldError.getCode(), is("queue.entry.error.cannotStartAfterVisitStopDate"));
+		FieldError stopDatetimeFieldError = errors.getFieldError("stopDatetime");
+		assertNotNull(stopDatetimeFieldError);
+		assertThat(stopDatetimeFieldError.getCode(), is("queue.entry.error.cannotStartAfterVisitStopDate"));
 	}
 	
 	@Test
@@ -126,8 +128,18 @@ public class VisitWithQueueEntriesValidatorTest extends BaseModuleContextSensiti
 		queueEntryService.saveQueueEntry(queueEntry);
 		visit.setStopDatetime(DateUtils.addMilliseconds(queueEntry.getEndedAt(), -1));
 		validator.validate(visit, errors);
-		FieldError queueEntryStatusFieldError = errors.getFieldError("stopDatetime");
-		assertNotNull(queueEntryStatusFieldError);
-		assertThat(queueEntryStatusFieldError.getCode(), is("queue.entry.error.cannotEndAfterVisitStopDate"));
+		FieldError stopDatetimeFieldError = errors.getFieldError("stopDatetime");
+		assertNotNull(stopDatetimeFieldError);
+		assertThat(stopDatetimeFieldError.getCode(), is("queue.entry.error.cannotEndAfterVisitStopDate"));
 	}
+	
+	@Test
+	public void shouldRejectIfQueueEntryNotEndedWhenVisitStopped() {
+		visit.setStopDatetime(DateUtils.addHours(queueEntry.getStartedAt(), 1));
+		validator.validate(visit, errors);
+		FieldError stopDatetimeFieldError = errors.getFieldError("stopDatetime");
+		assertNotNull(stopDatetimeFieldError);
+		assertThat(stopDatetimeFieldError.getCode(), is("queue.entry.error.cannotEndAfterVisitStopDate"));
+	}
+	
 }

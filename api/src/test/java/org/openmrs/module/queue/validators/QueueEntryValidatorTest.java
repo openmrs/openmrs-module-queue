@@ -17,9 +17,11 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Concept;
+import org.openmrs.Visit;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.SpringTestConfiguration;
 import org.openmrs.module.queue.model.Queue;
@@ -46,6 +48,8 @@ public class QueueEntryValidatorTest extends BaseModuleContextSensitiveTest {
 	
 	private QueueEntry queueEntry;
 	
+	private Visit visit;
+	
 	@Autowired
 	private QueueEntryValidator validator;
 	
@@ -54,6 +58,9 @@ public class QueueEntryValidatorTest extends BaseModuleContextSensitiveTest {
 		INITIAL_CONCEPTS_DATASETS.forEach(this::executeDataSet);
 		queueEntry = new QueueEntry();
 		queueEntry.setQueue(new Queue());
+		visit = new Visit();
+		visit.setStartDatetime(DateUtils.addHours(new Date(), -2));
+		visit.setStopDatetime(DateUtils.addHours(new Date(), -1));
 		errors = new BindException(queueEntry, queueEntry.getClass().getName());
 	}
 	
@@ -117,6 +124,59 @@ public class QueueEntryValidatorTest extends BaseModuleContextSensitiveTest {
 		FieldError queueEntryStatusFieldError = errors.getFieldError("endedAt");
 		assertNotNull(queueEntryStatusFieldError);
 		assertThat(queueEntryStatusFieldError.getCode(), is("queueEntry.endedAt.invalid"));
+	}
+	
+	@Test
+	public void shouldNotRejectIfQueueEntryStartedAndEndedDuringVisit() {
+		queueEntry.setVisit(visit);
+		queueEntry.setStartedAt(visit.getStartDatetime());
+		queueEntry.setEndedAt(visit.getStopDatetime());
+		validator.validate(queueEntry, errors);
+		FieldError startedAtFieldError = errors.getFieldError("startedAt");
+		assertNull(startedAtFieldError);
+		FieldError endedAtFieldError = errors.getFieldError("endedAt");
+		assertNull(endedAtFieldError);
+	}
+	
+	@Test
+	public void shouldRejectIfQueueEntryStartedBeforeVisitStartDate() {
+		queueEntry.setVisit(visit);
+		queueEntry.setStartedAt(DateUtils.addMilliseconds(visit.getStartDatetime(), -1));
+		validator.validate(queueEntry, errors);
+		FieldError startedAtFieldError = errors.getFieldError("startedAt");
+		assertNotNull(startedAtFieldError);
+		assertThat(startedAtFieldError.getCode(), is("queue.entry.error.cannotStartBeforeVisitStartDate"));
+	}
+	
+	@Test
+	public void shouldRejectIfQueueEntryStartedAfterVisitEndDate() {
+		queueEntry.setVisit(visit);
+		queueEntry.setStartedAt(DateUtils.addMilliseconds(visit.getStopDatetime(), 1));
+		validator.validate(queueEntry, errors);
+		FieldError startedAtFieldError = errors.getFieldError("startedAt");
+		assertNotNull(startedAtFieldError);
+		assertThat(startedAtFieldError.getCode(), is("queue.entry.error.cannotStartAfterVisitStopDate"));
+	}
+	
+	@Test
+	public void shouldRejectIfQueueEntryEndedAfterVisitEndDate() {
+		queueEntry.setVisit(visit);
+		queueEntry.setStartedAt(visit.getStartDatetime());
+		queueEntry.setEndedAt(DateUtils.addHours(visit.getStopDatetime(), 1));
+		validator.validate(queueEntry, errors);
+		FieldError endedAtFieldError = errors.getFieldError("endedAt");
+		assertNotNull(endedAtFieldError);
+		assertThat(endedAtFieldError.getCode(), is("queue.entry.error.cannotEndAfterVisitStopDate"));
+	}
+	
+	@Test
+	public void shouldRejectIfQueueEntryNotEndedWhenVisitStopped() {
+		queueEntry.setVisit(visit);
+		queueEntry.setStartedAt(visit.getStartDatetime());
+		validator.validate(queueEntry, errors);
+		FieldError endedAtFieldError = errors.getFieldError("endedAt");
+		assertNotNull(endedAtFieldError);
+		assertThat(endedAtFieldError.getCode(), is("queue.entry.error.cannotEndAfterVisitStopDate"));
 	}
 	
 	private Date yesterday() {
