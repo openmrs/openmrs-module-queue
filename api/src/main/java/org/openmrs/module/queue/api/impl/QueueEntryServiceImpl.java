@@ -109,10 +109,10 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		// End the initial queue entry
 		QueueEntry queueEntryToStop = queueEntryTransition.getQueueEntryToTransition();
 		queueEntryToStop.setEndedAt(queueEntryTransition.getTransitionDate());
-		saveQueueEntry(queueEntryToStop);
+		getProxiedQueueEntryService().saveQueueEntry(queueEntryToStop);
 		// Create a new queue entry
 		QueueEntry queueEntryToStart = queueEntryTransition.constructNewQueueEntry();
-		return saveQueueEntry(queueEntryToStart);
+		return getProxiedQueueEntryService().saveQueueEntry(queueEntryToStart);
 	}
 	
 	/**
@@ -182,6 +182,15 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		criteria.setIsEnded(Boolean.FALSE);
 		List<QueueEntry> queueEntries = getQueueEntries(criteria);
 		queueEntries.forEach(this::endQueueEntry);
+	}
+	
+	/**
+	 * @return the instance of the QueueEntryService from the context. This is needed for
+	 *         self-referential access to ensure proxied instance is returned with relevant AOP
+	 *         operations. Only for internal use.
+	 */
+	protected QueueEntryService getProxiedQueueEntryService() {
+		return Context.getService(QueueEntryService.class);
 	}
 	
 	private void endQueueEntry(@NotNull QueueEntry queueEntry) {

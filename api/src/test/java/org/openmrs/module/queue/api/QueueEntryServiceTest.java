@@ -68,7 +68,13 @@ public class QueueEntryServiceTest {
 	@Before
 	public void setupMocks() {
 		MockitoAnnotations.openMocks(this);
-		queueEntryService = new QueueEntryServiceImpl();
+		queueEntryService = new QueueEntryServiceImpl() {
+			
+			@Override
+			protected QueueEntryService getProxiedQueueEntryService() {
+				return this;
+			}
+		};
 		queueEntryService.setDao(dao);
 		queueEntryService.setVisitService(visitService);
 	}
