@@ -11,6 +11,7 @@ package org.openmrs.module.queue.validators;
 
 import static org.springframework.validation.ValidationUtils.rejectIfEmptyOrWhitespace;
 
+import org.openmrs.Visit;
 import org.openmrs.annotation.Handler;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
@@ -39,6 +40,22 @@ public class QueueEntryValidator implements Validator {
 		
 		QueueEntry queueEntry = (QueueEntry) target;
 		Queue queue = queueEntry.getQueue();
+		
+		Visit visit = queueEntry.getVisit();
+		if (visit != null) {
+			if (queueEntry.getStartedAt().before(visit.getStartDatetime())) {
+				errors.rejectValue("startedAt", "queue.entry.error.cannotStartBeforeVisitStartDate",
+				    "A queue entry cannot start before the associated visit start date");
+			} else if (visit.getStopDatetime() != null) {
+				if (queueEntry.getStartedAt().after(visit.getStopDatetime())) {
+					errors.rejectValue("startedAt", "queue.entry.error.cannotStartAfterVisitStopDate",
+					    "A queue entry cannot start after the associated visit stop date");
+				} else if (queueEntry.getEndedAt() == null || queueEntry.getEndedAt().after(visit.getStopDatetime())) {
+					errors.rejectValue("endedAt", "queue.entry.error.cannotEndAfterVisitStopDate",
+					    "A queue entry cannot end after the associated visit stop date");
+				}
+			}
+		}
 		
 		if (queueEntry.getEndedAt() != null) {
 			if (queueEntry.getStartedAt().after(queueEntry.getEndedAt())) {
