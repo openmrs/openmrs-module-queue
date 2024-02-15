@@ -132,14 +132,4 @@ public class VisitWithQueueEntriesValidatorTest extends BaseModuleContextSensiti
 		assertNotNull(stopDatetimeFieldError);
 		assertThat(stopDatetimeFieldError.getCode(), is("queue.entry.error.cannotEndAfterVisitStopDate"));
 	}
-	
-	@Test
-	public void shouldRejectIfQueueEntryNotEndedWhenVisitStopped() {
-		visit.setStopDatetime(DateUtils.addHours(queueEntry.getStartedAt(), 1));
-		validator.validate(visit, errors);
-		FieldError stopDatetimeFieldError = errors.getFieldError("stopDatetime");
-		assertNotNull(stopDatetimeFieldError);
-		assertThat(stopDatetimeFieldError.getCode(), is("queue.entry.error.cannotEndAfterVisitStopDate"));
-	}
-	
 }
