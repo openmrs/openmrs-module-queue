@@ -37,6 +37,7 @@ import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.exception.DuplicateQueueEntryException;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
+import org.openmrs.module.queue.model.QueueEntryTransition;
 import org.openmrs.module.queue.utils.QueueUtils;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -98,6 +99,20 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 			}
 		}
 		return dao.createOrUpdate(queueEntry);
+	}
+	
+	/**
+	 * @see QueueEntryService#transitionQueueEntry(QueueEntryTransition)
+	 */
+	@Override
+	public QueueEntry transitionQueueEntry(QueueEntryTransition queueEntryTransition) {
+		// End the initial queue entry
+		QueueEntry queueEntryToStop = queueEntryTransition.getQueueEntryToTransition();
+		queueEntryToStop.setEndedAt(queueEntryTransition.getTransitionDate());
+		saveQueueEntry(queueEntryToStop);
+		// Create a new queue entry
+		QueueEntry queueEntryToStart = queueEntryTransition.constructNewQueueEntry();
+		return saveQueueEntry(queueEntryToStart);
 	}
 	
 	/**
