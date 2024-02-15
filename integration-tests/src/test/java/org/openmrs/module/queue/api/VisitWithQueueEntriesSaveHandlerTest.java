@@ -61,7 +61,7 @@ public class VisitWithQueueEntriesSaveHandlerTest extends BaseModuleContextSensi
 		visit = queueEntry.getVisit();
 		stopDate = DateUtils.addHours(visit.getStartDatetime(), 12);
 	}
-
+	
 	@Test
 	public void shouldNotEndQueueEntriesIfVisitIsNotStopped() {
 		assertNull(visit.getStopDatetime());
