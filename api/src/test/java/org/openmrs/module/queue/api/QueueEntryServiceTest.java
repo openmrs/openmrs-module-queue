@@ -96,7 +96,7 @@ public class QueueEntryServiceTest {
 	}
 	
 	@Test
-	public void shouldCreatequeueEntry2Record() {
+	public void shouldCreateNewQueueEntryRecord() {
 		QueueEntry queueEntry = mock(QueueEntry.class);
 		Concept conceptStatus = mock(Concept.class);
 		Concept conceptPriority = mock(Concept.class);
