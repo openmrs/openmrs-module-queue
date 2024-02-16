@@ -11,6 +11,7 @@ package org.openmrs.module.queue.api;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -19,6 +20,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
 
+import org.apache.commons.lang.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,6 +32,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.openmrs.Concept;
 import org.openmrs.Location;
 import org.openmrs.Patient;
+import org.openmrs.Provider;
 import org.openmrs.User;
 import org.openmrs.Visit;
 import org.openmrs.VisitAttributeType;
@@ -42,6 +45,7 @@ import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.exception.DuplicateQueueEntryException;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
+import org.openmrs.module.queue.model.QueueEntryTransition;
 
 @RunWith(MockitoJUnitRunner.class)
 public class QueueEntryServiceTest {
@@ -64,7 +68,13 @@ public class QueueEntryServiceTest {
 	@Before
 	public void setupMocks() {
 		MockitoAnnotations.openMocks(this);
-		queueEntryService = new QueueEntryServiceImpl();
+		queueEntryService = new QueueEntryServiceImpl() {
+			
+			@Override
+			protected QueueEntryService getProxiedQueueEntryService() {
+				return this;
+			}
+		};
 		queueEntryService.setDao(dao);
 		queueEntryService.setVisitService(visitService);
 	}
@@ -193,6 +203,83 @@ public class QueueEntryServiceTest {
 		verify(dao).getQueueEntries(queueEntrySearchCriteriaArgumentCaptor.capture());
 		QueueEntrySearchCriteria daoCriteria = queueEntrySearchCriteriaArgumentCaptor.getValue();
 		assertThat(daoCriteria, equalTo(criteria));
+	}
+	
+	@Test
+	public void shouldTransitionQueueEntry() {
+		Patient patient1 = new Patient();
+		Visit visit1 = new Visit();
+		visit1.setPatient(patient1);
+		Queue queue0 = new Queue();
+		Queue queue1 = new Queue();
+		Queue queue2 = new Queue();
+		Concept concept1 = new Concept();
+		Concept concept2 = new Concept();
+		String string1 = "starting";
+		double double1 = 5.0;
+		Location location1 = new Location();
+		Provider provider1 = new Provider();
+		Date date1 = DateUtils.addHours(new Date(), -12);
+		Date date2 = DateUtils.addHours(date1, 6);
+		Date date3 = DateUtils.addHours(date1, 3);
+		
+		QueueEntry queueEntry1 = new QueueEntry();
+		queueEntry1.setQueue(queue1);
+		queueEntry1.setPatient(patient1);
+		queueEntry1.setVisit(visit1);
+		queueEntry1.setPriority(concept1);
+		queueEntry1.setPriorityComment(string1);
+		queueEntry1.setStatus(concept1);
+		queueEntry1.setSortWeight(double1);
+		queueEntry1.setLocationWaitingFor(location1);
+		queueEntry1.setProviderWaitingFor(provider1);
+		queueEntry1.setQueueComingFrom(queue0);
+		queueEntry1.setStartedAt(date1);
+		assertNull(queueEntry1.getEndedAt());
+		
+		// Mock the DAO to return the object being saved
+		when(dao.createOrUpdate(any())).thenAnswer(invocation -> invocation.getArguments()[0]);
+		
+		// First transition test that no changes are required and all values will be pulled from existing queue entry
+		QueueEntryTransition transition1 = new QueueEntryTransition();
+		transition1.setQueueEntryToTransition(queueEntry1);
+		transition1.setTransitionDate(date2);
+		QueueEntry queueEntry2 = queueEntryService.transitionQueueEntry(transition1);
+		assertThat(queueEntry1.getEndedAt(), equalTo(date2));
+		assertThat(queueEntry2.getQueue(), equalTo(queue1));
+		assertThat(queueEntry2.getPatient(), equalTo(patient1));
+		assertThat(queueEntry2.getVisit(), equalTo(visit1));
+		assertThat(queueEntry2.getPriority(), equalTo(concept1));
+		assertThat(queueEntry2.getPriorityComment(), equalTo(string1));
+		assertThat(queueEntry2.getStatus(), equalTo(concept1));
+		assertThat(queueEntry2.getSortWeight(), equalTo(double1));
+		assertThat(queueEntry2.getLocationWaitingFor(), equalTo(location1));
+		assertThat(queueEntry2.getProviderWaitingFor(), equalTo(provider1));
+		assertThat(queueEntry2.getQueueComingFrom(), equalTo(queue1));
+		assertThat(queueEntry2.getStartedAt(), equalTo(date2));
+		assertNull(queueEntry2.getEndedAt());
+		
+		// Next transition test that appropriate fields can be changed
+		QueueEntryTransition transition2 = new QueueEntryTransition();
+		transition2.setQueueEntryToTransition(queueEntry2);
+		transition2.setTransitionDate(date3);
+		transition2.setNewQueue(queue2);
+		transition2.setNewPriority(concept2);
+		transition2.setNewStatus(concept2);
+		QueueEntry queueEntry3 = queueEntryService.transitionQueueEntry(transition2);
+		assertThat(queueEntry2.getEndedAt(), equalTo(date3));
+		assertThat(queueEntry3.getQueue(), equalTo(queue2));
+		assertThat(queueEntry3.getPatient(), equalTo(patient1));
+		assertThat(queueEntry3.getVisit(), equalTo(visit1));
+		assertThat(queueEntry3.getPriority(), equalTo(concept2));
+		assertThat(queueEntry3.getPriorityComment(), equalTo(string1));
+		assertThat(queueEntry3.getStatus(), equalTo(concept2));
+		assertThat(queueEntry3.getSortWeight(), equalTo(double1));
+		assertThat(queueEntry3.getLocationWaitingFor(), equalTo(location1));
+		assertThat(queueEntry3.getProviderWaitingFor(), equalTo(provider1));
+		assertThat(queueEntry3.getQueueComingFrom(), equalTo(queue1));
+		assertThat(queueEntry3.getStartedAt(), equalTo(date3));
+		assertNull(queueEntry3.getEndedAt());
 	}
 	
 	@Test

@@ -21,6 +21,7 @@ import org.openmrs.api.APIException;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
+import org.openmrs.module.queue.model.QueueEntryTransition;
 
 public interface QueueEntryService {
 	
@@ -47,6 +48,15 @@ public interface QueueEntryService {
 	 * @return saved {@link org.openmrs.module.queue.model.QueueEntry}
 	 */
 	QueueEntry saveQueueEntry(@NotNull QueueEntry queueEntry);
+	
+	/**
+	 * Transitions a queue entry by ending one queue entry and creating a new queue entry that starts at
+	 * that time
+	 * 
+	 * @param queueEntryTransition the queueEntryTransition
+	 * @return the new QueueEntry that is created
+	 */
+	QueueEntry transitionQueueEntry(@NotNull QueueEntryTransition queueEntryTransition);
 	
 	/**
 	 * Voids a queue entry
