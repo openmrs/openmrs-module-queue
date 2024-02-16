@@ -21,14 +21,14 @@ import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.model.QueueEntryTransition;
 import org.openmrs.module.webservices.rest.web.ConversionUtil;
 import org.openmrs.module.webservices.rest.web.RestConstants;
+import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.v1_0.controller.BaseRestController;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * The main controller that exposes additional end points for order entry
@@ -55,17 +55,15 @@ public class QueueEntryTransitionRestController extends BaseRestController {
 	}
 	
 	@RequestMapping(method = { RequestMethod.PUT, RequestMethod.POST })
-	@ResponseStatus(HttpStatus.OK)
-	public void transitionQueueEntry(@RequestBody Map<String, String> body) {
+	@ResponseBody
+	public Object transitionQueueEntry(@RequestBody Map<String, String> body) {
 		QueueEntryTransition transition = new QueueEntryTransition();
 		
 		// Queue Entry to Transition
 		String queueEntryUuid = body.get(QUEUE_ENTRY_TO_TRANSITION);
-		Optional<QueueEntry> queueEntryOptional = services.getQueueEntryService().getQueueEntryByUuid(queueEntryUuid);
-		if (!queueEntryOptional.isPresent()) {
-			throw new APIException(QUEUE_ENTRY_TO_TRANSITION + " is a required parameter");
-		}
-		transition.setQueueEntryToTransition(queueEntryOptional.get());
+		QueueEntry queueEntry = services.getQueueEntryService().getQueueEntryByUuid(queueEntryUuid)
+		        .orElseThrow(() -> new APIException(QUEUE_ENTRY_TO_TRANSITION + " is a required parameter"));
+		transition.setQueueEntryToTransition(queueEntry);
 		
 		// Transition Date
 		Date transitionDate = new Date();
@@ -105,6 +103,7 @@ public class QueueEntryTransitionRestController extends BaseRestController {
 		}
 		
 		// Execute transition
-		services.getQueueEntryService().transitionQueueEntry(transition);
+		QueueEntry newQueueEntry = services.getQueueEntryService().transitionQueueEntry(transition);
+		return ConversionUtil.convertToRepresentation(newQueueEntry, Representation.REF);
 	}
 }
