@@ -12,4 +12,5 @@
     <visit_type visit_type_id="1" name="Test visit type" description="This is a test description" creator="1" date_created="2022-02-08 05:20:00.0" retired="false" uuid="hj898a34-1ade-11e1-9c71-00248140a5eb"/>
     <visit visit_id="101" patient_id="100" visit_type_id="1" date_started="2022-02-07 02:10:00.0" creator="1" date_created="2022-02-07 02:10:00.0" voided="0" uuid="j848b0c0-1ade-11e1-9c71-00248140a6eb" />
     <visit visit_id="102" patient_id="100" visit_type_id="1" date_started="2022-03-07 15:10:00.0" creator="1" date_created="2022-03-07 15:10:00.0" voided="0" uuid="p858b0c0-1ade-11e1-9c71-00248140a6eb" />
+    <visit visit_id="103" patient_id="100" visit_type_id="1" date_started="2022-03-07 15:10:00.0" date_stopped="2022-03-10 00:10:00.0" creator="1" date_created="2022-03-07 15:10:00.0" voided="0" uuid="b0a90fe1-f3c5-4c6e-aa23-8e8b25d5fe22" />
 </dataset>

@@ -281,6 +281,41 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	}
 	
 	@Test
+	public void shouldSearchAndCountQueueEntriesByPastVisit() {
+		Visit visit3 = services.getVisitService().getVisit(103);
+
+
+		// criteria.setIsEnded(Boolean.TRUE);
+		assertNumberOfResults(criteria, 5);
+		criteria.setVisit(visit3);
+		assertResults(criteria, 11);
+	}
+
+	@Test
+	public void shouldSearchCountQueueEntriesFromPastVisit() {
+		// this is an old QueueEntry which has ended_at value not null
+		QueueEntry oldQueueEntry = dao.get(11).orElse(null);
+		assertThat(oldQueueEntry, notNullValue());
+		assertThat(oldQueueEntry.getEndedAt(), notNullValue());
+
+		QueueEntrySearchCriteria qeSearchCriteria = new QueueEntrySearchCriteria();
+		Patient patient = services.getPatientService().getPatient(100);
+		Queue queue = services.getQueueService().getQueueById(1).orElse(null);
+		qeSearchCriteria.setQueues(Collections.singletonList(queue));
+		qeSearchCriteria.setPatient(patient);
+		List<QueueEntry> queueEntries = dao.getQueueEntries(qeSearchCriteria);
+		assertThat(queueEntries, hasSize(1));
+		// the only QueueEntry found is the one that has not end date (), queue_entry_id="12"
+		assertThat(queueEntries.get(0).getQueueEntryId(), is(12));
+		assertThat(queueEntries.get(0).getEndedAt(), nullValue());
+		qeSearchCriteria.setIsEnded(null);
+		queueEntries = dao.getQueueEntries(qeSearchCriteria);
+		// now it finds all patient's queue entries on this queue including the old queue entry that has ended_at not null
+		assertThat(queueEntries, hasSize(3));
+		assertThat(queueEntries.contains(oldQueueEntry), is(true));
+	}
+	
+	@Test
 	public void shouldSearchAndCountQueueEntriesByPriority() {
 		Concept priority1 = services.getConceptService().getConcept(1001);
 		Concept priority2 = services.getConceptService().getConcept(1002);
