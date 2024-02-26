@@ -281,17 +281,6 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	}
 	
 	@Test
-	public void shouldSearchAndCountQueueEntriesByPastVisit() {
-		Visit visit3 = services.getVisitService().getVisit(103);
-
-
-		// criteria.setIsEnded(Boolean.TRUE);
-		assertNumberOfResults(criteria, 5);
-		criteria.setVisit(visit3);
-		assertResults(criteria, 11);
-	}
-
-	@Test
 	public void shouldSearchCountQueueEntriesFromPastVisit() {
 		// this is an old QueueEntry which has ended_at value not null
 		QueueEntry oldQueueEntry = dao.get(11).orElse(null);
