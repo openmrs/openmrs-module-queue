@@ -80,7 +80,6 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	public void setup() {
 		QUEUE_INITIAL_DATASET_XML.forEach(this::executeDataSet);
 		criteria = new QueueEntrySearchCriteria();
-		criteria.setIsEnded(null);
 	}
 	
 	@Test
