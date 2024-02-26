@@ -37,7 +37,7 @@ public class VisitWithQueueEntriesSaveHandler implements SaveHandler<Visit> {
 	
 	@Override
 	public void handle(Visit visit, User user, Date date, String s) {
-		if (visit.getStopDatetime() != null) {
+		if (visit.getVisitId() != null && visit.getStopDatetime() != null) {
 			QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
 			criteria.setVisit(visit);
 			criteria.setIsEnded(false);
