@@ -22,18 +22,19 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.apache.commons.lang.BooleanUtils;
 import org.openmrs.BaseChangeableOpenmrsMetadata;
 import org.openmrs.Concept;
 import org.openmrs.Location;
 
 @EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @Data
 @Entity
 @Table(name = "queue")
@@ -63,28 +64,7 @@ public class Queue extends BaseChangeableOpenmrsMetadata {
 	private Concept statusConceptSet;
 	
 	@OneToMany(mappedBy = "queue", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	private List<QueueEntry> queueEntries;
-	
-	@OneToMany(mappedBy = "queue", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<QueueRoom> queueRooms;
-	
-	/**
-	 * @return all non-voided QueueEntries that do not start in the future and are not already ended
-	 */
-	public List<QueueEntry> getActiveQueueEntries() {
-		List<QueueEntry> activeQueueEntries = new ArrayList<>();
-		Date now = new Date();
-		if (queueEntries != null) {
-			for (QueueEntry queueEntry : queueEntries) {
-				if (BooleanUtils.isNotTrue(queueEntry.getVoided())) {
-					if (!queueEntry.getStartedAt().after(now) && queueEntry.getEndedAt() == null) {
-						activeQueueEntries.add(queueEntry);
-					}
-				}
-			}
-		}
-		return activeQueueEntries;
-	}
 	
 	/**
 	 * @return all non-retired QueueRooms
@@ -94,16 +74,6 @@ public class Queue extends BaseChangeableOpenmrsMetadata {
 			return new ArrayList<>();
 		}
 		return queueRooms.stream().filter(r -> BooleanUtils.isNotTrue(r.getRetired())).collect(Collectors.toList());
-	}
-	
-	/**
-	 * @param queueEntry the QueueEntry to add
-	 */
-	public void addQueueEntry(QueueEntry queueEntry) {
-		if (queueEntries == null) {
-			queueEntries = new ArrayList<>();
-		}
-		queueEntries.add(queueEntry);
 	}
 	
 	/**
