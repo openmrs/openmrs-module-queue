@@ -41,13 +41,19 @@ public class AutoCloseVisitQueueEntryTask implements Runnable {
 			List<QueueEntry> queueEntries = getActiveVisitQueueEntries();
 			log.debug("There are " + queueEntries.size() + " active visit queue entries");
 			for (QueueEntry queueEntry : queueEntries) {
-				Visit visit = queueEntry.getVisit();
-				Date visitStopDatetime = visit.getStopDatetime();
-				if (visitStopDatetime != null) {
-					log.debug("Visit " + visit.getVisitId() + " is closed at " + visitStopDatetime);
-					log.debug("Auto closing queue entry " + queueEntry.getQueueEntryId());
-					queueEntry.setEndedAt(visitStopDatetime);
-					saveQueueEntry(queueEntry);
+				try {
+					Visit visit = queueEntry.getVisit();
+					Date visitStopDatetime = visit.getStopDatetime();
+					if (visitStopDatetime != null) {
+						log.debug("Visit " + visit.getVisitId() + " is closed at " + visitStopDatetime);
+						log.debug("Auto closing queue entry " + queueEntry.getQueueEntryId());
+						queueEntry.setEndedAt(visitStopDatetime);
+						saveQueueEntry(queueEntry);
+						log.info("Queue entry auto-closed following close of visit: " + queueEntry.getQueueEntryId());
+					}
+				}
+				catch (Exception e) {
+					log.warn("Unable to auto-close queue entry " + queueEntry.getQueueEntryId(), e);
 				}
 			}
 		}
