@@ -25,17 +25,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.apache.commons.lang.BooleanUtils;
 import org.openmrs.BaseChangeableOpenmrsMetadata;
 import org.openmrs.Concept;
 import org.openmrs.Location;
 
 @EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-@Data
+@NoArgsConstructor
+@Setter
+@Getter
 @Entity
 @Table(name = "queue")
 public class Queue extends BaseChangeableOpenmrsMetadata {
