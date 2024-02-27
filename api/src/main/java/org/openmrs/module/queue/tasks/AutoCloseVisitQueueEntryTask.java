@@ -14,6 +14,7 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 import org.openmrs.Visit;
+import org.openmrs.api.ValidationException;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueEntryService;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
@@ -51,6 +52,9 @@ public class AutoCloseVisitQueueEntryTask implements Runnable {
 						saveQueueEntry(queueEntry);
 						log.info("Queue entry auto-closed following close of visit: " + queueEntry.getQueueEntryId());
 					}
+				}
+				catch (ValidationException ve) {
+					log.warn("Unable to auto-close queue entry " + queueEntry.getQueueEntryId() + ": " + ve.getMessage());
 				}
 				catch (Exception e) {
 					log.warn("Unable to auto-close queue entry " + queueEntry.getQueueEntryId(), e);

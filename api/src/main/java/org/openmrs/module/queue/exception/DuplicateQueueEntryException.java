@@ -9,14 +9,11 @@
  */
 package org.openmrs.module.queue.exception;
 
-import org.openmrs.api.APIException;
+import org.openmrs.api.ValidationException;
 
-public class DuplicateQueueEntryException extends APIException {
+public class DuplicateQueueEntryException extends ValidationException {
 	
 	private static final long serialVersionUID = 1L;
-	
-	public DuplicateQueueEntryException() {
-	}
 	
 	/**
 	 * @param message
@@ -25,18 +22,4 @@ public class DuplicateQueueEntryException extends APIException {
 		super(message);
 	}
 	
-	/**
-	 * @param message
-	 * @param cause
-	 */
-	public DuplicateQueueEntryException(String message, Throwable cause) {
-		super(message, cause);
-	}
-	
-	/**
-	 * @param cause
-	 */
-	public DuplicateQueueEntryException(Throwable cause) {
-		super(cause);
-	}
 }

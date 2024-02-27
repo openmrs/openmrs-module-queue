@@ -13,10 +13,12 @@ import javax.validation.constraints.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
+import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.webservices.rest.web.RequestContext;
@@ -63,7 +65,10 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 	
 	@Override
 	public PageableResult doGetAll(Queue queue, RequestContext requestContext) throws ResponseException {
-		Collection<QueueEntry> queueEntries = queue.getActiveQueueEntries();
+		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
+		criteria.setQueues(Collections.singletonList(queue));
+		criteria.setIsEnded(false);
+		Collection<QueueEntry> queueEntries = services.getQueueEntryService().getQueueEntries(criteria);
 		return new NeedsPaging<>(new ArrayList<>(queueEntries), requestContext);
 	}
 	

@@ -48,6 +48,8 @@ public class QueueDaoTest extends BaseModuleContextSensitiveTest {
 	
 	private static final String RETIRED_QUEUE_UUID = "4eb8fe43-2813-4kbc-80dc-2e5d30252bb9";
 	
+	public static final String EMPTY_QUEUE_UUID = "5ob8gj90-9090-4kbc-80dc-2e5d30252bb3";
+	
 	private static final String NEW_QUEUE_UUID = "45b9fe43-2813-4kbc-80dc-2e5d30290iik";
 	
 	private static final String NEW_QUEUE_NAME = "Test triage queue";
@@ -142,15 +144,15 @@ public class QueueDaoTest extends BaseModuleContextSensitiveTest {
 	
 	@Test
 	public void shouldDeleteQueueByUuid() {
-		dao.delete(QUEUE_UUID);
-		Optional<Queue> result = dao.get(QUEUE_UUID);
+		dao.delete(EMPTY_QUEUE_UUID);
+		Optional<Queue> result = dao.get(EMPTY_QUEUE_UUID);
 		assertThat(result.isPresent(), is(false));
 	}
 	
 	@Test
 	public void shouldDeleteQueueByEntity() {
-		dao.get(QUEUE_UUID).ifPresent((queue) -> dao.delete(queue));
-		Optional<Queue> result = dao.get(QUEUE_UUID);
+		dao.get(EMPTY_QUEUE_UUID).ifPresent((queue) -> dao.delete(queue));
+		Optional<Queue> result = dao.get(EMPTY_QUEUE_UUID);
 		assertThat(result.isPresent(), is(false));
 	}
 	
