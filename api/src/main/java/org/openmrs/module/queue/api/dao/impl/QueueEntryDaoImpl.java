@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.openmrs.module.queue.api.dao.QueueEntryDao;
@@ -29,8 +30,11 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 	
 	@Override
 	public List<QueueEntry> getQueueEntries(QueueEntrySearchCriteria searchCriteria) {
-		Criteria criteria = createCriteriaFromSearchCriteria(searchCriteria);
-		return criteria.list();
+		Criteria c = createCriteriaFromSearchCriteria(searchCriteria);
+		c.addOrder(Order.asc("qe.startedAt"));
+		c.addOrder(Order.asc("qe.dateCreated"));
+		c.addOrder(Order.asc("qe.queueEntryId"));
+		return c.list();
 	}
 	
 	@Override
