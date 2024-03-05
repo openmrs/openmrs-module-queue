@@ -51,6 +51,7 @@
             <bean class="org.openmrs.module.queue.api.impl.QueueEntryServiceImpl">
                 <property name="dao" ref="queueEntryDao"/>
                 <property name="visitService" ref="visitService"/>
+                <property name="administrationService" ref="adminService"/>
             </bean>
         </property>
         <property name="preInterceptors" ref="serviceInterceptors"/>

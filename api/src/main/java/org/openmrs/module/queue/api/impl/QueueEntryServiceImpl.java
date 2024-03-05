@@ -9,6 +9,9 @@
  */
 package org.openmrs.module.queue.api.impl;
 
+import static org.openmrs.module.queue.QueueModuleConstants.EXISTING_VALUE_SORT_WEIGHT_GENERATOR;
+import static org.openmrs.module.queue.QueueModuleConstants.QUEUE_SORT_WEIGHT_GENERATOR;
+
 import javax.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
@@ -28,12 +31,14 @@ import org.openmrs.Visit;
 import org.openmrs.VisitAttribute;
 import org.openmrs.VisitAttributeType;
 import org.openmrs.api.APIException;
+import org.openmrs.api.AdministrationService;
 import org.openmrs.api.VisitService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.queue.api.QueueEntryService;
 import org.openmrs.module.queue.api.dao.QueueEntryDao;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
+import org.openmrs.module.queue.api.sort.SortWeightGenerator;
 import org.openmrs.module.queue.exception.DuplicateQueueEntryException;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
@@ -50,12 +55,20 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	
 	private VisitService visitService;
 	
+	private AdministrationService administrationService;
+	
+	private SortWeightGenerator sortWeightGenerator = null;
+	
 	public void setDao(QueueEntryDao<QueueEntry> dao) {
 		this.dao = dao;
 	}
 	
 	public void setVisitService(VisitService visitService) {
 		this.visitService = visitService;
+	}
+	
+	public void setAdministrationService(AdministrationService administrationService) {
+		this.administrationService = administrationService;
 	}
 	
 	/**
@@ -97,6 +110,10 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 					throw new DuplicateQueueEntryException("queue.entry.duplicate.patient");
 				}
 			}
+		}
+		if (sortWeightGenerator != null) {
+			Double sortWeight = sortWeightGenerator.generateSortWeight(queueEntry);
+			queueEntry.setSortWeight(sortWeight);
 		}
 		return dao.createOrUpdate(queueEntry);
 	}
@@ -182,6 +199,18 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		criteria.setIsEnded(Boolean.FALSE);
 		List<QueueEntry> queueEntries = getQueueEntries(criteria);
 		queueEntries.forEach(this::endQueueEntry);
+	}
+	
+	@Override
+	public SortWeightGenerator getSortWeightGenerator() {
+		if (sortWeightGenerator == null) {
+			String beanName = administrationService.getGlobalProperty(QUEUE_SORT_WEIGHT_GENERATOR);
+			if (StringUtils.isBlank(beanName)) {
+				beanName = EXISTING_VALUE_SORT_WEIGHT_GENERATOR;
+			}
+			sortWeightGenerator = Context.getRegisteredComponent(beanName, SortWeightGenerator.class);
+		}
+		return sortWeightGenerator;
 	}
 	
 	/**

@@ -15,4 +15,6 @@
                      uuid="9eb8fe58-2813-4kbc-80dc-2e5d30252cf9"/>
     <global_property property="queue.serviceConceptSetName" property_value="Service"
                      uuid="8eb8fe90-2813-4kbc-80dc-2e9d30252cc9"/>
+    <global_property property="queue.sortWeightGenerator" property_value="basicPrioritySortWeightGenerator"
+                     uuid="bd1a68f5-db17-11ee-882b-0242ac120002"/>
 </dataset>

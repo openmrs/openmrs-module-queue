@@ -19,6 +19,7 @@ import org.openmrs.Visit;
 import org.openmrs.VisitAttributeType;
 import org.openmrs.api.APIException;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
+import org.openmrs.module.queue.api.sort.SortWeightGenerator;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.model.QueueEntryTransition;
@@ -98,4 +99,9 @@ public interface QueueEntryService {
 	 */
 	void closeActiveQueueEntries();
 	
+	/**
+	 * @return the instance of SortWeightGenerator that is configured via global property, or null if
+	 *         none configured
+	 */
+	SortWeightGenerator getSortWeightGenerator();
 }

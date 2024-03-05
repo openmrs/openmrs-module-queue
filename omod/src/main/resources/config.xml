@@ -48,5 +48,10 @@
         <defaultValue>Service</defaultValue>
         <description>Set service conceptSet name</description>
     </globalProperty>
+    <globalProperty>
+        <property>${project.parent.artifactId}.sortWeightGenerator</property>
+        <defaultValue></defaultValue>
+        <description>The bean name of a registered component that provides an algorithm to set a queue entry sort weight when saved</description>
+    </globalProperty>
 </module>
 

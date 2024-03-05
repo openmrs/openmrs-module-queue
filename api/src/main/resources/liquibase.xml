@@ -446,4 +446,18 @@
         <addForeignKeyConstraint baseColumnNames="status_concept_set" baseTableName="queue" constraintName="queue_status_concept_set_fk" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="concept_id" referencedTableName="concept"/>
     </changeSet>
 
+    <changeSet id="sort_weight_default_to_zero_20240305" author="mseaton">
+        <preConditions onError="WARN" onFail="MARK_RAN">
+            <not><sqlCheck expectedResult="0">
+                select count(*) from queue_entry where sort_weight is null;
+            </sqlCheck></not>
+        </preConditions>
+        <comment>
+            Set all queue entry sort_weight to 0 if they are null
+        </comment>
+        <sql>
+            update queue_entry qe set qe.sort_weight = 0 where qe.sort_weight is null;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
