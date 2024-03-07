@@ -129,9 +129,13 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 	public DelegatingResourceDescription getUpdatableProperties() throws ResourceDoesNotSupportOperationException {
 		DelegatingResourceDescription description = new DelegatingResourceDescription();
 		description.addProperty("status");
+		description.addProperty("priority");
 		description.addProperty("priorityComment");
 		description.addProperty("sortWeight");
+		description.addProperty("startedAt");
 		description.addProperty("endedAt");
+		description.addProperty("locationWaitingFor");
+		description.addProperty("providerWaitingFor");
 		return description;
 	}
 	

@@ -216,6 +216,7 @@ public class QueueEntryServiceTest {
 		Concept concept1 = new Concept();
 		Concept concept2 = new Concept();
 		String string1 = "starting";
+		String string2 = "some string";
 		double double1 = 5.0;
 		Location location1 = new Location();
 		Provider provider1 = new Provider();
@@ -265,6 +266,7 @@ public class QueueEntryServiceTest {
 		transition2.setTransitionDate(date3);
 		transition2.setNewQueue(queue2);
 		transition2.setNewPriority(concept2);
+		transition2.setNewPriorityComment(string2);
 		transition2.setNewStatus(concept2);
 		QueueEntry queueEntry3 = queueEntryService.transitionQueueEntry(transition2);
 		assertThat(queueEntry2.getEndedAt(), equalTo(date3));
@@ -272,7 +274,7 @@ public class QueueEntryServiceTest {
 		assertThat(queueEntry3.getPatient(), equalTo(patient1));
 		assertThat(queueEntry3.getVisit(), equalTo(visit1));
 		assertThat(queueEntry3.getPriority(), equalTo(concept2));
-		assertThat(queueEntry3.getPriorityComment(), equalTo(string1));
+		assertThat(queueEntry3.getPriorityComment(), equalTo(string2));
 		assertThat(queueEntry3.getStatus(), equalTo(concept2));
 		assertThat(queueEntry3.getSortWeight(), equalTo(double1));
 		assertThat(queueEntry3.getLocationWaitingFor(), equalTo(location1));
