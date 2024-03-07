@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.openmrs.PersonName;
 import org.openmrs.api.context.Context;
@@ -51,6 +52,7 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 	
 	private final QueueServicesWrapper services;
 	
+	@Getter
 	private final QueueEntrySearchCriteriaParser searchCriteriaParser;
 	
 	public QueueEntryResource() {

@@ -21,6 +21,7 @@ import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +38,9 @@ import org.openmrs.Visit;
 import org.openmrs.VisitAttributeType;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.api.digitalSignage.QueueTicketAssignments;
+import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.Queue;
+import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.web.resources.QueueEntryResource;
 import org.openmrs.module.queue.web.resources.QueueRoomResource;
 import org.openmrs.module.queue.web.resources.RoomProviderMapResource;
@@ -48,6 +51,7 @@ import org.openmrs.module.webservices.rest.web.RestUtil;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
 import org.openmrs.module.webservices.rest.web.resource.api.Converter;
 import org.openmrs.module.webservices.rest.web.resource.api.PageableResult;
+import org.openmrs.module.webservices.rest.web.resource.impl.NeedsPaging;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 import org.openmrs.module.webservices.rest.web.v1_0.controller.BaseRestController;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,7 +97,15 @@ public class Legacy1xRestController extends BaseRestController {
 		List<SimpleObject> visitQueueEntries = new ArrayList<>();
 		result.add("results", visitQueueEntries);
 		RequestContext requestContext = RestUtil.getRequestContext(request, response, Representation.REF);
-		Map<String, Object> searchResult = queueEntryResource.search(requestContext);
+		Map<String, String[]> parameters = new HashMap<String, String[]>(requestContext.getRequest().getParameterMap());
+		// The queueEntryResource does not limit to active by default, but the legacy resource does
+		if (!parameters.containsKey("isEnded")) {
+			parameters.put("isEnded", new String[] { "false" });
+		}
+		QueueEntrySearchCriteria criteria = queueEntryResource.getSearchCriteriaParser().constructFromRequest(parameters);
+		List<QueueEntry> queueEntryList = services.getQueueEntryService().getQueueEntries(criteria);
+		PageableResult pageableResult = new NeedsPaging<>(queueEntryList, requestContext);
+		Map<String, Object> searchResult = pageableResult.toSimpleObject(queueEntryResource);
 		List<Map<String, Object>> queueEntries = (List<Map<String, Object>>) PropertyUtils.getProperty(searchResult,
 		    "results");
 		for (Map<String, Object> queueEntry : queueEntries) {
