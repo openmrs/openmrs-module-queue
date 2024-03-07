@@ -31,6 +31,7 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 	@Override
 	public List<QueueEntry> getQueueEntries(QueueEntrySearchCriteria searchCriteria) {
 		Criteria c = createCriteriaFromSearchCriteria(searchCriteria);
+		c.addOrder(Order.desc("qe.sortWeight"));
 		c.addOrder(Order.asc("qe.startedAt"));
 		c.addOrder(Order.asc("qe.dateCreated"));
 		c.addOrder(Order.asc("qe.queueEntryId"));

@@ -400,7 +400,7 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		assertNumberOfResults(criteria, 0);
 		criteria.setEndedOnOrBefore(date("2022-02-02 18:40:56"));
 		assertResults(criteria, 1);
-		criteria.setEndedOnOrBefore(date("2022-02-02 18:41:56"));
+		criteria.setEndedOnOrBefore(date("2022-03-02 18:41:56"));
 		assertResults(criteria, 1, 4);
 		criteria.setEndedOnOrBefore(null);
 		criteria.setIsEnded(true);
@@ -413,9 +413,9 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	// 2022-02-02 18:40:56.0, 2022-02-02 18:41:56.0
 	public void shouldSearchAndCountQueueEntriesEndedOnOrAfterDate() {
 		assertNumberOfResults(criteria, 4);
-		criteria.setEndedOnOrAfter(date("2022-02-02 18:41:57"));
+		criteria.setEndedOnOrAfter(date("2022-03-02 18:41:57"));
 		assertNumberOfResults(criteria, 0);
-		criteria.setEndedOnOrAfter(date("2022-02-02 18:41:56"));
+		criteria.setEndedOnOrAfter(date("2022-03-02 18:41:56"));
 		assertResults(criteria, 4);
 		criteria.setEndedOnOrAfter(date("2022-02-02 18:40:56"));
 		assertResults(criteria, 1, 4);

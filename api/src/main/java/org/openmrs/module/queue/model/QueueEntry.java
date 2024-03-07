@@ -73,8 +73,9 @@ public class QueueEntry extends BaseChangeableOpenmrsData {
 	@JoinColumn(name = "status", referencedColumnName = "concept_id", nullable = false)
 	private Concept status;
 	
-	@Column(name = "sort_weight")
-	private Double sortWeight;
+	// Provides a means to indicate the relative order within a queue.  Higher weight reflects higher priority.
+	@Column(name = "sort_weight", nullable = false)
+	private Double sortWeight = 0.0;
 	
 	//The Location the patient is waiting for, if any.
 	@ManyToOne

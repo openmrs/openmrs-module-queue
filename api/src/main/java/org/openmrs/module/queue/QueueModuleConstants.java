@@ -16,4 +16,8 @@ public class QueueModuleConstants {
 	public final static String QUEUE_PRIORITY = "queue.priorityConceptSetName";
 	
 	public final static String QUEUE_SERVICE = "queue.serviceConceptSetName";
+	
+	public final static String QUEUE_SORT_WEIGHT_GENERATOR = "queue.sortWeightGenerator";
+	
+	public final static String EXISTING_VALUE_SORT_WEIGHT_GENERATOR = "existingValueSortWeightGenerator";
 }

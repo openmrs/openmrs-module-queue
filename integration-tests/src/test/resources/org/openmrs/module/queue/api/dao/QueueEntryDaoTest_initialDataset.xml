@@ -77,7 +77,7 @@
                  patient_id="2"
                  visit_id="[NULL]"
                  started_at="2022-03-02 16:40:56.0"
-                 ended_at="2022-02-02 18:41:56.0"
+                 ended_at="2022-03-02 18:41:56.0"
                  priority="1001"
                  priority_comment="[NULL]"
                  status="3002"
