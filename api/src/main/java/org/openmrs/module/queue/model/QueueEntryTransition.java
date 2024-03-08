@@ -34,6 +34,8 @@ public class QueueEntryTransition implements Serializable {
 	
 	private Concept newPriority;
 	
+	private String newPriorityComment;
+	
 	/**
 	 * @return a new queue entry representing what one intends to transition into
 	 */
@@ -43,7 +45,8 @@ public class QueueEntryTransition implements Serializable {
 		queueEntry.setPatient(queueEntryToTransition.getPatient());
 		queueEntry.setVisit(queueEntryToTransition.getVisit());
 		queueEntry.setPriority(newPriority == null ? queueEntryToTransition.getPriority() : newPriority);
-		queueEntry.setPriorityComment(queueEntryToTransition.getPriorityComment());
+		queueEntry.setPriorityComment(
+		    newPriorityComment == null ? queueEntryToTransition.getPriorityComment() : newPriorityComment);
 		queueEntry.setStatus(newStatus == null ? queueEntryToTransition.getStatus() : newStatus);
 		queueEntry.setSortWeight(queueEntryToTransition.getSortWeight());
 		queueEntry.setLocationWaitingFor(queueEntryToTransition.getLocationWaitingFor());

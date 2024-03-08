@@ -47,6 +47,8 @@ public class QueueEntryTransitionRestController extends BaseRestController {
 	
 	public static final String NEW_PRIORITY = "newPriority";
 	
+	public static final String NEW_PRIORITY_COMMENT = "newPriorityComment";
+	
 	private final QueueServicesWrapper services;
 	
 	@Autowired
@@ -101,6 +103,8 @@ public class QueueEntryTransitionRestController extends BaseRestController {
 			}
 			transition.setNewPriority(concept);
 		}
+		
+		transition.setNewPriorityComment(body.get(NEW_PRIORITY_COMMENT));
 		
 		// Execute transition
 		QueueEntry newQueueEntry = services.getQueueEntryService().transitionQueueEntry(transition);
