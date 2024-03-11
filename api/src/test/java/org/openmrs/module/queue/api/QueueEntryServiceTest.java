@@ -42,6 +42,7 @@ import org.openmrs.api.context.UserContext;
 import org.openmrs.module.queue.api.dao.QueueEntryDao;
 import org.openmrs.module.queue.api.impl.QueueEntryServiceImpl;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
+import org.openmrs.module.queue.api.sort.ExistingValueSortWeightGenerator;
 import org.openmrs.module.queue.exception.DuplicateQueueEntryException;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
@@ -77,6 +78,7 @@ public class QueueEntryServiceTest {
 		};
 		queueEntryService.setDao(dao);
 		queueEntryService.setVisitService(visitService);
+		queueEntryService.setSortWeightGenerator(new ExistingValueSortWeightGenerator());
 	}
 	
 	@Test

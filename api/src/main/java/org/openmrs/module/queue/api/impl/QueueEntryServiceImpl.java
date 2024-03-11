@@ -57,6 +57,7 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	
 	private AdministrationService administrationService;
 	
+	@Setter
 	private SortWeightGenerator sortWeightGenerator = null;
 	
 	public void setDao(QueueEntryDao<QueueEntry> dao) {
@@ -111,10 +112,8 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 				}
 			}
 		}
-		if (sortWeightGenerator != null) {
-			Double sortWeight = sortWeightGenerator.generateSortWeight(queueEntry);
-			queueEntry.setSortWeight(sortWeight);
-		}
+		Double sortWeight = getSortWeightGenerator().generateSortWeight(queueEntry);
+		queueEntry.setSortWeight(sortWeight);
 		return dao.createOrUpdate(queueEntry);
 	}
 	

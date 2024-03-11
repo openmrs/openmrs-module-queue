@@ -104,4 +104,13 @@ public interface QueueEntryService {
 	 *         none configured
 	 */
 	SortWeightGenerator getSortWeightGenerator();
+	
+	/**
+	 * Allows explicitly setting the sortWeightGenerator Typical usage would involve configuring the
+	 * sortWeightGenerator via global property but this method exists to enable setting programmatically
+	 * if necessary
+	 * 
+	 * @param sortWeightGenerator the SortWeightGenerator to set
+	 */
+	void setSortWeightGenerator(SortWeightGenerator sortWeightGenerator);
 }
