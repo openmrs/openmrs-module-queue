@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
@@ -71,8 +72,12 @@ public class QueueEntryMetricRestController extends BaseRestController {
 			ret.add(COUNT, services.getQueueEntryService().getCountOfQueueEntries(criteria).intValue());
 		} else {
 			List<QueueEntry> queueEntries = services.getQueueEntryService().getQueueEntries(criteria);
+			// Filter queueEntries where ended_at is null. The  count should be for those waiting for a service
+			List<QueueEntry> filteredQueueEntries = queueEntries.stream().filter(entry -> entry.getEndedAt() == null)
+			        .collect(Collectors.toList());
+			
 			if (metrics.isEmpty() || metrics.contains(COUNT)) {
-				ret.add(COUNT, queueEntries.size());
+				ret.add(COUNT, filteredQueueEntries.size());
 			}
 			if (metrics.isEmpty() || metrics.contains(AVERAGE_WAIT_TIME)) {
 				ret.add(AVERAGE_WAIT_TIME, QueueUtils.computeAverageWaitTimeInMinutes(queueEntries));
