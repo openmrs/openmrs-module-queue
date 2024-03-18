@@ -60,6 +60,16 @@ public interface QueueEntryService {
 	QueueEntry transitionQueueEntry(@NotNull QueueEntryTransition queueEntryTransition);
 	
 	/**
+	 * Undos a transition by voiding the input queue entry and making its previous queue entry 
+	 * (which MUST not be null) active by setting the previous entry's end time to null. 
+	 * 
+	 * @param queueEntry the queue entry to undo transition from
+	 * @return the previous queue entry, re-activated
+	 * 
+	 */
+	QueueEntry undoTransition(@NotNull QueueEntry queueEntry);
+	
+	/**
 	 * Voids a queue entry
 	 *
 	 * @param queueEntry the queue entry to be voided
@@ -113,4 +123,13 @@ public interface QueueEntryService {
 	 * @param sortWeightGenerator the SortWeightGenerator to set
 	 */
 	void setSortWeightGenerator(SortWeightGenerator sortWeightGenerator);
+	
+	/**
+	 * Given a specified queue entry, return its previous queue entry (i.e. the queue entry the patient
+	 * transition from to get to the specified one)
+	 * 
+	 * @param queueEntry
+	 * @return the previous queue entry, if uniquely identifable; null otherwise.
+	 */
+	QueueEntry getPreviousQueueEntry(@NotNull QueueEntry queueEntry);
 }

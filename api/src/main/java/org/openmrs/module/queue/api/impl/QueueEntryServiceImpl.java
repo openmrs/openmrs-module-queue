@@ -132,6 +132,31 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	}
 	
 	/**
+	 * @see QueueEntryService#undoTransition(QueueEntry)
+	 */
+	@Override
+	@Transactional
+	public QueueEntry undoTransition(@NotNull QueueEntry queueEntry) {
+		if (queueEntry.getVoided()) {
+			throw new IllegalArgumentException("cannot undo transition on a voided queue entry");
+		}
+		if (queueEntry.getEndedAt() != null) {
+			throw new IllegalArgumentException("cannot undo transition on an ended queue entry");
+		}
+		QueueEntry prevQueueEntry = getPreviousQueueEntry(queueEntry);
+		if (prevQueueEntry == null) {
+			throw new IllegalArgumentException("specified queue entry does not have a previous queue entry");
+		}
+		prevQueueEntry.setEndedAt(null);
+		prevQueueEntry = dao.createOrUpdate(prevQueueEntry);
+			
+		queueEntry.setVoided(true);
+		queueEntry.setVoidReason("undo transition");
+		dao.createOrUpdate(queueEntry);
+		return prevQueueEntry;
+	}
+	
+	/**
 	 * @see QueueEntryService#voidQueueEntry(QueueEntry, String)
 	 */
 	@Override
@@ -224,5 +249,19 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	private void endQueueEntry(@NotNull QueueEntry queueEntry) {
 		queueEntry.setEndedAt(new Date());
 		dao.createOrUpdate(queueEntry);
+	}
+	
+	@Override
+	public QueueEntry getPreviousQueueEntry(@NotNull QueueEntry queueEntry) {
+		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
+		criteria.setPatient(queueEntry.getPatient());
+		criteria.setVisit(queueEntry.getVisit());
+		criteria.setEndedOn(queueEntry.getStartedAt());
+		List<QueueEntry> prevQueueEntries = dao.getQueueEntries(criteria);
+		if (prevQueueEntries.size() == 1) {
+			return prevQueueEntries.get(0);
+		} else {
+			return null;
+		}
 	}
 }

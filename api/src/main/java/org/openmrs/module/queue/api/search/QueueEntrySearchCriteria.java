@@ -61,11 +61,15 @@ public class QueueEntrySearchCriteria implements Serializable {
 	
 	private Date startedOnOrBefore;
 	
+	private Date startedOn;
+	
 	private Boolean isEnded = null;
 	
 	private Date endedOnOrAfter;
 	
 	private Date endedOnOrBefore;
+	
+	private Date endedOn;
 	
 	private boolean includedVoided = false;
 }
