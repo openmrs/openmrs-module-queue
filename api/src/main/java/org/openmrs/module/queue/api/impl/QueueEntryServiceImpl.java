@@ -176,7 +176,7 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		Date onOrAfter = Date.from(LocalDateTime.now().with(LocalTime.MIN).atZone(ZoneId.systemDefault()).toInstant());
 		criteria.setStartedOnOrAfter(onOrAfter);
 		Date onOrBefore = Date.from(LocalDateTime.now().with(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant());
-		criteria.setStartedOnOrAfter(onOrBefore);
+		criteria.setStartedOnOrBefore(onOrBefore);
 		Long nextQueueNumber = getCountOfQueueEntries(criteria) + 1;
 		String paddedString = StringUtils.leftPad(String.valueOf(nextQueueNumber), 3, "0");
 		String serviceName = queue.getName().toUpperCase();
