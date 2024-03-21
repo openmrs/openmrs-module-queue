@@ -101,8 +101,7 @@ public class QueueEntryTransitionRestController extends BaseRestController {
 		return ConversionUtil.convertToRepresentation(newQueueEntry, Representation.REF);
 	}
 	
-	@RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/queue-entry/undo-transition", method = {
-	        RequestMethod.PUT, RequestMethod.POST })
+	@RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/queue-entry/transition", method = RequestMethod.DELETE)
 	@ResponseBody
 	public Object undoTransition(@RequestBody UndoQueueEntryTransitionRequest body) {
 		QueueEntryService qes = services.getQueueEntryService();
@@ -111,7 +110,7 @@ public class QueueEntryTransitionRestController extends BaseRestController {
 			QueueEntry unEndedQueueEntry = services.getQueueEntryService().undoTransition(queueEntry.get());
 			return ConversionUtil.convertToRepresentation(unEndedQueueEntry, Representation.REF);
 		} else {
-			throw new APIException("Invalid queue entry uuid: " + body);
+			throw new APIException("Invalid queue entry");
 		}
 	}
 }

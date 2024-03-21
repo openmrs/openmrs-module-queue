@@ -56,11 +56,15 @@ public class QueueEntrySearchCriteriaParser {
 	
 	public static final String SEARCH_PARAM_STARTED_ON_OR_BEFORE = "startedOnOrBefore";
 	
+	public static final String SEARCH_PARAM_STARTED_ON = "startedOn";
+	
 	public static final String SEARCH_PARAM_IS_ENDED = "isEnded";
 	
 	public static final String SEARCH_PARAM_ENDED_ON_OR_AFTER = "endedOnOrAfter";
 	
 	public static final String SEARCH_PARAM_ENDED_ON_OR_BEFORE = "endedOnOrBefore";
+	
+	public static final String SEARCH_PARAM_ENDED_ON = "endedOn";
 	
 	public static final String SEARCH_PARAM_INCLUDE_VOIDED = "includedVoided";
 	
@@ -157,6 +161,11 @@ public class QueueEntrySearchCriteriaParser {
 					criteria.setStartedOnOrBefore(QueueUtils.parseDate(date));
 					break;
 				}
+				case SEARCH_PARAM_STARTED_ON: {
+					String date = parameterMap.get(SEARCH_PARAM_STARTED_ON)[0];
+					criteria.setStartedOn(QueueUtils.parseDate(date));
+					break;
+				}
 				case SEARCH_PARAM_ENDED_ON_OR_AFTER: {
 					String date = parameterMap.get(SEARCH_PARAM_ENDED_ON_OR_AFTER)[0];
 					criteria.setEndedOnOrAfter(QueueUtils.parseDate(date));
@@ -165,6 +174,11 @@ public class QueueEntrySearchCriteriaParser {
 				case SEARCH_PARAM_ENDED_ON_OR_BEFORE: {
 					String date = parameterMap.get(SEARCH_PARAM_ENDED_ON_OR_BEFORE)[0];
 					criteria.setEndedOnOrBefore(QueueUtils.parseDate(date));
+					break;
+				}
+				case SEARCH_PARAM_ENDED_ON: {
+					String date = parameterMap.get(SEARCH_PARAM_ENDED_ON)[0];
+					criteria.setEndedOn(QueueUtils.parseDate(date));
 					break;
 				}
 				case SEARCH_PARAM_IS_ENDED: {

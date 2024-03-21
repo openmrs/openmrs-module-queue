@@ -135,7 +135,6 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	 * @see QueueEntryService#undoTransition(QueueEntry)
 	 */
 	@Override
-	@Transactional
 	public QueueEntry undoTransition(@NotNull QueueEntry queueEntry) {
 		if (queueEntry.getVoided()) {
 			throw new IllegalArgumentException("cannot undo transition on a voided queue entry");
@@ -149,7 +148,7 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		}
 		prevQueueEntry.setEndedAt(null);
 		prevQueueEntry = dao.createOrUpdate(prevQueueEntry);
-			
+		
 		queueEntry.setVoided(true);
 		queueEntry.setVoidReason("undo transition");
 		dao.createOrUpdate(queueEntry);
@@ -252,6 +251,7 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	}
 	
 	@Override
+	@Transactional(readOnly = true)
 	public QueueEntry getPreviousQueueEntry(@NotNull QueueEntry queueEntry) {
 		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
 		criteria.setPatient(queueEntry.getPatient());
@@ -260,6 +260,8 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		List<QueueEntry> prevQueueEntries = dao.getQueueEntries(criteria);
 		if (prevQueueEntries.size() == 1) {
 			return prevQueueEntries.get(0);
+		} else if(prevQueueEntries.size() > 1) {
+			throw new IllegalStateException("Multiple previous queue entries found");
 		} else {
 			return null;
 		}

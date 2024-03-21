@@ -177,11 +177,11 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 			description.addProperty("locationWaitingFor", Representation.DEFAULT);
 			description.addProperty("queueComingFrom", Representation.DEFAULT);
 			description.addProperty("providerWaitingFor", Representation.DEFAULT);
-
+			
 			// gets the previous queue entry, but with REF representation so it doesn't recursively
 			// fetch more previous entries.
 			description.addProperty("previousQueueEntry", Representation.REF);
-
+			
 			description.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
 		} else if (representation instanceof FullRepresentation) {
 			addSharedResourceDescriptionProperties(description);
