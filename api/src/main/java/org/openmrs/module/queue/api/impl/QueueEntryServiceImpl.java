@@ -257,11 +257,14 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	@Transactional(readOnly = true)
 	public QueueEntry getPreviousQueueEntry(@NotNull QueueEntry queueEntry) {
 		Queue queueComingFrom = queueEntry.getQueueComingFrom();
+		if(queueComingFrom == null) {
+			return null;
+		}
 		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
 		criteria.setPatient(queueEntry.getPatient());
 		criteria.setVisit(queueEntry.getVisit());
 		criteria.setEndedOn(queueEntry.getStartedAt());
-		criteria.setQueues(queueComingFrom == null ? Arrays.asList() : Arrays.asList(queueComingFrom));
+		criteria.setQueues(Arrays.asList(queueComingFrom));
 		List<QueueEntry> prevQueueEntries = dao.getQueueEntries(criteria);
 		if (prevQueueEntries.size() == 1) {
 			return prevQueueEntries.get(0);
