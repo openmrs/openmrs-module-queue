@@ -177,6 +177,11 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 			description.addProperty("locationWaitingFor", Representation.DEFAULT);
 			description.addProperty("queueComingFrom", Representation.DEFAULT);
 			description.addProperty("providerWaitingFor", Representation.DEFAULT);
+			
+			// gets the previous queue entry, but with REF representation so it doesn't recursively
+			// fetch more previous entries.
+			description.addProperty("previousQueueEntry", Representation.REF);
+			
 			description.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
 		} else if (representation instanceof FullRepresentation) {
 			addSharedResourceDescriptionProperties(description);
@@ -197,6 +202,7 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 			description.addProperty("voided");
 			description.addProperty("voidReason");
 			description.addProperty("auditInfo");
+			description.addProperty("previousQueueEntry", Representation.FULL);
 		} else if (representation instanceof CustomRepresentation) {
 			description = null;
 		}
@@ -212,6 +218,11 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 	public String getDisplay(QueueEntry queueEntry) {
 		PersonName personName = queueEntry.getPatient().getPersonName();
 		return (personName == null ? queueEntry.getPatient().toString() : personName.getFullName());
+	}
+	
+	@PropertyGetter("previousQueueEntry")
+	public QueueEntry getPreviousQueueEntry(QueueEntry queueEntry) {
+		return services.getQueueEntryService().getPreviousQueueEntry(queueEntry);
 	}
 	
 	@Override

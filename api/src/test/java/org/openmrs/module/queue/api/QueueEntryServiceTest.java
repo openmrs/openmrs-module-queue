@@ -16,6 +16,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
@@ -284,6 +285,57 @@ public class QueueEntryServiceTest {
 		assertThat(queueEntry3.getQueueComingFrom(), equalTo(queue1));
 		assertThat(queueEntry3.getStartedAt(), equalTo(date3));
 		assertNull(queueEntry3.getEndedAt());
+	}
+	
+	@Test
+	public void shouldUndoTransitionQueueEntry() {
+		Patient patient1 = new Patient();
+		Visit visit1 = new Visit();
+		visit1.setPatient(patient1);
+		Queue queue0 = new Queue();
+		Queue queue1 = new Queue();
+		Concept concept1 = new Concept();
+		String string1 = "starting";
+		double double1 = 5.0;
+		Location location1 = new Location();
+		Provider provider1 = new Provider();
+		Date date1 = DateUtils.addHours(new Date(), -12);
+		Date date2 = DateUtils.addHours(date1, 6);
+		
+		QueueEntry queueEntry1 = new QueueEntry();
+		queueEntry1.setQueue(queue1);
+		queueEntry1.setPatient(patient1);
+		queueEntry1.setVisit(visit1);
+		queueEntry1.setPriority(concept1);
+		queueEntry1.setPriorityComment(string1);
+		queueEntry1.setStatus(concept1);
+		queueEntry1.setSortWeight(double1);
+		queueEntry1.setLocationWaitingFor(location1);
+		queueEntry1.setProviderWaitingFor(provider1);
+		queueEntry1.setQueueComingFrom(queue0);
+		queueEntry1.setStartedAt(date1);
+		assertNull(queueEntry1.getEndedAt());
+		
+		// Mock the DAO to return the object being saved
+		when(dao.createOrUpdate(any())).thenAnswer(invocation -> invocation.getArguments()[0]);
+		
+		// Create transition
+		QueueEntryTransition transition1 = new QueueEntryTransition();
+		transition1.setQueueEntryToTransition(queueEntry1);
+		transition1.setTransitionDate(date2);
+		QueueEntry queueEntry2 = queueEntryService.transitionQueueEntry(transition1);
+		
+		// Mock the DAO to searches for previous queue entry correctly 
+		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
+		criteria.setPatient(patient1);
+		criteria.setVisit(visit1);
+		criteria.setEndedOn(date2);
+		criteria.setQueues(Arrays.asList(queueEntry2.getQueueComingFrom()));
+		when(dao.getQueueEntries(criteria)).thenReturn(Arrays.asList(queueEntry1));
+
+		queueEntryService.undoTransition(queueEntry2);
+		assertThat(queueEntry2.getVoided(), equalTo(true));
+		assertNull(queueEntry1.getEndedAt());
 	}
 	
 	@Test

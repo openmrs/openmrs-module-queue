@@ -17,6 +17,7 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -132,6 +133,32 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	}
 	
 	/**
+	 * @see QueueEntryService#undoTransition(QueueEntry)
+	 */
+	@Override
+	public QueueEntry undoTransition(@NotNull QueueEntry queueEntry) {
+		// TODO: Exceptions should be translatable and human readable on the frontend.
+		// See: https://openmrs.atlassian.net/browse/O3-2988
+		if (queueEntry.getVoided()) {
+			throw new IllegalArgumentException("cannot undo transition on a voided queue entry");
+		}
+		if (queueEntry.getEndedAt() != null) {
+			throw new IllegalArgumentException("cannot undo transition on an ended queue entry");
+		}
+		QueueEntry prevQueueEntry = getPreviousQueueEntry(queueEntry);
+		if (prevQueueEntry == null) {
+			throw new IllegalArgumentException("specified queue entry does not have a previous queue entry");
+		}
+		prevQueueEntry.setEndedAt(null);
+		prevQueueEntry = dao.createOrUpdate(prevQueueEntry);
+		
+		queueEntry.setVoided(true);
+		queueEntry.setVoidReason("undo transition");
+		dao.createOrUpdate(queueEntry);
+		return prevQueueEntry;
+	}
+	
+	/**
 	 * @see QueueEntryService#voidQueueEntry(QueueEntry, String)
 	 */
 	@Override
@@ -224,5 +251,29 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	private void endQueueEntry(@NotNull QueueEntry queueEntry) {
 		queueEntry.setEndedAt(new Date());
 		dao.createOrUpdate(queueEntry);
+	}
+	
+	@Override
+	@Transactional(readOnly = true)
+	public QueueEntry getPreviousQueueEntry(@NotNull QueueEntry queueEntry) {
+		Queue queueComingFrom = queueEntry.getQueueComingFrom();
+		if(queueComingFrom == null) {
+			return null;
+		}
+		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
+		criteria.setPatient(queueEntry.getPatient());
+		criteria.setVisit(queueEntry.getVisit());
+		criteria.setEndedOn(queueEntry.getStartedAt());
+		criteria.setQueues(Arrays.asList(queueComingFrom));
+		List<QueueEntry> prevQueueEntries = dao.getQueueEntries(criteria);
+		if (prevQueueEntries.size() == 1) {
+			return prevQueueEntries.get(0);
+		} else if (prevQueueEntries.size() > 1) {
+			// TODO: Exceptions should be translatable and human readable on the frontend.
+			// See: https://openmrs.atlassian.net/browse/O3-2988
+			throw new IllegalStateException("Multiple previous queue entries found");
+		} else {
+			return null;
+		}
 	}
 }

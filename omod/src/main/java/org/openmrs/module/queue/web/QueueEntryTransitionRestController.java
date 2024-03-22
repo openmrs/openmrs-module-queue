@@ -10,15 +10,17 @@
 package org.openmrs.module.queue.web;
 
 import java.util.Date;
-import java.util.Map;
 import java.util.Optional;
 
 import org.openmrs.Concept;
 import org.openmrs.api.APIException;
+import org.openmrs.module.queue.api.QueueEntryService;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.model.QueueEntryTransition;
+import org.openmrs.module.queue.web.dto.QueueEntryTransitionRequest;
+import org.openmrs.module.queue.web.dto.UndoQueueEntryTransitionRequest;
 import org.openmrs.module.webservices.rest.web.ConversionUtil;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.representation.Representation;
@@ -34,20 +36,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * The main controller that exposes additional end points for order entry
  */
 @Controller
-@RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/queue-entry-transition")
 public class QueueEntryTransitionRestController extends BaseRestController {
-	
-	public static final String QUEUE_ENTRY_TO_TRANSITION = "queueEntryToTransition";
-	
-	public static final String TRANSITION_DATE = "transitionDate";
-	
-	public static final String NEW_QUEUE = "newQueue";
-	
-	public static final String NEW_STATUS = "newStatus";
-	
-	public static final String NEW_PRIORITY = "newPriority";
-	
-	public static final String NEW_PRIORITY_COMMENT = "newPriorityComment";
 	
 	private final QueueServicesWrapper services;
 	
@@ -56,58 +45,72 @@ public class QueueEntryTransitionRestController extends BaseRestController {
 		this.services = services;
 	}
 	
-	@RequestMapping(method = { RequestMethod.PUT, RequestMethod.POST })
+	@RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/queue-entry/transition", method = { RequestMethod.PUT,
+	        RequestMethod.POST })
 	@ResponseBody
-	public Object transitionQueueEntry(@RequestBody Map<String, String> body) {
+	public Object transitionQueueEntry(@RequestBody QueueEntryTransitionRequest body) {
 		QueueEntryTransition transition = new QueueEntryTransition();
 		
 		// Queue Entry to Transition
-		String queueEntryUuid = body.get(QUEUE_ENTRY_TO_TRANSITION);
+		String queueEntryUuid = body.getQueueEntryToTransition();
 		QueueEntry queueEntry = services.getQueueEntryService().getQueueEntryByUuid(queueEntryUuid)
-		        .orElseThrow(() -> new APIException(QUEUE_ENTRY_TO_TRANSITION + " is a required parameter"));
+		        .orElseThrow(() -> new APIException("queueEntryToTransition not specified or found"));
 		transition.setQueueEntryToTransition(queueEntry);
 		
 		// Transition Date
 		Date transitionDate = new Date();
-		if (body.containsKey(TRANSITION_DATE)) {
-			transitionDate = (Date) ConversionUtil.convert(body.get(TRANSITION_DATE), Date.class);
+		if (body.getTransitionDate() != null) {
+			transitionDate = (Date) ConversionUtil.convert(body.getTransitionDate(), Date.class);
 		}
 		if (transitionDate == null) {
-			throw new APIException("Invalid transition date specified: " + body.get(TRANSITION_DATE));
+			throw new APIException("Invalid transition date specified: " + body.getTransitionDate());
 		}
 		transition.setTransitionDate(transitionDate);
 		
 		// Queue
-		if (body.containsKey(NEW_QUEUE)) {
-			Optional<Queue> queueOptional = services.getQueueService().getQueueByUuid(body.get(NEW_QUEUE));
+		if (body.getNewQueue() != null) {
+			Optional<Queue> queueOptional = services.getQueueService().getQueueByUuid(body.getNewQueue());
 			if (!queueOptional.isPresent()) {
-				throw new APIException("Invalid queue specified: " + body.get(NEW_QUEUE));
+				throw new APIException("Invalid queue specified: " + body.getNewQueue());
 			}
 			transition.setNewQueue(queueOptional.get());
 		}
 		
 		// Status
-		if (body.containsKey(NEW_STATUS)) {
-			Concept concept = services.getConcept(body.get(NEW_STATUS));
+		if (body.getNewStatus() != null) {
+			Concept concept = services.getConcept(body.getNewStatus());
 			if (concept == null) {
-				throw new APIException("Invalid status specified: " + body.get(NEW_STATUS));
+				throw new APIException("Invalid status specified: " + body.getNewStatus());
 			}
 			transition.setNewStatus(concept);
 		}
 		
 		// Priority
-		if (body.containsKey(NEW_PRIORITY)) {
-			Concept concept = services.getConcept(body.get(NEW_PRIORITY));
+		if (body.getNewPriority() != null) {
+			Concept concept = services.getConcept(body.getNewPriority());
 			if (concept == null) {
-				throw new APIException("Invalid priority specified: " + body.get(NEW_PRIORITY));
+				throw new APIException("Invalid priority specified: " + body.getNewPriority());
 			}
 			transition.setNewPriority(concept);
 		}
 		
-		transition.setNewPriorityComment(body.get(NEW_PRIORITY_COMMENT));
+		transition.setNewPriorityComment(body.getNewPriorityComment());
 		
 		// Execute transition
 		QueueEntry newQueueEntry = services.getQueueEntryService().transitionQueueEntry(transition);
 		return ConversionUtil.convertToRepresentation(newQueueEntry, Representation.REF);
+	}
+	
+	@RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/queue-entry/transition", method = RequestMethod.DELETE)
+	@ResponseBody
+	public Object undoTransition(@RequestBody UndoQueueEntryTransitionRequest body) {
+		QueueEntryService qes = services.getQueueEntryService();
+		Optional<QueueEntry> queueEntry = qes.getQueueEntryByUuid(body.getQueueEntry());
+		if (queueEntry.isPresent()) {
+			QueueEntry unEndedQueueEntry = services.getQueueEntryService().undoTransition(queueEntry.get());
+			return ConversionUtil.convertToRepresentation(unEndedQueueEntry, Representation.REF);
+		} else {
+			throw new APIException("Invalid queue entry");
+		}
 	}
 }

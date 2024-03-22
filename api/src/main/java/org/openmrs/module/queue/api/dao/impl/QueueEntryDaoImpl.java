@@ -64,8 +64,10 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 		limitByCollectionProperty(c, "qe.queueComingFrom", searchCriteria.getQueuesComingFrom());
 		limitToGreaterThanOrEqualToProperty(c, "qe.startedAt", searchCriteria.getStartedOnOrAfter());
 		limitToLessThanOrEqualToProperty(c, "qe.startedAt", searchCriteria.getStartedOnOrBefore());
+		limitToEqualsProperty(c, "qe.startedAt", searchCriteria.getStartedOn());
 		limitToGreaterThanOrEqualToProperty(c, "qe.endedAt", searchCriteria.getEndedOnOrAfter());
 		limitToLessThanOrEqualToProperty(c, "qe.endedAt", searchCriteria.getEndedOnOrBefore());
+		limitToEqualsProperty(c, "qe.endedAt", searchCriteria.getEndedOn());
 		if (searchCriteria.getHasVisit() == Boolean.TRUE) {
 			c.add(Restrictions.isNotNull("qe.visit"));
 		} else if (searchCriteria.getHasVisit() == Boolean.FALSE) {
