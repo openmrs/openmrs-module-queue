@@ -319,19 +319,20 @@ public class QueueEntryServiceTest {
 		// Mock the DAO to return the object being saved
 		when(dao.createOrUpdate(any())).thenAnswer(invocation -> invocation.getArguments()[0]);
 		
-		// Mock the DAO to searches for previous queue entry correctly 
-		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
-		criteria.setPatient(patient1);
-		criteria.setVisit(visit1);
-		criteria.setEndedOn(date2);
-		when(dao.getQueueEntries(criteria)).thenReturn(Arrays.asList(queueEntry1));
-		
-		// First transition test that no changes are required and all values will be pulled from existing queue entry
+		// Create transition
 		QueueEntryTransition transition1 = new QueueEntryTransition();
 		transition1.setQueueEntryToTransition(queueEntry1);
 		transition1.setTransitionDate(date2);
 		QueueEntry queueEntry2 = queueEntryService.transitionQueueEntry(transition1);
 		
+		// Mock the DAO to searches for previous queue entry correctly 
+		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
+		criteria.setPatient(patient1);
+		criteria.setVisit(visit1);
+		criteria.setEndedOn(date2);
+		criteria.setQueues(Arrays.asList(queueEntry2.getQueueComingFrom()));
+		when(dao.getQueueEntries(criteria)).thenReturn(Arrays.asList(queueEntry1));
+
 		queueEntryService.undoTransition(queueEntry2);
 		assertThat(queueEntry2.getVoided(), equalTo(true));
 		assertNull(queueEntry1.getEndedAt());

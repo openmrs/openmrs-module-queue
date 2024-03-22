@@ -17,6 +17,7 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -136,6 +137,8 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	 */
 	@Override
 	public QueueEntry undoTransition(@NotNull QueueEntry queueEntry) {
+		// TODO: Exceptions should be translatable and human readable on the frontend.
+		// See: https://openmrs.atlassian.net/browse/O3-2988
 		if (queueEntry.getVoided()) {
 			throw new IllegalArgumentException("cannot undo transition on a voided queue entry");
 		}
@@ -257,10 +260,11 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		criteria.setPatient(queueEntry.getPatient());
 		criteria.setVisit(queueEntry.getVisit());
 		criteria.setEndedOn(queueEntry.getStartedAt());
+		criteria.setQueues(Arrays.asList(queueEntry.getQueueComingFrom()));
 		List<QueueEntry> prevQueueEntries = dao.getQueueEntries(criteria);
 		if (prevQueueEntries.size() == 1) {
 			return prevQueueEntries.get(0);
-		} else if(prevQueueEntries.size() > 1) {
+		} else if (prevQueueEntries.size() > 1) {
 			throw new IllegalStateException("Multiple previous queue entries found");
 		} else {
 			return null;

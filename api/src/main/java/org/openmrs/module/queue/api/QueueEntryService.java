@@ -60,9 +60,8 @@ public interface QueueEntryService {
 	QueueEntry transitionQueueEntry(@NotNull QueueEntryTransition queueEntryTransition);
 	
 	/**
-	 * Undos a transition to the input queue entry by voiding it and 
-   * making its previous queue entry active by
-	 * setting the previous entry's end time to null.
+	 * Undos a transition to the input queue entry by voiding it and making its previous queue entry
+	 * active by setting the previous entry's end time to null.
 	 * 
 	 * @see QueueEntryService#getPreviousQueueEntry(QueueEntry)
 	 * @param queueEntry the queue entry to undo transition to. Must be active
@@ -129,7 +128,8 @@ public interface QueueEntryService {
 	
 	/**
 	 * Given a specified queue entry Q, return its previous queue entry P, where P has same patient and
-	 * visit as Q, and P.endedAt time is same as Q.startAt time.
+	 * visit as Q, and P.endedAt time is same as Q.startedAt time, and P.queue is same as
+	 * Q.queueComingFrom
 	 * 
 	 * @param queueEntry
 	 * @return the previous queue entry, null otherwise.
