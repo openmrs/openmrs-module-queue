@@ -17,14 +17,17 @@ import java.util.Optional;
 import org.openmrs.Location;
 import org.openmrs.Visit;
 import org.openmrs.VisitAttributeType;
+import org.openmrs.annotation.Authorized;
 import org.openmrs.api.APIException;
+import org.openmrs.api.OpenmrsService;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.api.sort.SortWeightGenerator;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.model.QueueEntryTransition;
+import org.openmrs.module.queue.utils.PrivilegeConstants;
 
-public interface QueueEntryService {
+public interface QueueEntryService extends OpenmrsService {
 	
 	/**
 	 * Gets a queue entry given uuid.
@@ -32,6 +35,7 @@ public interface QueueEntryService {
 	 * @param uuid uuid of the queue entry to be returned.
 	 * @return {@link org.openmrs.module.queue.model.QueueEntry}
 	 */
+	@Authorized({ PrivilegeConstants.GET_QUEUE_ENTRIES })
 	Optional<QueueEntry> getQueueEntryByUuid(@NotNull String uuid);
 	
 	/**
@@ -40,6 +44,7 @@ public interface QueueEntryService {
 	 * @param id queueEntryId - the id of the queue entry to retrieve.
 	 * @return {@link org.openmrs.module.queue.model.QueueEntry}
 	 */
+	@Authorized({ PrivilegeConstants.GET_QUEUE_ENTRIES })
 	Optional<QueueEntry> getQueueEntryById(@NotNull Integer id);
 	
 	/**
@@ -48,6 +53,7 @@ public interface QueueEntryService {
 	 * @param queueEntry the queue entry to be saved
 	 * @return saved {@link org.openmrs.module.queue.model.QueueEntry}
 	 */
+	@Authorized({ PrivilegeConstants.MANAGE_QUEUE_ENTRIES })
 	QueueEntry saveQueueEntry(@NotNull QueueEntry queueEntry);
 	
 	/**
@@ -57,6 +63,7 @@ public interface QueueEntryService {
 	 * @param queueEntryTransition the queueEntryTransition
 	 * @return the new QueueEntry that is created
 	 */
+	@Authorized({ PrivilegeConstants.MANAGE_QUEUE_ENTRIES })
 	QueueEntry transitionQueueEntry(@NotNull QueueEntryTransition queueEntryTransition);
 	
 	/**
@@ -69,6 +76,7 @@ public interface QueueEntryService {
 	 * @throws IllegalArgumentException if the previous queue entry does not exist
 	 * @throws IllegalStateException if multiple previous entries are identified
 	 */
+	@Authorized({ PrivilegeConstants.MANAGE_QUEUE_ENTRIES })
 	QueueEntry undoTransition(@NotNull QueueEntry queueEntry);
 	
 	/**
@@ -77,6 +85,7 @@ public interface QueueEntryService {
 	 * @param queueEntry the queue entry to be voided
 	 * @param voidReason the reason for voiding the queue entry
 	 */
+	@Authorized({ PrivilegeConstants.MANAGE_QUEUE_ENTRIES })
 	void voidQueueEntry(@NotNull QueueEntry queueEntry, String voidReason);
 	
 	/**
@@ -85,17 +94,20 @@ public interface QueueEntryService {
 	 * @param queueEntry queue entry to be deleted
 	 * @throws org.openmrs.api.APIException
 	 */
+	@Authorized({ PrivilegeConstants.PURGE_QUEUE_ENTRIES })
 	void purgeQueueEntry(@NotNull QueueEntry queueEntry) throws APIException;
 	
 	/**
 	 * @return {@link List} of queue entries that match the given %{@link QueueEntrySearchCriteria}
 	 */
+	@Authorized({ PrivilegeConstants.GET_QUEUE_ENTRIES })
 	List<QueueEntry> getQueueEntries(@NotNull QueueEntrySearchCriteria searchCriteria);
 	
 	/**
 	 * @return {@link Long} count of queue entries that match the given
 	 *         %{@link QueueEntrySearchCriteria}
 	 */
+	@Authorized({ PrivilegeConstants.GET_QUEUE_ENTRIES })
 	Long getCountOfQueueEntries(@NotNull QueueEntrySearchCriteria searchCriteria);
 	
 	/**
@@ -135,5 +147,6 @@ public interface QueueEntryService {
 	 * @return the previous queue entry, null otherwise.
 	 * @throws IllegalStateException if multiple previous queue entries are identified
 	 */
+	@Authorized({ PrivilegeConstants.GET_QUEUE_ENTRIES })
 	QueueEntry getPreviousQueueEntry(@NotNull QueueEntry queueEntry);
 }
