@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.apache.commons.lang.time.DateUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openmrs.Concept;
 import org.openmrs.Visit;
@@ -75,6 +76,7 @@ public class QueueEntryValidatorTest extends BaseModuleContextSensitiveTest {
 	}
 	
 	@Test
+	@Ignore("O3-2445: Allow nullable priority and status on queue entry")
 	public void shouldRejectQueueEntryWithNullStatus() {
 		validator.validate(queueEntry, errors);
 		
@@ -83,6 +85,16 @@ public class QueueEntryValidatorTest extends BaseModuleContextSensitiveTest {
 		assertThat(queueEntryStatusFieldError.getField(), is("status"));
 		assertThat(queueEntryStatusFieldError.getCode(), is("queueEntry.status.null"));
 		assertThat(queueEntryStatusFieldError.getDefaultMessage(), is("The property status should not be null"));
+	}
+	
+	@Test
+	public void shouldNotRejectQueueEntryWithNullStatusAndPriority() {
+		validator.validate(queueEntry, errors);
+		
+		FieldError queueEntryStatusFieldError = errors.getFieldError("status");
+		FieldError queueEntryPriorityFieldError = errors.getFieldError("priority");
+		assertNull(queueEntryStatusFieldError);
+		assertNull(queueEntryPriorityFieldError);
 	}
 	
 	@Test
