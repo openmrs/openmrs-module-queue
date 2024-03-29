@@ -39,18 +39,17 @@ public class QueueValidator implements Validator {
 		}
 		Queue queue = (Queue) target;
 		ValidationUtils.rejectIfEmptyOrWhitespace(errors, "name", "queue.name.null", "Queue name can't be null");
-		ValidationUtils.rejectIfEmptyOrWhitespace(errors, "location", "queue.location.null", "Location can't be null");
 		
 		// TODO: Check if the location is tagged as a Queue Location?
 		
 		QueueServicesWrapper queueServices = Context.getRegisteredComponents(QueueServicesWrapper.class).get(0);
 		if (queue.getService() == null) {
-			errors.rejectValue("service", "QueueEntry.service.null", "The property service should not be null");
-		} else {
-			if (!queueServices.getAllowedServices().contains(queue.getService())) {
-				errors.rejectValue("service", "Queue.service.invalid",
-				    "The property service should be a member of configured queue service conceptSet.");
-			}
+			return;
+		}
+		
+		if (!queueServices.getAllowedServices().contains(queue.getService())) {
+			errors.rejectValue("service", "Queue.service.invalid",
+			    "The property service should be a member of configured queue service conceptSet.");
 		}
 	}
 }

@@ -26,12 +26,8 @@
                 <constraints nullable="false"/>
             </column>
             <column name="description" type="varchar(255)"/>
-            <column name="location_id" type="int">
-                <constraints nullable="false"/>
-            </column>
-            <column name="service" type="int">
-                <constraints nullable="false"/>
-            </column>
+            <column name="location_id" type="int"/>
+            <column name="service" type="int"/>
             <column name="creator" type="int">
                 <constraints nullable="false"/>
             </column>
@@ -458,6 +454,18 @@
         <sql>
             update queue_entry qe set qe.sort_weight = 0 where qe.sort_weight is null;
         </sql>
+    </changeSet>
+
+    <changeSet id="nullable_location_and_service_on_queue_20240329" author="mujuzi">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="queue" columnName="location_id"/>
+            <columnExists tableName="queue" columnName="service"/>
+        </preConditions>
+        <comment>
+            Drop Not-Null constraint from columns queue.location_id and queue.service
+        </comment>
+        <dropNotNullConstraint tableName="queue" columnName="location_id" columnDataType="int"/>
+        <dropNotNullConstraint tableName="queue" columnName="service" columnDataType="int"/>
     </changeSet>
 
 </databaseChangeLog>
