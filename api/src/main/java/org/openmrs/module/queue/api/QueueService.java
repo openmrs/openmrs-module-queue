@@ -16,7 +16,6 @@ import java.util.Optional;
 
 import org.openmrs.annotation.Authorized;
 import org.openmrs.api.APIException;
-import org.openmrs.api.OpenmrsService;
 import org.openmrs.module.queue.api.search.QueueSearchCriteria;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.utils.PrivilegeConstants;
@@ -24,7 +23,7 @@ import org.openmrs.module.queue.utils.PrivilegeConstants;
 /**
  * This interface defines methods for Queue objects
  */
-public interface QueueService extends OpenmrsService {
+public interface QueueService {
 	
 	/**
 	 * Gets a queue given UUID.
@@ -50,7 +49,7 @@ public interface QueueService extends OpenmrsService {
 	 * @param queue the queue to be saved
 	 * @return saved {@link org.openmrs.module.queue.model.Queue}
 	 */
-	@Authorized({ PrivilegeConstants.ADD_QUEUES, PrivilegeConstants.EDIT_QUEUES })
+	@Authorized({ PrivilegeConstants.MANAGE_QUEUES })
 	Queue createQueue(@NotNull Queue queue);
 	
 	/**
@@ -59,7 +58,7 @@ public interface QueueService extends OpenmrsService {
 	 * @param queue the queue to be saved
 	 * @return saved {@link org.openmrs.module.queue.model.Queue}
 	 */
-	@Authorized({ PrivilegeConstants.ADD_QUEUES, PrivilegeConstants.EDIT_QUEUES })
+	@Authorized({ PrivilegeConstants.MANAGE_QUEUES })
 	Queue saveQueue(@NotNull Queue queue);
 	
 	/**
@@ -80,7 +79,7 @@ public interface QueueService extends OpenmrsService {
 	 * @param queue the queue to retire
 	 * @param retireReason the reason for voiding the queue
 	 */
-	@Authorized({ PrivilegeConstants.DELETE_QUEUES })
+	@Authorized({ PrivilegeConstants.MANAGE_QUEUES })
 	void retireQueue(@NotNull Queue queue, String retireReason);
 	
 	/**

@@ -19,7 +19,6 @@ import org.openmrs.Visit;
 import org.openmrs.VisitAttributeType;
 import org.openmrs.annotation.Authorized;
 import org.openmrs.api.APIException;
-import org.openmrs.api.OpenmrsService;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.api.sort.SortWeightGenerator;
 import org.openmrs.module.queue.model.Queue;
@@ -27,7 +26,7 @@ import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.model.QueueEntryTransition;
 import org.openmrs.module.queue.utils.PrivilegeConstants;
 
-public interface QueueEntryService extends OpenmrsService {
+public interface QueueEntryService {
 	
 	/**
 	 * Gets a queue entry given uuid.
@@ -115,18 +114,21 @@ public interface QueueEntryService extends OpenmrsService {
 	 * @param queue
 	 * @return VisitQueueNumber - used to identify patients in the queue instead of using patient name
 	 */
+	@Authorized({ org.openmrs.util.PrivilegeConstants.ADD_VISITS, org.openmrs.util.PrivilegeConstants.EDIT_VISITS })
 	String generateVisitQueueNumber(@NotNull Location location, @NotNull Queue queue, @NotNull Visit visit,
 	        @NotNull VisitAttributeType visitAttributeType);
 	
 	/**
 	 * Closes all active queue entries
 	 */
+	@Authorized({ PrivilegeConstants.MANAGE_QUEUE_ENTRIES })
 	void closeActiveQueueEntries();
 	
 	/**
 	 * @return the instance of SortWeightGenerator that is configured via global property, or null if
 	 *         none configured
 	 */
+	@Authorized({ PrivilegeConstants.GET_SORT_WEIGHT_GENERATOR })
 	SortWeightGenerator getSortWeightGenerator();
 	
 	/**
@@ -136,6 +138,7 @@ public interface QueueEntryService extends OpenmrsService {
 	 * 
 	 * @param sortWeightGenerator the SortWeightGenerator to set
 	 */
+	@Authorized({ PrivilegeConstants.MANAGE_SORT_WEIGHT_GENERATOR })
 	void setSortWeightGenerator(SortWeightGenerator sortWeightGenerator);
 	
 	/**

@@ -22,31 +22,41 @@ import org.openmrs.annotation.HasAddOnStartupPrivileges;
 @HasAddOnStartupPrivileges
 public class PrivilegeConstants {
 	
-	// Add Privilege Constants
-	@AddOnStartup(description = "Able to add/save queues")
-	public static final String ADD_QUEUES = "Add Queues";
-	
-	// Get Privilege Constants
 	@AddOnStartup(description = "Able to get/view queues")
 	public static final String GET_QUEUES = "Get Queues";
 	
 	@AddOnStartup(description = "Able to get/view queue entries")
 	public static final String GET_QUEUE_ENTRIES = "Get Queue Entries";
 	
-	// Delete Privilege Constants
-	@AddOnStartup(description = "Able to delete/retire queues")
-	public static final String DELETE_QUEUES = "Delete Queues";
+	@AddOnStartup(description = "Able to get/view queue rooms")
+	public static final String GET_QUEUE_ROOMS = "Get Queue Rooms";
 	
-	// Edit Privilege Constants
-	@AddOnStartup(description = "Able to edit queues")
-	public static final String EDIT_QUEUES = "Edit Queues";
+	@AddOnStartup(description = "Able to get/view room provider maps")
+	public static final String GET_ROOM_PROVIDER_MAPS = "Get Room Provider Maps";
 	
-	// Manage Privilege Constants
+	@AddOnStartup(description = "Able to get sort weight generator")
+	public static final String GET_SORT_WEIGHT_GENERATOR = "Get Sort Weight Generator";
+	
+	@AddOnStartup(description = "Able to add/edit/retire queues")
+	public static final String MANAGE_QUEUES = "Manage Queues";
+	
 	@AddOnStartup(description = "Able to add/edit/retire queue entries")
 	public static final String MANAGE_QUEUE_ENTRIES = "Manage Queue Entries";
 	
-	// Purge Privilege Constants
+	@AddOnStartup(description = "Able to add/edit/retire queue rooms")
+	public static final String MANAGE_QUEUE_ROOMS = "Manage Queue Rooms";
+	
+	@AddOnStartup(description = "Able to add/edit/retire room provider maps")
+	public static final String MANAGE_ROOM_PROVIDER_MAPS = "Manage Room Provider Maps";
+	
+	@AddOnStartup(description = "Able to add/edit/retire sort weight generator")
+	public static final String MANAGE_SORT_WEIGHT_GENERATOR = "Manage Sort Weight Generator";
+	
 	public static final String PURGE_QUEUES = "Purge Queues";
 	
 	public static final String PURGE_QUEUE_ENTRIES = "Purge Queue Entries";
+	
+	public static final String PURGE_QUEUE_ROOMS = "Purge Queue Rooms";
+	
+	public static final String PURGE_ROOM_PROVIDER_MAPS = "Purge Room Provider Maps";
 }
