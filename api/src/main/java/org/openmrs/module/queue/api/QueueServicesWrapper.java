@@ -10,12 +10,14 @@
 package org.openmrs.module.queue.api;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Concept;
 import org.openmrs.Location;
+import org.openmrs.OpenmrsMetadata;
 import org.openmrs.Patient;
 import org.openmrs.Provider;
 import org.openmrs.Visit;
@@ -128,6 +130,7 @@ public class QueueServicesWrapper {
 		for (String locationRef : locationRefs) {
 			ret.add(getLocation(locationRef.trim()));
 		}
+		sortObjectListByName(ret);
 		return ret;
 	}
 	
@@ -191,6 +194,7 @@ public class QueueServicesWrapper {
 		for (String queueRef : queueRefs) {
 			ret.add(getQueue(queueRef.trim()));
 		}
+		sortObjectListByName(ret);
 		return ret;
 	}
 	
@@ -311,5 +315,27 @@ public class QueueServicesWrapper {
 	 */
 	public String getGlobalProperty(String property) {
 		return administrationService.getGlobalProperty(property);
+	}
+	
+	@SuppressWarnings("unchecked")
+	private <T> void sortObjectListByName(List<T> unSortedList) {
+		List<T> sortedList = new ArrayList<T>();
+		List<OpenmrsMetadata> objects = (List<OpenmrsMetadata>) unSortedList;
+		List<String> names = new ArrayList<>();
+		
+		for (OpenmrsMetadata o : objects) {
+			names.add(o.getName());
+		}
+		
+		Collections.sort(names);
+		for (String name : names) {
+			for (OpenmrsMetadata o : objects) {
+				if (o.getName().equals(name)) {
+					sortedList.add((T) o);
+				}
+			}
+		}
+		unSortedList.clear();
+		unSortedList.addAll(sortedList);
 	}
 }
