@@ -11,9 +11,9 @@
 <dataset>
     <patient_identifier_type patient_identifier_type_id="1" name="Test Identifier Type" description="Test description"
                              creator="1" date_created="2022-02-02 12:34:00.0" required="false" retired="false"
-                             uuid="c5576187-9a67-43a7-9b7c-04db22851233"/>
+                             uuid="c5576187-9a67-43a7-9b7c-04db22851233" validator="[NULL]"/>
     <person person_id="100" gender="M" dead="false" creator="1" date_created="2022-02-02 12:34:00.0" voided="false"
-            uuid="90b38324-e2fd-4feb-95b7-9e9a2a8876fg"/>
+            uuid="90b38324-e2fd-4feb-95b7-9e9a2a8876fg" birthdate_estimated="false" />
     <person_name person_name_id="2" preferred="true" person_id="100" given_name="nobody" middle_name="C" family_name="no-name"
                  creator="1" date_created="2022-02-02 12:34:00.0" voided="false"
                  uuid="7e2acadc-5073-4a39-914a-debcbec8c1c9"/>
@@ -21,4 +21,14 @@
     <patient_identifier patient_identifier_id="1" patient_id="100" identifier="1234-5" identifier_type="1" preferred="1"
                         location_id="1" creator="1" date_created="2022-02-02 12:34:00.0" voided="false"
                         uuid="e887ac86-4d8a-40f3-bedb-da84d34517b7"/>
+
+    <person person_id="101" gender="M" dead="false" creator="1" date_created="2022-02-02 12:36:00.0" voided="false"
+            uuid="5c3abc9c-0b59-47c0-bc98-8f5b8f9be007" birthdate_estimated="false" />
+    <person_name person_name_id="2" preferred="true" person_id="101" given_name="nobody" middle_name="C" family_name="no-name"
+                    creator="1" date_created="2022-02-02 12:36:00.0" voided="false"
+                    uuid="57aed902-2268-416f-9068-eb3a1b17b9cf"/>
+    <patient patient_id="101" creator="1" date_created="2022-02-02 12:36:00.0" voided="false"/>
+    <patient_identifier patient_identifier_id="2" patient_id="101" identifier="1234-6" identifier_type="1" preferred="1"
+                        location_id="1" creator="1" date_created="2022-02-02 12:36:00.0" voided="false"
+                        uuid="38e94790-0c7e-4d87-aa7d-e84bc5e1501f  "/>
 </dataset>
