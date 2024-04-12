@@ -18,7 +18,7 @@ import org.openmrs.Patient;
 import org.openmrs.Person;
 import org.openmrs.User;
 import org.openmrs.annotation.Handler;
-import org.openmrs.api.context.Context;
+import org.openmrs.api.PatientService;
 import org.openmrs.api.handler.SaveHandler;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.QueueEntry;
@@ -33,18 +33,22 @@ public class MergePatientsWithQueueEntriesSaveHandler implements SaveHandler<Per
 	
 	private final QueueEntryService queueEntryService;
 	
+	private final PatientService patientService;
+	
 	@Autowired
 	public MergePatientsWithQueueEntriesSaveHandler(
-	    @Qualifier("queue.QueueEntryService") QueueEntryService queueEntryService) {
+	    @Qualifier("queue.QueueEntryService") QueueEntryService queueEntryService,
+	    @Qualifier("patientService") PatientService patientService) {
 		this.queueEntryService = queueEntryService;
+		this.patientService = patientService;
 	}
 	
 	@Override
 	public void handle(PersonMergeLog mergeLog, User creator, Date dateCreated, String other) {
 		Person winner = mergeLog.getWinner();
 		Person loser = mergeLog.getLoser();
-		Patient winnerPatient = Context.getPatientService().getPatient(winner.getPersonId());
-		Patient loserPatient = Context.getPatientService().getPatient(loser.getPersonId());
+		Patient winnerPatient = patientService.getPatient(winner.getPersonId());
+		Patient loserPatient = patientService.getPatient(loser.getPersonId());
 		
 		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
 		criteria.setPatient(loserPatient);
