@@ -50,11 +50,11 @@ public class Queue extends BaseChangeableOpenmrsMetadata {
 	private Integer queueId;
 	
 	@ManyToOne
-	@JoinColumn(name = "location_id", nullable = false)
+	@JoinColumn(name = "location_id")
 	private Location location;
 	
 	@ManyToOne
-	@JoinColumn(name = "service", referencedColumnName = "concept_id", nullable = false)
+	@JoinColumn(name = "service", referencedColumnName = "concept_id")
 	private Concept service;
 	
 	@ManyToOne

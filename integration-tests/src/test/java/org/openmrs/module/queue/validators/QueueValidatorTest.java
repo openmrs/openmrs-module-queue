@@ -10,9 +10,11 @@
 package org.openmrs.module.queue.validators;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.SpringTestConfiguration;
@@ -22,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
+import org.springframework.validation.FieldError;
 
 @ContextConfiguration(classes = SpringTestConfiguration.class, inheritLocations = false)
 public class QueueValidatorTest extends BaseModuleContextSensitiveTest {
@@ -83,11 +86,25 @@ public class QueueValidatorTest extends BaseModuleContextSensitiveTest {
 	}
 	
 	@Test
+	@Ignore("O3-2454: Allow nullable location and service on queue")
 	public void shouldFailForInvalidLocation() {
 		queue.setName("Test Queue");
 		queue.setLocation(Context.getLocationService().getLocationByUuid(BAD_LOCATION_UUID));
 		queue.setService(Context.getConceptService().getConceptByUuid(VALID_SERVICE_CONCEPT));
 		validator.validate(queue, errors);
 		assertThat(errors.getAllErrors().size(), equalTo(1));
+	}
+	
+	@Test
+	public void shouldSucceedForNullServiceConceptAndLocation() {
+		queue.setName("Test Queue");
+		queue.setLocation(null);
+		queue.setService(null);
+		validator.validate(queue, errors);
+		
+		FieldError queueServiceFieldError = errors.getFieldError("service");
+		FieldError queueLocationFieldError = errors.getFieldError("location");
+		assertNull(queueServiceFieldError);
+		assertNull(queueLocationFieldError);
 	}
 }
