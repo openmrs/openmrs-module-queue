@@ -83,13 +83,9 @@
             <column name="patient_id" type="int">
                 <constraints nullable="false"/>
             </column>
-            <column name="priority" type="int">
-                <constraints nullable="false"/>
-            </column>
+            <column name="priority" type="int"/>
             <column name="priority_comment" type="varchar(255)"/>
-            <column name="status" type="int">
-                <constraints nullable="false"/>
-            </column>
+            <column name="status" type="int"/>
             <column name="sort_weight" type="double"/>
             <column name="location_waiting_for" type="int"/>
             <column name="provider_waiting_for" type="int"/>
@@ -460,4 +456,15 @@
         </sql>
     </changeSet>
 
+    <changeSet id="nullable_priority_and_status_on_queue_entry_20240329" author="mujuzi">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="queue_entry" columnName="priority"/>
+            <columnExists tableName="queue_entry" columnName="status"/>
+        </preConditions>
+        <comment>
+            Drop Not-Null constraint from columns queue_entry.priority and queue_entry.status
+        </comment>
+        <dropNotNullConstraint tableName="queue_entry" columnName="priority" columnDataType="int"/>
+        <dropNotNullConstraint tableName="queue_entry" columnName="status" columnDataType="int"/>
+    </changeSet>
 </databaseChangeLog>

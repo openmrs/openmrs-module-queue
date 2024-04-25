@@ -63,14 +63,14 @@ public class QueueEntry extends BaseChangeableOpenmrsData {
 	private Visit visit;
 	
 	@ManyToOne
-	@JoinColumn(name = "priority", referencedColumnName = "concept_id", nullable = false)
+	@JoinColumn(name = "priority", referencedColumnName = "concept_id")
 	private Concept priority;
 	
 	@Column(name = "priority_comment")
 	private String priorityComment;
 	
 	@ManyToOne
-	@JoinColumn(name = "status", referencedColumnName = "concept_id", nullable = false)
+	@JoinColumn(name = "status", referencedColumnName = "concept_id")
 	private Concept status;
 	
 	// Provides a means to indicate the relative order within a queue.  Higher weight reflects higher priority.
