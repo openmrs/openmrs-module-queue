@@ -17,12 +17,14 @@ import java.util.Optional;
 import org.openmrs.Location;
 import org.openmrs.Visit;
 import org.openmrs.VisitAttributeType;
+import org.openmrs.annotation.Authorized;
 import org.openmrs.api.APIException;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.api.sort.SortWeightGenerator;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.model.QueueEntryTransition;
+import org.openmrs.module.queue.utils.PrivilegeConstants;
 
 public interface QueueEntryService {
 	
@@ -32,6 +34,7 @@ public interface QueueEntryService {
 	 * @param uuid uuid of the queue entry to be returned.
 	 * @return {@link org.openmrs.module.queue.model.QueueEntry}
 	 */
+	@Authorized({ PrivilegeConstants.GET_QUEUE_ENTRIES })
 	Optional<QueueEntry> getQueueEntryByUuid(@NotNull String uuid);
 	
 	/**
@@ -40,6 +43,7 @@ public interface QueueEntryService {
 	 * @param id queueEntryId - the id of the queue entry to retrieve.
 	 * @return {@link org.openmrs.module.queue.model.QueueEntry}
 	 */
+	@Authorized({ PrivilegeConstants.GET_QUEUE_ENTRIES })
 	Optional<QueueEntry> getQueueEntryById(@NotNull Integer id);
 	
 	/**
@@ -48,27 +52,30 @@ public interface QueueEntryService {
 	 * @param queueEntry the queue entry to be saved
 	 * @return saved {@link org.openmrs.module.queue.model.QueueEntry}
 	 */
+	@Authorized({ PrivilegeConstants.MANAGE_QUEUE_ENTRIES })
 	QueueEntry saveQueueEntry(@NotNull QueueEntry queueEntry);
 	
 	/**
 	 * Transitions a queue entry by ending one queue entry and creating a new queue entry that starts at
 	 * that time
-	 * 
+	 *
 	 * @param queueEntryTransition the queueEntryTransition
 	 * @return the new QueueEntry that is created
 	 */
+	@Authorized({ PrivilegeConstants.MANAGE_QUEUE_ENTRIES })
 	QueueEntry transitionQueueEntry(@NotNull QueueEntryTransition queueEntryTransition);
 	
 	/**
 	 * Undos a transition to the input queue entry by voiding it and making its previous queue entry
 	 * active by setting the previous entry's end time to null.
-	 * 
+	 *
 	 * @see QueueEntryService#getPreviousQueueEntry(QueueEntry)
 	 * @param queueEntry the queue entry to undo transition to. Must be active
 	 * @return the previous queue entry, re-activated
 	 * @throws IllegalArgumentException if the previous queue entry does not exist
 	 * @throws IllegalStateException if multiple previous entries are identified
 	 */
+	@Authorized({ PrivilegeConstants.MANAGE_QUEUE_ENTRIES })
 	QueueEntry undoTransition(@NotNull QueueEntry queueEntry);
 	
 	/**
@@ -77,6 +84,7 @@ public interface QueueEntryService {
 	 * @param queueEntry the queue entry to be voided
 	 * @param voidReason the reason for voiding the queue entry
 	 */
+	@Authorized({ PrivilegeConstants.MANAGE_QUEUE_ENTRIES })
 	void voidQueueEntry(@NotNull QueueEntry queueEntry, String voidReason);
 	
 	/**
@@ -85,17 +93,20 @@ public interface QueueEntryService {
 	 * @param queueEntry queue entry to be deleted
 	 * @throws org.openmrs.api.APIException
 	 */
+	@Authorized({ PrivilegeConstants.PURGE_QUEUE_ENTRIES })
 	void purgeQueueEntry(@NotNull QueueEntry queueEntry) throws APIException;
 	
 	/**
 	 * @return {@link List} of queue entries that match the given %{@link QueueEntrySearchCriteria}
 	 */
+	@Authorized({ PrivilegeConstants.GET_QUEUE_ENTRIES })
 	List<QueueEntry> getQueueEntries(@NotNull QueueEntrySearchCriteria searchCriteria);
 	
 	/**
 	 * @return {@link Long} count of queue entries that match the given
 	 *         %{@link QueueEntrySearchCriteria}
 	 */
+	@Authorized({ PrivilegeConstants.GET_QUEUE_ENTRIES })
 	Long getCountOfQueueEntries(@NotNull QueueEntrySearchCriteria searchCriteria);
 	
 	/**
@@ -103,12 +114,14 @@ public interface QueueEntryService {
 	 * @param queue
 	 * @return VisitQueueNumber - used to identify patients in the queue instead of using patient name
 	 */
+	@Authorized({ org.openmrs.util.PrivilegeConstants.ADD_VISITS, org.openmrs.util.PrivilegeConstants.EDIT_VISITS })
 	String generateVisitQueueNumber(@NotNull Location location, @NotNull Queue queue, @NotNull Visit visit,
 	        @NotNull VisitAttributeType visitAttributeType);
 	
 	/**
 	 * Closes all active queue entries
 	 */
+	@Authorized({ PrivilegeConstants.MANAGE_QUEUE_ENTRIES })
 	void closeActiveQueueEntries();
 	
 	/**
@@ -135,5 +148,6 @@ public interface QueueEntryService {
 	 * @return the previous queue entry, null otherwise.
 	 * @throws IllegalStateException if multiple previous queue entries are identified
 	 */
+	@Authorized({ PrivilegeConstants.GET_QUEUE_ENTRIES })
 	QueueEntry getPreviousQueueEntry(@NotNull QueueEntry queueEntry);
 }
