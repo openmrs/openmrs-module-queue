@@ -257,7 +257,7 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	@Transactional(readOnly = true)
 	public QueueEntry getPreviousQueueEntry(@NotNull QueueEntry queueEntry) {
 		Queue queueComingFrom = queueEntry.getQueueComingFrom();
-		if(queueComingFrom == null) {
+		if (queueComingFrom == null) {
 			return null;
 		}
 		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
