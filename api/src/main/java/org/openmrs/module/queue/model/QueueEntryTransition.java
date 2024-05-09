@@ -14,6 +14,8 @@ import java.util.Date;
 
 import lombok.Data;
 import org.openmrs.Concept;
+import org.openmrs.Location;
+import org.openmrs.Provider;
 
 /**
  * Bean definition that encapsulates the supported criteria for saving a direct transition from one
@@ -36,6 +38,10 @@ public class QueueEntryTransition implements Serializable {
 	
 	private String newPriorityComment;
 	
+	private Location newLocationWaitingFor; // value obtrained from queueEntryToTransition if not provided by request
+	
+	private Provider newProviderWaitingFor; // value obtrained from queueEntryToTransition if not provided by request
+	
 	/**
 	 * @return a new queue entry representing what one intends to transition into
 	 */
@@ -49,8 +55,8 @@ public class QueueEntryTransition implements Serializable {
 		    newPriorityComment == null ? queueEntryToTransition.getPriorityComment() : newPriorityComment);
 		queueEntry.setStatus(newStatus == null ? queueEntryToTransition.getStatus() : newStatus);
 		queueEntry.setSortWeight(queueEntryToTransition.getSortWeight());
-		queueEntry.setLocationWaitingFor(queueEntryToTransition.getLocationWaitingFor());
-		queueEntry.setProviderWaitingFor(queueEntryToTransition.getProviderWaitingFor());
+		queueEntry.setLocationWaitingFor(newLocationWaitingFor);
+		queueEntry.setProviderWaitingFor(newProviderWaitingFor);
 		queueEntry.setQueueComingFrom(queueEntryToTransition.getQueue());
 		queueEntry.setStartedAt(transitionDate);
 		return queueEntry;

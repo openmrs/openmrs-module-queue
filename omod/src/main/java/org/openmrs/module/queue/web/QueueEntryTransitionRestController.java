@@ -10,9 +10,13 @@
 package org.openmrs.module.queue.web;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.openmrs.Concept;
+import org.openmrs.Location;
+import org.openmrs.Provider;
 import org.openmrs.api.APIException;
 import org.openmrs.module.queue.api.QueueEntryService;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
@@ -48,7 +52,8 @@ public class QueueEntryTransitionRestController extends BaseRestController {
 	@RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/queue-entry/transition", method = { RequestMethod.PUT,
 	        RequestMethod.POST })
 	@ResponseBody
-	public Object transitionQueueEntry(@RequestBody QueueEntryTransitionRequest body) {
+	public Object transitionQueueEntry(@RequestBody Map<String, Object> rawBody) {
+		QueueEntryTransitionRequest body = new ObjectMapper().convertValue(rawBody, QueueEntryTransitionRequest.class);
 		QueueEntryTransition transition = new QueueEntryTransition();
 		
 		// Queue Entry to Transition
@@ -95,6 +100,36 @@ public class QueueEntryTransitionRestController extends BaseRestController {
 		}
 		
 		transition.setNewPriorityComment(body.getNewPriorityComment());
+		
+		// Location waiting for
+		if (rawBody.containsKey(QueueEntryTransitionRequest.NEW_LOCATION_WAITING_FOR_FIELD)) {
+			if (body.getNewLocationWaitingFor() == null) {
+				transition.setNewLocationWaitingFor(null);
+			} else {
+				Location location = services.getLocationService().getLocationByUuid(body.getNewLocationWaitingFor());
+				if (location == null) {
+					throw new APIException("Invalid locationWaitingFor specified: " + body.getNewLocationWaitingFor());
+				}
+				transition.setNewLocationWaitingFor(location);
+			}
+		} else {
+			transition.setNewLocationWaitingFor(queueEntry.getLocationWaitingFor());
+		}
+		
+		// Provider waiting for
+		if (rawBody.containsKey(QueueEntryTransitionRequest.NEW_PROVIDER_WAITING_FOR_FIELD)) {
+			if (body.getNewProviderWaitingFor() == null) {
+				transition.setNewProviderWaitingFor(null);
+			} else {
+				Provider provider = services.getProviderService().getProviderByUuid(body.getNewLocationWaitingFor());
+				if (provider == null) {
+					throw new APIException("Invalid providerWaitingFor specified: " + body.getNewProviderWaitingFor());
+				}
+				transition.setNewProviderWaitingFor(provider);
+			}
+		} else {
+			transition.setNewProviderWaitingFor(queueEntry.getProviderWaitingFor());
+		}
 		
 		// Execute transition
 		QueueEntry newQueueEntry = services.getQueueEntryService().transitionQueueEntry(transition);

@@ -25,4 +25,12 @@ public class QueueEntryTransitionRequest {
 	private String newPriority;
 	
 	private String newPriorityComment;
+	
+	private String newLocationWaitingFor;
+	
+	private String newProviderWaitingFor;
+
+	public static final String NEW_LOCATION_WAITING_FOR_FIELD = "newLocationWaitingFor";
+
+	public static final String NEW_PROVIDER_WAITING_FOR_FIELD = "newProviderWaitingFor";
 }

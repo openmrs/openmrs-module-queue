@@ -248,6 +248,8 @@ public class QueueEntryServiceTest {
 		QueueEntryTransition transition1 = new QueueEntryTransition();
 		transition1.setQueueEntryToTransition(queueEntry1);
 		transition1.setTransitionDate(date2);
+		transition1.setNewLocationWaitingFor(location1);
+		transition1.setNewProviderWaitingFor(provider1);
 		QueueEntry queueEntry2 = queueEntryService.transitionQueueEntry(transition1);
 		assertThat(queueEntry1.getEndedAt(), equalTo(date2));
 		assertThat(queueEntry2.getQueue(), equalTo(queue1));
@@ -280,8 +282,8 @@ public class QueueEntryServiceTest {
 		assertThat(queueEntry3.getPriorityComment(), equalTo(string2));
 		assertThat(queueEntry3.getStatus(), equalTo(concept2));
 		assertThat(queueEntry3.getSortWeight(), equalTo(double1));
-		assertThat(queueEntry3.getLocationWaitingFor(), equalTo(location1));
-		assertThat(queueEntry3.getProviderWaitingFor(), equalTo(provider1));
+		assertThat(queueEntry3.getLocationWaitingFor(), equalTo(null));
+		assertThat(queueEntry3.getProviderWaitingFor(), equalTo(null));
 		assertThat(queueEntry3.getQueueComingFrom(), equalTo(queue1));
 		assertThat(queueEntry3.getStartedAt(), equalTo(date3));
 		assertNull(queueEntry3.getEndedAt());
@@ -332,7 +334,7 @@ public class QueueEntryServiceTest {
 		criteria.setEndedOn(date2);
 		criteria.setQueues(Arrays.asList(queueEntry2.getQueueComingFrom()));
 		when(dao.getQueueEntries(criteria)).thenReturn(Arrays.asList(queueEntry1));
-
+		
 		queueEntryService.undoTransition(queueEntry2);
 		assertThat(queueEntry2.getVoided(), equalTo(true));
 		assertNull(queueEntry1.getEndedAt());
