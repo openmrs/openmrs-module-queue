@@ -588,199 +588,127 @@
 
     <changeSet id="rest_endpoints_accessed_without_authentication_20240507010" author="mujuzi" >
         <preConditions onFail="MARK_RAN">
-            <not>
-                <sqlCheck expectedResult="0">
-                    SELECT count(*) FROM role_privilege WHERE privilege='Get Visits';
-                </sqlCheck>
-            </not>
+            <sqlCheck expectedResult="0">
+                SELECT count(*) FROM role_privilege WHERE privilege='Get Queue Entries';
+            </sqlCheck>
         </preConditions>
         <comment>Add "Get Queue Entries" privilege to the roles having "Get Visits"</comment>
         <sql>
             INSERT INTO role_privilege (role, privilege)
             SELECT role, 'Get Queue Entries' from role_privilege rp
-            WHERE rp.privilege = 'Get Visits'
-            AND NOT EXISTS (SELECT role, privilege FROM role_privilege rp2 WHERE rp2.privilege='Get Queue Entries'
-            AND rp2.role=rp.role);
+            WHERE rp.privilege = 'Get Visits';
         </sql>
     </changeSet>
 
     <changeSet id="rest_endpoints_accessed_without_authentication_20240507011" author="mujuzi" >
         <preConditions onFail="MARK_RAN">
-            <not>
-                <sqlCheck expectedResult="0">
-                    SELECT count(*) FROM role_privilege WHERE privilege='Add Visits';
-                </sqlCheck>
-            </not>
+            <sqlCheck expectedResult="0">
+                SELECT count(*) FROM role_privilege WHERE privilege='Manage Queue Entries';
+            </sqlCheck>
         </preConditions>
-        <comment>Add "Manage Queue Entries" privilege to the roles having "Add Visits"</comment>
+        <comment>Add "Manage Queue Entries" privilege to the roles having "Add Visits" and "Edit Visits"</comment>
         <sql>
             INSERT INTO role_privilege (role, privilege)
-            SELECT role, 'Manage Queue Entries' from role_privilege rp
-            WHERE rp.privilege = 'Add Visits'
-            AND NOT EXISTS (SELECT role, privilege FROM role_privilege rp2 WHERE rp2.privilege='Manage Queue Entries'
-            AND rp2.role=rp.role);
+            SELECT distinct role, 'Manage Queue Entries' from role_privilege rp
+            WHERE rp.privilege in ('Add Visits', 'Edit Visits');
         </sql>
     </changeSet>
 
     <changeSet id="rest_endpoints_accessed_without_authentication_20240507012" author="mujuzi" >
         <preConditions onFail="MARK_RAN">
-            <not>
-                <sqlCheck expectedResult="0">
-                    SELECT count(*) FROM role_privilege WHERE privilege='Edit Visits';
-                </sqlCheck>
-            </not>
-        </preConditions>
-        <comment>Add "Manage Queue Entries" privilege to the roles having "Edit Visits"</comment>
-        <sql>
-            INSERT INTO role_privilege (role, privilege)
-            SELECT role, 'Manage Queue Entries' from role_privilege rp
-            WHERE rp.privilege = 'Edit Visits'
-            AND NOT EXISTS (SELECT role, privilege FROM role_privilege rp2 WHERE rp2.privilege='Manage Queue Entries'
-            AND rp2.role=rp.role);
-        </sql>
-    </changeSet>
-
-    <changeSet id="rest_endpoints_accessed_without_authentication_20240507013" author="mujuzi" >
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <sqlCheck expectedResult="0">
-                    SELECT count(*) FROM role_privilege WHERE privilege='Delete Visits';
-                </sqlCheck>
-            </not>
+            <sqlCheck expectedResult="0">
+                SELECT count(*) FROM role_privilege WHERE privilege='Purge Queue Entries';
+            </sqlCheck>
         </preConditions>
         <comment>Add "Purge Queue Entries" privilege to the roles having "Delete Visits"</comment>
         <sql>
             INSERT INTO role_privilege (role, privilege)
             SELECT role, 'Purge Queue Entries' from role_privilege rp
-            WHERE rp.privilege = 'Delete Visits'
-            AND NOT EXISTS (SELECT role, privilege FROM role_privilege rp2 WHERE rp2.privilege='Purge Queue Entries'
-            AND rp2.role=rp.role);
+            WHERE rp.privilege = 'Delete Visits';
         </sql>
     </changeSet>
 
-    <changeSet id="rest_endpoints_accessed_without_authentication_20240507014" author="mujuzi" >
+    <changeSet id="rest_endpoints_accessed_without_authentication_20240507013" author="mujuzi" >
         <preConditions onFail="MARK_RAN">
-            <not>
-                <sqlCheck expectedResult="0">
-                    SELECT count(*) FROM role_privilege WHERE privilege='Get Visits';
-                </sqlCheck>
-            </not>
+            <sqlCheck expectedResult="0">
+                SELECT count(*) FROM role_privilege WHERE privilege='Get Queue Rooms';
+            </sqlCheck>
         </preConditions>
         <comment>Add "Get Queue Rooms" privilege to the roles having "Get Visits"</comment>
         <sql>
             INSERT INTO role_privilege (role, privilege)
             SELECT role, 'Get Queue Rooms' from role_privilege rp
-            WHERE rp.privilege = 'Get Visits'
-            AND NOT EXISTS (SELECT role, privilege FROM role_privilege rp2 WHERE rp2.privilege='Get Queue Rooms'
-            AND rp2.role=rp.role);
+            WHERE rp.privilege = 'Get Visits';
+        </sql>
+    </changeSet>
+
+    <changeSet id="rest_endpoints_accessed_without_authentication_20240507014" author="mujuzi" >
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT count(*) FROM role_privilege WHERE privilege='Manage Queue Rooms';
+            </sqlCheck>
+        </preConditions>
+        <comment>Add "Manage Queue Rooms" privilege to the roles having "Add Visits" and "Edit Visits"</comment>
+        <sql>
+            INSERT INTO role_privilege (role, privilege)
+            SELECT distinct role, 'Manage Queue Rooms' from role_privilege rp
+            WHERE rp.privilege in ('Add Visits', 'Edit Visits');
         </sql>
     </changeSet>
 
     <changeSet id="rest_endpoints_accessed_without_authentication_20240507015" author="mujuzi" >
         <preConditions onFail="MARK_RAN">
-            <not>
-                <sqlCheck expectedResult="0">
-                    SELECT count(*) FROM role_privilege WHERE privilege='Add Visits';
-                </sqlCheck>
-            </not>
-        </preConditions>
-        <comment>Add "Manage Queue Rooms" privilege to the roles having "Add Visits"</comment>
-        <sql>
-            INSERT INTO role_privilege (role, privilege)
-            SELECT role, 'Manage Queue Rooms' from role_privilege rp
-            WHERE rp.privilege = 'Add Visits'
-            AND NOT EXISTS (SELECT role, privilege FROM role_privilege rp2 WHERE rp2.privilege='Manage Queue Rooms'
-            AND rp2.role=rp.role);
-        </sql>
-    </changeSet>
-
-    <changeSet id="rest_endpoints_accessed_without_authentication_20240507016" author="mujuzi" >
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <sqlCheck expectedResult="0">
-                    SELECT count(*) FROM role_privilege WHERE privilege='Edit Visits';
-                </sqlCheck>
-            </not>
-        </preConditions>
-        <comment>Add "Manage Queue Rooms" privilege to the roles having "Edit Visits"</comment>
-        <sql>
-            INSERT INTO role_privilege (role, privilege)
-            SELECT role, 'Manage Queue Rooms' from role_privilege rp
-            WHERE rp.privilege = 'Edit Visits'
-            AND NOT EXISTS (SELECT role, privilege FROM role_privilege rp2 WHERE rp2.privilege='Manage Queue Rooms'
-            AND rp2.role=rp.role);
-        </sql>
-    </changeSet>
-
-    <changeSet id="rest_endpoints_accessed_without_authentication_20240507017" author="mujuzi" >
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <sqlCheck expectedResult="0">
-                    SELECT count(*) FROM role_privilege WHERE privilege='Delete Visits';
-                </sqlCheck>
-            </not>
+            <sqlCheck expectedResult="0">
+                SELECT count(*) FROM role_privilege WHERE privilege='Purge Queue Rooms';
+            </sqlCheck>
         </preConditions>
         <comment>Add "Purge Queue Rooms" privilege to the roles having "Delete Visits"</comment>
         <sql>
             INSERT INTO role_privilege (role, privilege)
             SELECT role, 'Purge Queue Rooms' from role_privilege rp
-            WHERE rp.privilege = 'Delete Visits'
-            AND NOT EXISTS (SELECT role, privilege FROM role_privilege rp2 WHERE rp2.privilege='Purge Queue Rooms'
-            AND rp2.role=rp.role);
+            WHERE rp.privilege = 'Delete Visits';
         </sql>
     </changeSet>
 
-    <changeSet id="rest_endpoints_accessed_without_authentication_20240507018" author="mujuzi" >
+    <changeSet id="rest_endpoints_accessed_without_authentication_20240507016" author="mujuzi" >
         <preConditions onFail="MARK_RAN">
-            <not>
-                <sqlCheck expectedResult="0">
-                    SELECT count(*) FROM role_privilege WHERE privilege='Get Visit Types';
-                </sqlCheck>
-            </not>
+            <sqlCheck expectedResult="0">
+                SELECT count(*) FROM role_privilege WHERE privilege='Get Queues';
+            </sqlCheck>
         </preConditions>
         <comment>Add "Get Queues" privilege to the roles having "Get Visit Types"</comment>
         <sql>
             INSERT INTO role_privilege (role, privilege)
             SELECT role, 'Get Queues' from role_privilege rp
-            WHERE rp.privilege = 'Get Visit Types'
-            AND NOT EXISTS (SELECT role, privilege FROM role_privilege rp2 WHERE rp2.privilege='Get Queues'
-            AND rp2.role=rp.role);
+            WHERE rp.privilege = 'Get Visit Types';
         </sql>
     </changeSet>
 
-    <changeSet id="rest_endpoints_accessed_without_authentication_20240507019" author="mujuzi" >
+    <changeSet id="rest_endpoints_accessed_without_authentication_20240507017" author="mujuzi" >
         <preConditions onFail="MARK_RAN">
-            <not>
-                <sqlCheck expectedResult="0">
-                    SELECT count(*) FROM role_privilege WHERE privilege='Manage Visit Types';
-                </sqlCheck>
-            </not>
+            <sqlCheck expectedResult="0">
+                SELECT count(*) FROM role_privilege WHERE privilege='Manage Queues';
+            </sqlCheck>
         </preConditions>
         <comment>Add "Manage Queues" privilege to the roles having "Manage Visit Types"</comment>
         <sql>
             INSERT INTO role_privilege (role, privilege)
             SELECT role, 'Manage Queues' from role_privilege rp
-            WHERE rp.privilege = 'Manage Visit Types'
-            AND NOT EXISTS (SELECT role, privilege FROM role_privilege rp2 WHERE rp2.privilege='Manage Queues'
-            AND rp2.role=rp.role);
+            WHERE rp.privilege = 'Manage Visit Types';
         </sql>
     </changeSet>
 
-    <changeSet id="rest_endpoints_accessed_without_authentication_20240507020" author="mujuzi" >
+    <changeSet id="rest_endpoints_accessed_without_authentication_20240507018" author="mujuzi" >
         <preConditions onFail="MARK_RAN">
-            <not>
-                <sqlCheck expectedResult="0">
-                    SELECT count(*) FROM role_privilege WHERE privilege='Manage Visit Types';
-                </sqlCheck>
-            </not>
+            <sqlCheck expectedResult="0">
+                SELECT count(*) FROM role_privilege WHERE privilege='Purge Queues';
+            </sqlCheck>
         </preConditions>
         <comment>Add "Purge Queues" privilege to the roles having "Manage Visit Types"</comment>
         <sql>
             INSERT INTO role_privilege (role, privilege)
             SELECT role, 'Purge Queues' from role_privilege rp
-            WHERE rp.privilege = 'Manage Visit Types'
-            AND NOT EXISTS (SELECT role, privilege FROM role_privilege rp2 WHERE rp2.privilege='Purge Queues'
-            AND rp2.role=rp.role);
+            WHERE rp.privilege = 'Manage Visit Types';
         </sql>
     </changeSet>
 
