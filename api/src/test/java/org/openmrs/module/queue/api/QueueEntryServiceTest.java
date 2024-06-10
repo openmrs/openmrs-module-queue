@@ -332,7 +332,7 @@ public class QueueEntryServiceTest {
 		criteria.setEndedOn(date2);
 		criteria.setQueues(Arrays.asList(queueEntry2.getQueueComingFrom()));
 		when(dao.getQueueEntries(criteria)).thenReturn(Arrays.asList(queueEntry1));
-
+		
 		queueEntryService.undoTransition(queueEntry2);
 		assertThat(queueEntry2.getVoided(), equalTo(true));
 		assertNull(queueEntry1.getEndedAt());
