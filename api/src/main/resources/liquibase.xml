@@ -461,6 +461,7 @@
     </changeSet>
 
     <changeSet id="rest_endpoints_accessed_without_authentication_2024050701" author="mujuzi" >
+        <validCheckSum>8:c3b62f0ec22f00b70c3562ef55318511</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
                 SELECT count(*) FROM privilege WHERE privilege='Get Queues';
@@ -470,8 +471,23 @@
         <insert tableName="privilege">
             <column name="privilege" value="Get Queues" />
             <column name="description" value="Able to get/view queues" />
-            <column name="uuid" value="4e7bdbc8-3975-11e6-899a-a4d646d86a8a" />
+            <column name="uuid" value="6ccefb68-2803-11ef-b40b-0242ac120002" />
         </insert>
+    </changeSet>
+
+    <changeSet id="rest_endpoints_accessed_without_authentication_2024050701_fix" author="mseaton" >
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT count(*) FROM privilege WHERE privilege='Get Queues' and uuid='4e7bdbc8-3975-11e6-899a-a4d646d86a8a';
+            </sqlCheck>
+        </preConditions>
+        <comment>Update uuid for "Get Queues" privilege</comment>
+        <update tableName="privilege">
+            <column name="uuid" value="6ccefb68-2803-11ef-b40b-0242ac120002" />
+            <where>
+                privilege='Get Queues' and uuid='4e7bdbc8-3975-11e6-899a-a4d646d86a8a'
+            </where>
+        </update>
     </changeSet>
 
     <changeSet id="rest_endpoints_accessed_without_authentication_2024050702" author="mujuzi" >
