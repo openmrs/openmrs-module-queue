@@ -11,9 +11,13 @@ package org.openmrs.module.queue.api;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -22,6 +26,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.openmrs.Concept;
+import org.openmrs.Location;
 import org.openmrs.api.AdministrationService;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.LocationService;
@@ -33,6 +38,12 @@ import org.openmrs.module.queue.model.Queue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class QueueServicesWrapperTest {
+	
+	private static final String UUID = "3eb7fe43-2813-4kbc-80dc-2e5d30252bb5";
+	
+	public static final String TEST_UUID = "5ob8gj90-9090-4kbc-80dc-2e5d30252bb3";
+	
+	private static final String NEW_UUID = "45b9fe43-2813-4kbc-80dc-2e5d30290iik";
 	
 	QueueServicesWrapper wrapper;
 	
@@ -158,5 +169,55 @@ public class QueueServicesWrapperTest {
 		queue.setStatusConceptSet(conceptSet2);
 		List<Concept> statuses = wrapper.getAllowedStatuses(queue);
 		assertThat(statuses.size(), equalTo(1));
+	}
+	
+	@Test
+	public void getQueues_shouldReturnQueuesInAscendingOrderByName() {
+		String[] queueRefs = new String[] { UUID, TEST_UUID, NEW_UUID };
+		createTestQueue("Queue", UUID);
+		createTestQueue("Test Queue", TEST_UUID);
+		createTestQueue("New Queue", NEW_UUID);
+		
+		List<Queue> queues = wrapper.getQueues(queueRefs);
+		assertThat(queues, notNullValue());
+		assertThat(queues.size(), is(greaterThanOrEqualTo(2)));
+		
+		String previousName = "";
+		for (Queue q : queues) {
+			assertThat(q.getName().compareTo(previousName), is(greaterThanOrEqualTo(0)));
+			previousName = q.getName();
+		}
+	}
+	
+	@Test
+	public void getLocations_shouldReturnLocationsInAscendingOrderByName() {
+		String[] locationRefs = new String[] { UUID, TEST_UUID, NEW_UUID };
+		createTestLocation("Location", UUID);
+		createTestLocation("Test Location", TEST_UUID);
+		createTestLocation("New Location", NEW_UUID);
+		
+		List<Location> locations = wrapper.getLocations(locationRefs);
+		assertThat(locations, notNullValue());
+		assertThat(locations.size(), is(greaterThanOrEqualTo(2)));
+		
+		String previousName = "";
+		for (Location q : locations) {
+			assertThat(q.getName().compareTo(previousName), is(greaterThanOrEqualTo(0)));
+			previousName = q.getName();
+		}
+	}
+	
+	private void createTestQueue(String name, String uuid) {
+		Queue testQueue = new Queue();
+		testQueue.setName(name);
+		testQueue.setUuid(uuid);
+		when(queueService.getQueueByUuid(uuid)).thenReturn(Optional.of(testQueue));
+	}
+	
+	private void createTestLocation(String name, String uuid) {
+		Location testLocation = new Location();
+		testLocation.setName(name);
+		testLocation.setUuid(uuid);
+		when(locationService.getLocationByUuid(uuid)).thenReturn(testLocation);
 	}
 }

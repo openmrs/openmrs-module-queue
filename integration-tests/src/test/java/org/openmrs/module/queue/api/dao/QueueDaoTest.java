@@ -10,6 +10,7 @@
 package org.openmrs.module.queue.api.dao;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -184,6 +185,19 @@ public class QueueDaoTest extends BaseModuleContextSensitiveTest {
 		assertResults(criteria, 3, 4);
 		criteria.setServices(Arrays.asList(concept1, concept2));
 		assertResults(criteria, 1, 3, 4);
+	}
+	
+	@Test
+	public void shouldReturnQueuesInAscendingOrderByName() {
+		List<Queue> queues = dao.getQueues(criteria);
+		assertThat(queues, notNullValue());
+		assertThat(queues.size(), is(greaterThanOrEqualTo(2)));
+		
+		String previousName = "";
+		for (Queue q : queues) {
+			assertThat(q.getName().compareTo(previousName), is(greaterThanOrEqualTo(0)));
+			previousName = q.getName();
+		}
 	}
 	
 	@Test
