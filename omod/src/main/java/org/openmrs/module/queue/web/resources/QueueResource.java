@@ -16,6 +16,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import io.swagger.models.Model;
+import io.swagger.models.ModelImpl;
+import io.swagger.models.properties.RefProperty;
+import io.swagger.models.properties.StringProperty;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.api.search.QueueSearchCriteria;
@@ -150,6 +154,51 @@ public class QueueResource extends DelegatingCrudResource<Queue> {
 	@Override
 	public DelegatingResourceDescription getUpdatableProperties() throws ResourceDoesNotSupportOperationException {
 		return this.getCreatableProperties();
+	}
+	
+	@Override
+	public Model getGETModel(Representation rep) {
+		ModelImpl model = (ModelImpl) super.getGETModel(rep);
+		if (rep instanceof RefRepresentation) {
+			model.property("uuid", new StringProperty().example("uuid")).property("display", new StringProperty())
+			        .property("name", new StringProperty()).property("description", new StringProperty());
+		}
+		if (rep instanceof DefaultRepresentation) {
+			model.property("uuid", new StringProperty().example("uuid")).property("display", new StringProperty())
+			        .property("name", new StringProperty()).property("description", new StringProperty())
+			        .property("location", new RefProperty("#/definitions/LocationGet"))
+			        .property("service", new RefProperty("#/definitions/ConceptGet"))
+			        .property("priorityConceptSet", new RefProperty("#/definitions/ConceptGet"))
+			        .property("statusConceptSet", new RefProperty("#/definitions/ConceptGet"))
+			        .property("allowedPriorities", new RefProperty("#/definitions/ConceptGet"))
+			        .property("allowedStatuses", new RefProperty("#/definitions/ConceptGet"));
+		}
+		if (rep instanceof FullRepresentation) {
+			model.property("uuid", new StringProperty().example("uuid")).property("display", new StringProperty())
+			        .property("name", new StringProperty()).property("description", new StringProperty())
+			        .property("location", new RefProperty("#/definitions/LocationGet"))
+			        .property("service", new RefProperty("#/definitions/ConceptGet"))
+			        .property("priorityConceptSet", new RefProperty("#/definitions/ConceptGet"))
+			        .property("statusConceptSet", new RefProperty("#/definitions/ConceptGet"))
+			        .property("allowedPriorities", new RefProperty("#/definitions/ConceptGet"))
+			        .property("allowedStatuses", new RefProperty("#/definitions/ConceptGet"))
+			        .property("auditInfo", new StringProperty());
+		}
+		return model;
+	}
+	
+	@Override
+	public Model getCREATEModel(Representation rep) {
+		return new ModelImpl().property("name", new StringProperty()).property("description", new StringProperty())
+		        .property("location", new RefProperty("#/definitions/LocationCreate"))
+		        .property("service", new RefProperty("#/definitions/ConceptCreate"))
+		        .property("priorityConceptSet", new RefProperty("#/definitions/ConceptCreate"))
+		        .property("statusConceptSet", new RefProperty("#/definitions/ConceptCreate"));
+	}
+	
+	@Override
+	public Model getUPDATEModel(Representation rep) {
+		return getCREATEModel(rep);
 	}
 	
 	@Override

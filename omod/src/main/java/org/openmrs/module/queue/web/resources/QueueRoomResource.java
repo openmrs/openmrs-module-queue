@@ -14,6 +14,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import io.swagger.models.Model;
+import io.swagger.models.ModelImpl;
+import io.swagger.models.properties.RefProperty;
+import io.swagger.models.properties.StringProperty;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.api.search.QueueRoomSearchCriteria;
@@ -140,6 +144,38 @@ public class QueueRoomResource extends DelegatingCrudResource<QueueRoom> {
 	@Override
 	public DelegatingResourceDescription getUpdatableProperties() throws ResourceDoesNotSupportOperationException {
 		return this.getCreatableProperties();
+	}
+	
+	@Override
+	public Model getGETModel(Representation rep) {
+		ModelImpl model = (ModelImpl) super.getGETModel(rep);
+		if (rep instanceof DefaultRepresentation) {
+			model.property("uuid", new StringProperty()).property("display", new StringProperty())
+			        .property("name", new StringProperty()).property("description", new StringProperty())
+			        .property("queue", new RefProperty("#/definitions/QueueGet"));
+		}
+		if (rep instanceof FullRepresentation) {
+			model.property("queue", new RefProperty("#/definitions/QueueGetFull"))
+			        .property("auditInfo", new StringProperty()).property("queue", new StringProperty());
+		}
+		
+		if (rep instanceof RefRepresentation) {
+			model.property("uuid", new StringProperty()).property("display", new StringProperty())
+			        .property("name", new StringProperty()).property("description", new StringProperty())
+			        .property("queue", new RefProperty("#/definitions/QueueGetRef"));
+		}
+		return model;
+	}
+	
+	@Override
+	public Model getCREATEModel(Representation rep) {
+		return new ModelImpl().property("name", new StringProperty()).property("description", new StringProperty())
+		        .property("queue", new RefProperty("#/definitions/QueueCreate"));
+	}
+	
+	@Override
+	public Model getUPDATEModel(Representation rep) {
+		return getCREATEModel(rep);
 	}
 	
 	@PropertyGetter("display")

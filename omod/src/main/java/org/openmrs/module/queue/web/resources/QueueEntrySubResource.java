@@ -16,6 +16,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 
+import io.swagger.models.Model;
+import io.swagger.models.ModelImpl;
+import io.swagger.models.properties.*;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
@@ -117,12 +120,30 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 	}
 	
 	@Override
+	public Model getCREATEModel(Representation rep) {
+		return new ModelImpl().property("priorityComment", new StringProperty()).property("sortWeight", new DoubleProperty())
+		        .property("startedAt", new DateProperty())
+		        .property("patient", new RefProperty("#/definitions/PatientCreate"))
+		        .property("priority", new RefProperty("#/definitions/ConceptCreate"))
+		        .property("locationWaitingFor", new RefProperty("#/definitions/LocationCreate"))
+		        .property("queueComingFrom", new RefProperty("#/definitions/QueueCreate"))
+		        .property("status", new RefProperty("#/definitions/ConceptCreate"))
+		        .property("providerWaitingFor", new RefProperty("#/definitions/ProviderCreate"));
+	}
+	
+	@Override
 	public DelegatingResourceDescription getUpdatableProperties() throws ResourceDoesNotSupportOperationException {
 		DelegatingResourceDescription description = new DelegatingResourceDescription();
 		description.addProperty("priorityComment");
 		description.addProperty("sortWeight");
 		description.addProperty("endedAt");
 		return description;
+	}
+	
+	@Override
+	public Model getUPDATEModel(Representation rep) {
+		return new ModelImpl().property("priorityComment", new StringProperty()).property("sortWeight", new DoubleProperty())
+		        .property("endedAt", new DateProperty());
 	}
 	
 	@Override
@@ -175,6 +196,36 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 		resourceDescription.addProperty("sortWeight");
 		resourceDescription.addProperty("startedAt");
 		resourceDescription.addProperty("endedAt");
+	}
+	
+	@Override
+	public Model getGETModel(Representation rep) {
+		ModelImpl model = (ModelImpl) super.getGETModel(rep);
+		if (rep instanceof RefRepresentation || rep instanceof DefaultRepresentation) {
+			model.property("uuid", new StringProperty()).property("display", new StringProperty())
+			        .property("sortWeight", new DoubleProperty()).property("startedAt", new DateProperty())
+			        .property("endedAt", new DateProperty())
+			        .property("status", new RefProperty("#/definitions/ConceptGetRef"))
+			        .property("priority", new RefProperty("#/definitions/ConceptGetRef"))
+			        .property("priorityComment", new StringProperty())
+			        .property("patient", new RefProperty("#/definitions/PatientGetRef"))
+			        .property("locationWaitingFor", new RefProperty("#/definitions/LocationGetRef"))
+			        .property("queueComingFrom", new RefProperty("#/definitions/QueueGetRef"))
+			        .property("providerWaitingFor", new RefProperty("#/definitions/ProviderGetRef"));
+		} else if (rep instanceof FullRepresentation) {
+			model.property("uuid", new StringProperty()).property("display", new StringProperty())
+			        .property("sortWeight", new DoubleProperty()).property("startedAt", new DateProperty())
+			        .property("endedAt", new DateProperty())
+			        .property("status", new RefProperty("#/definitions/ConceptGetFull"))
+			        .property("priority", new RefProperty("#/definitions/ConceptGetFull"))
+			        .property("priorityComment", new StringProperty()).property("voided", new BooleanProperty())
+			        .property("voidedReason", new StringProperty()).property("auditInfo", new StringProperty())
+			        .property("patient", new RefProperty("#/definitions/PatientGetRef"))
+			        .property("locationWaitingFor", new RefProperty("#/definitions/LocationGetFull"))
+			        .property("queueComingFrom", new RefProperty("#/definitions/QueueGetFull"))
+			        .property("providerWaitingFor", new RefProperty("#/definitions/ProviderGetFull"));
+		}
+		return model;
 	}
 	
 	@PropertyGetter("display")

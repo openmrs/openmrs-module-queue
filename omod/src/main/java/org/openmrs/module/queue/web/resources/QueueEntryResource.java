@@ -16,6 +16,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import io.swagger.models.Model;
+import io.swagger.models.ModelImpl;
+import io.swagger.models.properties.*;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.openmrs.PersonName;
@@ -128,6 +131,56 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 	}
 	
 	@Override
+	public Model getGETModel(Representation rep) {
+		ModelImpl model = (ModelImpl) super.getGETModel(rep);
+		if (rep instanceof RefRepresentation || rep instanceof DefaultRepresentation) {
+			model.property("uuid", new StringProperty()).property("queue", new RefProperty("#/definitions/QueueGetRef"))
+			        .property("display", new StringProperty())
+			        .property("status", new RefProperty("#/definitions/ConceptGetRef"))
+			        .property("priority", new RefProperty("#/definitions/ConceptGetRef"))
+			        .property("priorityComment", new StringProperty())
+			        .property("patient", new RefProperty("#/definitions/PatientGetRef"))
+			        .property("visit", new RefProperty("#/definitions/VisitGetRef"))
+			        .property("sortWeight", new DoubleProperty()).property("startedAt", new DateProperty())
+			        .property("endedAt", new DateProperty())
+			        .property("locationWaitingFor", new RefProperty("#/definitions/LocationGetRef"))
+			        .property("queueComingFrom", new RefProperty("#/definitions/QueueGetRef"))
+			        .property("providerWaitingFor", new RefProperty("#/definitions/ProviderGetRef"));
+		} else if (rep instanceof FullRepresentation) {
+			model.property("uuid", new StringProperty()).property("queue", new RefProperty("#/definitions/QueueGetRef"))
+			        .property("display", new StringProperty())
+			        .property("status", new RefProperty("#/definitions/ConceptGetRef"))
+			        .property("priority", new RefProperty("#/definitions/ConceptGetRef"))
+			        .property("priorityComment", new StringProperty())
+			        .property("patient", new RefProperty("#/definitions/PatientGetRef"))
+			        .property("visit", new RefProperty("#/definitions/VisitGetRef"))
+			        .property("sortWeight", new DoubleProperty()).property("startedAt", new DateProperty())
+			        .property("endedAt", new DateProperty())
+			        .property("locationWaitingFor", new RefProperty("#/definitions/LocationGetRef"))
+			        .property("queueComingFrom", new RefProperty("#/definitions/QueueGetRef"))
+			        .property("providerWaitingFor", new RefProperty("#/definitions/ProviderGetRef"))
+			        .property("voided", new BooleanProperty()).property("voidedReason", new StringProperty())
+			        .property("auditInfo", new StringProperty())
+			        .property("previousQueueEntry", new RefProperty("#/definitions/QueueGetRef"));
+		}
+		return model;
+	}
+	
+	@Override
+	public Model getCREATEModel(Representation rep) {
+		return new ModelImpl().property("queue", new RefProperty("#/definitions/QueueCreate"))
+		        .property("status", new RefProperty("#/definitions/ConceptCreate"))
+		        .property("priority", new RefProperty("#/definitions/ConceptCreate"))
+		        .property("priorityComment", new StringProperty())
+		        .property("patient", new RefProperty("#/definitions/PatientCreate"))
+		        .property("visit", new RefProperty("#/definitions/VisitCreate")).property("sortWeight", new DoubleProperty())
+		        .property("startedAt", new DateProperty())
+		        .property("locationWaitingFor", new RefProperty("#/definitions/LocationCreate"))
+		        .property("queueComingFrom", new RefProperty("#/definitions/QueueCreate"))
+		        .property("providerWaitingFor", new RefProperty("#/definitions/ProviderCreate"));
+	}
+	
+	@Override
 	public DelegatingResourceDescription getUpdatableProperties() throws ResourceDoesNotSupportOperationException {
 		DelegatingResourceDescription description = new DelegatingResourceDescription();
 		description.addProperty("status");
@@ -139,6 +192,16 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 		description.addProperty("locationWaitingFor");
 		description.addProperty("providerWaitingFor");
 		return description;
+	}
+	
+	@Override
+	public Model getUPDATEModel(Representation rep) {
+		return new ModelImpl().property("status", new RefProperty("#/definitions/ConceptCreate"))
+		        .property("priority", new RefProperty("#/definitions/ConceptCreate"))
+		        .property("priorityComment", new StringProperty()).property("sortWeight", new DoubleProperty())
+		        .property("startedAt", new DateProperty()).property("endedAt", new DateProperty())
+		        .property("locationWaitingFor", new RefProperty("#/definitions/LocationCreate"))
+		        .property("providerWaitingFor", new RefProperty("#/definitions/ProviderCreate"));
 	}
 	
 	@Override
