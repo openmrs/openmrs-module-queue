@@ -314,19 +314,24 @@
     </changeSet>
 
     <changeSet id="create-auto-close-queue-entry-task-20230616" author="makombe">
+        <validCheckSum>8:6614a6aa5f2fd2e14304b48bff8c4b6d</validCheckSum>
         <preConditions>
             <sqlCheck expectedResult="0">
-                SELECT COUNT(*) FROM scheduler_task_config WHERE name = "Auto close queue entries Task";
+                SELECT COUNT(*) FROM scheduler_task_config WHERE name = 'Auto close queue entries Task';
             </sqlCheck>
         </preConditions>
-        <sql>
-            INSERT INTO
-            scheduler_task_config(name, description, schedulable_class, start_time, start_time_pattern, repeat_interval,
-            start_on_startup, created_by, date_created, uuid)
-            VALUES
-            ('Auto close queue entries Task', 'Auto close queue entries Task', 'org.openmrs.module.queue.tasks.AutoCloseQueueEntryTask',
-            TIMESTAMP(CURDATE()), 'MM/dd/yyyy HH:mm:ss', 86400, TRUE, 1, NOW(), UUID());
-        </sql>
+        <insert tableName="scheduler_task_config">
+            <column name="name" value="Auto close queue entries Task"/>
+            <column name="description" value="Auto close queue entries Task"/>
+            <column name="schedulable_class" value="org.openmrs.module.queue.tasks.AutoCloseQueueEntryTask"/>
+            <column name="start_time" valueDate="NOW()"/>
+            <column name="start_time_pattern" value="MM/dd/yyyy HH:mm:ss"/>
+            <column name="repeat_interval" valueNumeric="86400"/>
+            <column name="start_on_startup" valueBoolean="true"/>
+            <column name="created_by" valueNumeric="1"/>
+            <column name="date_created" valueDate="NOW()"/>
+            <column name="uuid" valueComputed="UUID()"/>
+        </insert>
     </changeSet>
 
     <changeSet id="add_location_coming_from_column_to_queue_entry_20230809" author="cynthiakamau">
@@ -377,7 +382,7 @@
         <preConditions>
             <not>
                 <sqlCheck expectedResult="0">
-                    SELECT COUNT(*) FROM scheduler_task_config WHERE name = "Auto close queue entries Task";
+                    SELECT COUNT(*) FROM scheduler_task_config WHERE name = 'Auto close queue entries Task';
                 </sqlCheck>
             </not>
         </preConditions>
@@ -400,7 +405,7 @@
         <addForeignKeyConstraint baseColumnNames="visit_id" baseTableName="queue_entry" constraintName="queue_entry_visit_id_fk" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="visit_id" referencedTableName="visit"/>
     </changeSet>
 
-    <changeSet id="migrate_visit_id_to_queue_entry_20231025" author="mseaton">
+    <changeSet id="migrate_visit_id_to_queue_entry_20231025" author="mseaton" dbms="mysql,mariadb">
         <preConditions onFail="MARK_RAN">
             <tableExists tableName="visit_queue_entries"/>
         </preConditions>
@@ -408,6 +413,20 @@
             update queue_entry qe
             inner join visit_queue_entries vqe on qe.queue_entry_id = vqe.queue_entry_id
             set qe.visit_id = vqe.visit_id;
+        </sql>
+    </changeSet>
+
+    <changeSet id="migrate_visit_id_to_queue_entry_20231025_postgres" author="wikumChamith" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="visit_queue_entries"/>
+        </preConditions>
+        <sql>
+            UPDATE queue_entry qe
+            SET visit_id = (
+                SELECT vqe.visit_id
+                FROM visit_queue_entries vqe
+                WHERE qe.queue_entry_id = vqe.queue_entry_id
+            );
         </sql>
     </changeSet>
 
