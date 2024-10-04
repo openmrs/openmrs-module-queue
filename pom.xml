@@ -330,8 +330,7 @@
                         </execution>
                     </executions>
                 </plugin>
-                <!-- Pour contourner un bug à la génération par Spring-boot 2.4.x :
-Failed to execute goal org.apache.maven.plugins:maven-resources-plugin:3.2.0:resources (default-resources) on project application-etude: Input length = 1 -->
+                <!-- Fix for "Failed to execute goal org.apache.maven.plugins:maven-resources-plugin:3.2.0:resources (default-resources) on project application-etude: Input length = 1" -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
