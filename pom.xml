@@ -309,6 +309,15 @@
                     <groupId>net.revelc.code</groupId>
                     <artifactId>impsort-maven-plugin</artifactId>
                     <version>1.5.0</version>
+                    <dependencies>
+                        <!-- Needed because of maven 3.9.0 backward compatibility issue,
+                             See : https://github.com/revelc/impsort-maven-plugin/issues/64 -->
+                        <dependency>
+                            <groupId>org.codehaus.plexus</groupId>
+                            <artifactId>plexus-utils</artifactId>
+                            <version>3.5.1</version>
+                        </dependency>
+                    </dependencies>
                     <configuration>
                         <groups>javax, java, *</groups>
                         <removeUnused>true</removeUnused>
@@ -321,6 +330,13 @@
                         </execution>
                     </executions>
                 </plugin>
+                <!-- Fix for "Failed to execute goal org.apache.maven.plugins:maven-resources-plugin:3.2.0:resources (default-resources) on project application-etude: Input length = 1" -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.1.0</version>
+                </plugin>
+
             </plugins>
         </pluginManagement>
     </build>
