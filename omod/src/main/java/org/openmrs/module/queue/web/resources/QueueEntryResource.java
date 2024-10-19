@@ -16,9 +16,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import io.swagger.models.Model;
-import io.swagger.models.ModelImpl;
-import io.swagger.models.properties.*;
+import io.swagger.v3.oas.models.media.BooleanSchema;
+import io.swagger.v3.oas.models.media.DateTimeSchema;
+import io.swagger.v3.oas.models.media.NumberSchema;
+import io.swagger.v3.oas.models.media.ObjectSchema;
+import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.media.StringSchema;
+import io.swagger.v3.oas.models.media.UUIDSchema;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.openmrs.PersonName;
@@ -131,53 +135,67 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 	}
 	
 	@Override
-	public Model getGETModel(Representation rep) {
-		ModelImpl model = (ModelImpl) super.getGETModel(rep);
+	public Schema<?> getGETSchema(Representation rep) {
+		Schema<?> model = super.getGETSchema(rep);
 		if (rep instanceof RefRepresentation || rep instanceof DefaultRepresentation) {
-			model.property("uuid", new StringProperty()).property("queue", new RefProperty("#/definitions/QueueGetRef"))
-			        .property("display", new StringProperty())
-			        .property("status", new RefProperty("#/definitions/ConceptGetRef"))
-			        .property("priority", new RefProperty("#/definitions/ConceptGetRef"))
-			        .property("priorityComment", new StringProperty())
-			        .property("patient", new RefProperty("#/definitions/PatientGetRef"))
-			        .property("visit", new RefProperty("#/definitions/VisitGetRef"))
-			        .property("sortWeight", new DoubleProperty()).property("startedAt", new DateProperty())
-			        .property("endedAt", new DateProperty())
-			        .property("locationWaitingFor", new RefProperty("#/definitions/LocationGetRef"))
-			        .property("queueComingFrom", new RefProperty("#/definitions/QueueGetRef"))
-			        .property("providerWaitingFor", new RefProperty("#/definitions/ProviderGetRef"));
+			model.addProperty("uuid", new UUIDSchema())
+			        .addProperty("queue", new Schema<>().$ref("#/components/schemas/QueueGetRef"))
+			        .addProperty("display", new StringSchema())
+			        .addProperty("status", new Schema<>().$ref("#/components/schemas/ConceptGetRef"))
+			        .addProperty("priority", new Schema<>().$ref("#/components/schemas/ConceptGetRef"))
+			        .addProperty("priorityComment", new StringSchema())
+			        .addProperty("patient", new Schema<>().$ref("#/components/schemas/PatientGetRef"))
+			        .addProperty("visit", new Schema<>().$ref("#/components/schemas/VisitGetRef"))
+			        .addProperty("sortWeight", new NumberSchema().format("double"))
+			        .addProperty("startedAt", new DateTimeSchema()).addProperty("endedAt", new DateTimeSchema())
+			        .addProperty("locationWaitingFor", new Schema<>().$ref("#/components/schemas/LocationGetRef"))
+			        .addProperty("queueComingFrom", new Schema<>().$ref("#/components/schemas/QueueGetRef"))
+			        .addProperty("providerWaitingFor", new Schema<>().$ref("#/components/schemas/ProviderGetRef"));
 		} else if (rep instanceof FullRepresentation) {
-			model.property("uuid", new StringProperty()).property("queue", new RefProperty("#/definitions/QueueGetRef"))
-			        .property("display", new StringProperty())
-			        .property("status", new RefProperty("#/definitions/ConceptGetRef"))
-			        .property("priority", new RefProperty("#/definitions/ConceptGetRef"))
-			        .property("priorityComment", new StringProperty())
-			        .property("patient", new RefProperty("#/definitions/PatientGetRef"))
-			        .property("visit", new RefProperty("#/definitions/VisitGetRef"))
-			        .property("sortWeight", new DoubleProperty()).property("startedAt", new DateProperty())
-			        .property("endedAt", new DateProperty())
-			        .property("locationWaitingFor", new RefProperty("#/definitions/LocationGetRef"))
-			        .property("queueComingFrom", new RefProperty("#/definitions/QueueGetRef"))
-			        .property("providerWaitingFor", new RefProperty("#/definitions/ProviderGetRef"))
-			        .property("voided", new BooleanProperty()).property("voidedReason", new StringProperty())
-			        .property("auditInfo", new StringProperty())
-			        .property("previousQueueEntry", new RefProperty("#/definitions/QueueGetRef"));
+			model.addProperty("uuid", new UUIDSchema())
+			        .addProperty("queue", new Schema<>().$ref("#/components/schemas/QueueGetRef"))
+			        .addProperty("display", new StringSchema())
+			        .addProperty("status", new Schema<>().$ref("#/components/schemas/ConceptGetRef"))
+			        .addProperty("priority", new Schema<>().$ref("#/components/schemas/ConceptGetRef"))
+			        .addProperty("priorityComment", new StringSchema())
+			        .addProperty("patient", new Schema<>().$ref("#/components/schemas/PatientGetRef"))
+			        .addProperty("visit", new Schema<>().$ref("#/components/schemas/VisitGetRef"))
+			        .addProperty("sortWeight", new NumberSchema().format("double"))
+			        .addProperty("startedAt", new DateTimeSchema()).addProperty("endedAt", new DateTimeSchema())
+			        .addProperty("locationWaitingFor", new Schema<>().$ref("#/components/schemas/LocationGetRef"))
+			        .addProperty("queueComingFrom", new Schema<>().$ref("#/components/schemas/QueueGetRef"))
+			        .addProperty("providerWaitingFor", new Schema<>().$ref("#/components/schemas/ProviderGetRef"))
+			        .addProperty("voided", new BooleanSchema()).addProperty("voidedReason", new StringSchema())
+			        .addProperty("auditInfo", new StringSchema())
+			        .addProperty("previousQueueEntry", new Schema<>().$ref("#/components/schemas/QueueGetRef"));
 		}
 		return model;
 	}
 	
 	@Override
-	public Model getCREATEModel(Representation rep) {
-		return new ModelImpl().property("queue", new RefProperty("#/definitions/QueueCreate"))
-		        .property("status", new RefProperty("#/definitions/ConceptCreate"))
-		        .property("priority", new RefProperty("#/definitions/ConceptCreate"))
-		        .property("priorityComment", new StringProperty())
-		        .property("patient", new RefProperty("#/definitions/PatientCreate"))
-		        .property("visit", new RefProperty("#/definitions/VisitCreate")).property("sortWeight", new DoubleProperty())
-		        .property("startedAt", new DateProperty())
-		        .property("locationWaitingFor", new RefProperty("#/definitions/LocationCreate"))
-		        .property("queueComingFrom", new RefProperty("#/definitions/QueueCreate"))
-		        .property("providerWaitingFor", new RefProperty("#/definitions/ProviderCreate"));
+	public Schema<?> getCREATESchema(Representation rep) {
+		return new ObjectSchema().addProperty("queue", new Schema<>().$ref("#/components/schemas/QueueCreate"))
+		        .addProperty("status", new Schema<>().$ref("#/components/schemas/ConceptCreate"))
+		        .addProperty("priority", new Schema<>().$ref("#/components/schemas/ConceptCreate"))
+		        .addProperty("priorityComment", new StringSchema())
+		        .addProperty("patient", new Schema<>().$ref("#/components/schemas/PatientCreate"))
+		        .addProperty("visit", new Schema<>().$ref("#/components/schemas/VisitCreate"))
+		        .addProperty("sortWeight", new NumberSchema().format("double"))
+		        .addProperty("startedAt", new DateTimeSchema())
+		        .addProperty("locationWaitingFor", new Schema<>().$ref("#/components/schemas/LocationCreate"))
+		        .addProperty("queueComingFrom", new Schema<>().$ref("#/components/schemas/QueueCreate"))
+		        .addProperty("providerWaitingFor", new Schema<>().$ref("#/components/schemas/ProviderCreate"));
+	}
+	
+	@Override
+	public Schema<?> getUPDATESchema(Representation rep) {
+		return super.getUPDATESchema(rep).addProperty("status", new Schema<>().$ref("#/components/schemas/ConceptCreate"))
+		        .addProperty("priority", new Schema<>().$ref("#/components/schemas/ConceptCreate"))
+		        .addProperty("priorityComment", new StringSchema())
+		        .addProperty("sortWeight", new NumberSchema().format("double"))
+		        .addProperty("startedAt", new DateTimeSchema()).addProperty("endedAt", new DateTimeSchema())
+		        .addProperty("locationWaitingFor", new Schema<>().$ref("#/components/schemas/LocationCreate"))
+		        .addProperty("providerWaitingFor", new Schema<>().$ref("#/components/schemas/ProviderCreate"));
 	}
 	
 	@Override
@@ -192,16 +210,6 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 		description.addProperty("locationWaitingFor");
 		description.addProperty("providerWaitingFor");
 		return description;
-	}
-	
-	@Override
-	public Model getUPDATEModel(Representation rep) {
-		return new ModelImpl().property("status", new RefProperty("#/definitions/ConceptCreate"))
-		        .property("priority", new RefProperty("#/definitions/ConceptCreate"))
-		        .property("priorityComment", new StringProperty()).property("sortWeight", new DoubleProperty())
-		        .property("startedAt", new DateProperty()).property("endedAt", new DateProperty())
-		        .property("locationWaitingFor", new RefProperty("#/definitions/LocationCreate"))
-		        .property("providerWaitingFor", new RefProperty("#/definitions/ProviderCreate"));
 	}
 	
 	@Override
