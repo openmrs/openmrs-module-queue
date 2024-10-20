@@ -16,10 +16,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import io.swagger.models.Model;
-import io.swagger.models.ModelImpl;
-import io.swagger.models.properties.RefProperty;
-import io.swagger.models.properties.StringProperty;
+import io.swagger.v3.oas.models.media.ObjectSchema;
+import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.media.StringSchema;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.api.search.QueueSearchCriteria;
@@ -157,48 +156,48 @@ public class QueueResource extends DelegatingCrudResource<Queue> {
 	}
 	
 	@Override
-	public Model getGETModel(Representation rep) {
-		ModelImpl model = (ModelImpl) super.getGETModel(rep);
+	public Schema<?> getGETSchema(Representation rep) {
+		Schema<?> model = super.getGETSchema(rep);
 		if (rep instanceof RefRepresentation) {
-			model.property("uuid", new StringProperty().example("uuid")).property("display", new StringProperty())
-			        .property("name", new StringProperty()).property("description", new StringProperty());
+			model.addProperty("uuid", new StringSchema().example("uuid")).addProperty("display", new StringSchema())
+			        .addProperty("name", new StringSchema()).addProperty("description", new StringSchema());
 		}
 		if (rep instanceof DefaultRepresentation) {
-			model.property("uuid", new StringProperty().example("uuid")).property("display", new StringProperty())
-			        .property("name", new StringProperty()).property("description", new StringProperty())
-			        .property("location", new RefProperty("#/definitions/LocationGet"))
-			        .property("service", new RefProperty("#/definitions/ConceptGet"))
-			        .property("priorityConceptSet", new RefProperty("#/definitions/ConceptGet"))
-			        .property("statusConceptSet", new RefProperty("#/definitions/ConceptGet"))
-			        .property("allowedPriorities", new RefProperty("#/definitions/ConceptGet"))
-			        .property("allowedStatuses", new RefProperty("#/definitions/ConceptGet"));
+			model.addProperty("uuid", new StringSchema().example("uuid")).addProperty("display", new StringSchema())
+			        .addProperty("name", new StringSchema()).addProperty("description", new StringSchema())
+			        .addProperty("location", new Schema<>().$ref("#/components/schemas/LocationGet"))
+			        .addProperty("service", new Schema<>().$ref("#/components/schemas/ConceptGet"))
+			        .addProperty("priorityConceptSet", new Schema<>().$ref("#/components/schemas/ConceptGet"))
+			        .addProperty("statusConceptSet", new Schema<>().$ref("#/components/schemas/ConceptGet"))
+			        .addProperty("allowedPriorities", new Schema<>().$ref("#/components/schemas/ConceptGet"))
+			        .addProperty("allowedStatuses", new Schema<>().$ref("#/components/schemas/ConceptGet"));
 		}
 		if (rep instanceof FullRepresentation) {
-			model.property("uuid", new StringProperty().example("uuid")).property("display", new StringProperty())
-			        .property("name", new StringProperty()).property("description", new StringProperty())
-			        .property("location", new RefProperty("#/definitions/LocationGet"))
-			        .property("service", new RefProperty("#/definitions/ConceptGet"))
-			        .property("priorityConceptSet", new RefProperty("#/definitions/ConceptGet"))
-			        .property("statusConceptSet", new RefProperty("#/definitions/ConceptGet"))
-			        .property("allowedPriorities", new RefProperty("#/definitions/ConceptGet"))
-			        .property("allowedStatuses", new RefProperty("#/definitions/ConceptGet"))
-			        .property("auditInfo", new StringProperty());
+			model.addProperty("uuid", new StringSchema().example("uuid")).addProperty("display", new StringSchema())
+			        .addProperty("name", new StringSchema()).addProperty("description", new StringSchema())
+			        .addProperty("location", new Schema<>().$ref("#/components/schemas/LocationGet"))
+			        .addProperty("service", new Schema<>().$ref("#/components/schemas/ConceptGet"))
+			        .addProperty("priorityConceptSet", new Schema<>().$ref("#/components/schemas/ConceptGet"))
+			        .addProperty("statusConceptSet", new Schema<>().$ref("#/components/schemas/ConceptGet"))
+			        .addProperty("allowedPriorities", new Schema<>().$ref("#/components/schemas/ConceptGet"))
+			        .addProperty("allowedStatuses", new Schema<>().$ref("#/components/schemas/ConceptGet"))
+			        .addProperty("auditInfo", new StringSchema());
 		}
 		return model;
 	}
 	
 	@Override
-	public Model getCREATEModel(Representation rep) {
-		return new ModelImpl().property("name", new StringProperty()).property("description", new StringProperty())
-		        .property("location", new RefProperty("#/definitions/LocationCreate"))
-		        .property("service", new RefProperty("#/definitions/ConceptCreate"))
-		        .property("priorityConceptSet", new RefProperty("#/definitions/ConceptCreate"))
-		        .property("statusConceptSet", new RefProperty("#/definitions/ConceptCreate"));
+	public Schema<?> getCREATESchema(Representation rep) {
+		return new ObjectSchema().addProperty("name", new StringSchema()).addProperty("description", new StringSchema())
+		        .addProperty("location", new Schema<>().$ref("#/components/schemas/LocationCreate"))
+		        .addProperty("service", new Schema<>().$ref("#/components/schemas/ConceptCreate"))
+		        .addProperty("priorityConceptSet", new Schema<>().$ref("#/components/schemas/ConceptCreate"))
+		        .addProperty("statusConceptSet", new Schema<>().$ref("#/components/schemas/ConceptCreate"));
 	}
 	
 	@Override
-	public Model getUPDATEModel(Representation rep) {
-		return getCREATEModel(rep);
+	public Schema<?> getUPDATESchema(Representation rep) {
+		return getCREATESchema(rep);
 	}
 	
 	@Override

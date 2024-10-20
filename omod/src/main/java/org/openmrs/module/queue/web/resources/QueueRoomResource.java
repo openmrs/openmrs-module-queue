@@ -14,10 +14,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import io.swagger.models.Model;
-import io.swagger.models.ModelImpl;
-import io.swagger.models.properties.RefProperty;
-import io.swagger.models.properties.StringProperty;
+import io.swagger.v3.oas.models.media.ObjectSchema;
+import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.media.StringSchema;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.api.search.QueueRoomSearchCriteria;
@@ -147,35 +146,35 @@ public class QueueRoomResource extends DelegatingCrudResource<QueueRoom> {
 	}
 	
 	@Override
-	public Model getGETModel(Representation rep) {
-		ModelImpl model = (ModelImpl) super.getGETModel(rep);
+	public Schema<?> getGETSchema(Representation rep) {
+		Schema<?> model = super.getGETSchema(rep);
 		if (rep instanceof DefaultRepresentation) {
-			model.property("uuid", new StringProperty()).property("display", new StringProperty())
-			        .property("name", new StringProperty()).property("description", new StringProperty())
-			        .property("queue", new RefProperty("#/definitions/QueueGet"));
+			model.addProperty("uuid", new StringSchema()).addProperty("display", new StringSchema())
+			        .addProperty("name", new StringSchema()).addProperty("description", new StringSchema())
+			        .addProperty("queue", new Schema<>().$ref("#/components/schemas/QueueGet"));
 		}
 		if (rep instanceof FullRepresentation) {
-			model.property("queue", new RefProperty("#/definitions/QueueGetFull"))
-			        .property("auditInfo", new StringProperty()).property("queue", new StringProperty());
+			model.addProperty("queue", new Schema<>().$ref("#/components/schemas/QueueGetFull"))
+			        .addProperty("auditInfo", new StringSchema()).addProperty("queue", new StringSchema());
 		}
 		
 		if (rep instanceof RefRepresentation) {
-			model.property("uuid", new StringProperty()).property("display", new StringProperty())
-			        .property("name", new StringProperty()).property("description", new StringProperty())
-			        .property("queue", new RefProperty("#/definitions/QueueGetRef"));
+			model.addProperty("uuid", new StringSchema()).addProperty("display", new StringSchema())
+			        .addProperty("name", new StringSchema()).addProperty("description", new StringSchema())
+			        .addProperty("queue", new Schema<>().$ref("#/components/schemas/QueueGetRef"));
 		}
 		return model;
 	}
 	
 	@Override
-	public Model getCREATEModel(Representation rep) {
-		return new ModelImpl().property("name", new StringProperty()).property("description", new StringProperty())
-		        .property("queue", new RefProperty("#/definitions/QueueCreate"));
+	public Schema<?> getCREATESchema(Representation rep) {
+		return new ObjectSchema().addProperty("name", new StringSchema()).addProperty("description", new StringSchema())
+		        .addProperty("queue", new Schema<>().$ref("#/components/schemas/QueueCreate"));
 	}
 	
 	@Override
-	public Model getUPDATEModel(Representation rep) {
-		return getCREATEModel(rep);
+	public Schema<?> getUPDATESchema(Representation rep) {
+		return getCREATESchema(rep);
 	}
 	
 	@PropertyGetter("display")

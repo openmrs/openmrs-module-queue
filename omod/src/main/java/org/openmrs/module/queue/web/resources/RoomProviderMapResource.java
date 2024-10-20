@@ -14,10 +14,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import io.swagger.models.Model;
-import io.swagger.models.ModelImpl;
-import io.swagger.models.properties.RefProperty;
-import io.swagger.models.properties.StringProperty;
+import io.swagger.v3.oas.models.media.ObjectSchema;
+import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.media.StringSchema;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.api.search.RoomProviderMapSearchCriteria;
@@ -146,35 +145,30 @@ public class RoomProviderMapResource extends DelegatingCrudResource<RoomProvider
 	}
 	
 	@Override
-	public Model getGETModel(Representation rep) {
-		ModelImpl model = (ModelImpl) super.getGETModel(rep);
+	public Schema<?> getGETSchema(Representation rep) {
+		Schema<?> model = super.getGETSchema(rep);
 		if (rep instanceof DefaultRepresentation || rep instanceof FullRepresentation) {
-			model.property("uuid", new StringProperty()).property("queueRoom", new StringProperty()).property("provider",
-			    new RefProperty("#/definitions/ProviderGetRef"));
+			model.addProperty("uuid", new StringSchema()).addProperty("queueRoom", new StringSchema())
+			        .addProperty("provider", new Schema<>().$ref("#/components/schemas/ProviderGetRef"));
 		}
 		if (rep instanceof FullRepresentation) {
-			model.property("provider", new RefProperty("#/definitions/ProviderGet"));
+			model.addProperty("provider", new Schema<>().$ref("#/components/schemas/ProviderGet"));
 		}
 		return model;
 	}
 	
 	@Override
-	public Model getCREATEModel(Representation rep) {
-		ModelImpl model = new ModelImpl().property("provider", new StringProperty().example("uuid")).property("queueRoom",
-		    new StringProperty().example("uuid"));
+	public Schema<?> getCREATESchema(Representation rep) {
+		Schema<?> model = new ObjectSchema().addProperty("provider", new StringSchema().example("uuid"))
+		        .addProperty("queueRoom", new StringSchema().example("uuid"));
 		if (rep instanceof FullRepresentation) {
-			model.property("provider", new RefProperty("#/definitions/ProviderCreate"));
+			model.addProperty("provider", new Schema<>().$ref("#/components/schemas/ProviderCreate"));
 		}
 		return model;
 	}
 	
 	@Override
-	public Model getUPDATEModel(Representation rep) {
-		ModelImpl model = new ModelImpl().property("provider", new StringProperty().example("uuid")).property("queueRoom",
-		    new StringProperty().example("uuid"));
-		if (rep instanceof FullRepresentation) {
-			model.property("provider", new RefProperty("#/definitions/ProviderCreate"));
-		}
-		return model;
+	public Schema<?> getUPDATESchema(Representation rep) {
+		return getCREATESchema(rep);
 	}
 }
