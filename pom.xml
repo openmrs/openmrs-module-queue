@@ -349,7 +349,7 @@
         <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
         <lombokVersion>1.18.20</lombokVersion>
         <powerMockitoVersion>2.0.9</powerMockitoVersion>
-        <webservicesRestVersion>2.32.0</webservicesRestVersion>
+        <webservicesRestVersion>2.46.0-SNAPSHOT</webservicesRestVersion>
         <openmrsPlatformVersion>2.3.4</openmrsPlatformVersion>
         <openmrsPlatformToolsVersion>2.4.0</openmrsPlatformToolsVersion>
     </properties>
