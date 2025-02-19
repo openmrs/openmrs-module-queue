@@ -59,7 +59,9 @@ public class VisitWithQueueEntriesSaveHandler implements SaveHandler<Visit>, Voi
 			for (QueueEntry qe : queueEntries) {
 				if (!qe.getVoided()) {
 					qe.setVoided(true);
-					qe.setVoidReason("visit voided");
+					qe.setVoidReason(visit.getVoidReason());
+					qe.setVoidedBy(visit.getVoidedBy());
+					qe.setDateVoided(visit.getDateVoided());
 					queueEntryService.saveQueueEntry(qe);
 				}
 				log.trace("Voided queue entry " + qe + " on " + date);
