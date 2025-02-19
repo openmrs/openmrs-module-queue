@@ -18,13 +18,14 @@ import org.openmrs.User;
 import org.openmrs.Visit;
 import org.openmrs.annotation.Handler;
 import org.openmrs.api.handler.SaveHandler;
+import org.openmrs.api.handler.VoidHandler;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 @Handler(supports = Visit.class)
-public class VisitWithQueueEntriesSaveHandler implements SaveHandler<Visit> {
+public class VisitWithQueueEntriesSaveHandler implements SaveHandler<Visit>, VoidHandler<Visit> {
 	
 	private final Log log = LogFactory.getLog(getClass());
 	
@@ -49,6 +50,21 @@ public class VisitWithQueueEntriesSaveHandler implements SaveHandler<Visit> {
 				qe.setEndedAt(visit.getStopDatetime());
 				queueEntryService.saveQueueEntry(qe);
 				log.trace("Closed queue entry " + qe + " on " + visit.getStopDatetime());
+			}
+		}
+		if (visit.getVisitId() != null && visit.getVoided()) {
+			QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
+			criteria.setVisit(visit);
+			List<QueueEntry> queueEntries = queueEntryService.getQueueEntries(criteria);
+			for (QueueEntry qe : queueEntries) {
+				if (!qe.getVoided()) {
+					qe.setVoided(true);
+					qe.setVoidReason(visit.getVoidReason());
+					qe.setVoidedBy(visit.getVoidedBy());
+					qe.setDateVoided(visit.getDateVoided());
+					queueEntryService.saveQueueEntry(qe);
+				}
+				log.trace("Voided queue entry " + qe + " on " + date);
 			}
 		}
 	}
