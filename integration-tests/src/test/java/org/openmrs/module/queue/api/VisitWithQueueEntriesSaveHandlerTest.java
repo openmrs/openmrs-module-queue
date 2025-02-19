@@ -10,8 +10,10 @@
 package org.openmrs.module.queue.api;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -83,4 +85,24 @@ public class VisitWithQueueEntriesSaveHandlerTest extends BaseModuleContextSensi
 		assertThat(queueEntry.getEndedAt(), equalTo(stopDate));
 	}
 	
+	@Test
+	public void shouldNotVoidQueueEntriesIfVisitIsNotVoided() {
+		assertFalse(visit.getVoided());
+		assertFalse(queueEntry.getVoided());
+		visit = visitService.saveVisit(visit);
+		queueEntry = queueEntryService.getQueueEntryById(queueEntry.getId()).get();
+		assertFalse(visit.getVoided());
+		assertFalse(queueEntry.getVoided());
+	}
+	
+	@Test
+	public void shouldVoidQueueEntriesIfVisitIsVoided() {
+		assertFalse(visit.getVoided());
+		assertFalse(queueEntry.getVoided());
+		visit.setVoided(true);
+		visit = visitService.saveVisit(visit);
+		queueEntry = queueEntryService.getQueueEntryById(queueEntry.getId()).get();
+		assertTrue(visit.getVoided());
+		assertTrue(queueEntry.getVoided());
+	}
 }
