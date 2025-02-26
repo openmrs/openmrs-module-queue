@@ -18,8 +18,12 @@ import java.util.Optional;
 
 import io.swagger.models.Model;
 import io.swagger.models.ModelImpl;
-import io.swagger.models.properties.*;
-import lombok.Getter;
+import io.swagger.models.properties.BooleanProperty;
+import io.swagger.models.properties.DateProperty;
+import io.swagger.models.properties.DoubleProperty;
+import io.swagger.models.properties.RefProperty;
+import io.swagger.models.properties.StringProperty;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.openmrs.PersonName;
 import org.openmrs.api.context.Context;
@@ -51,16 +55,14 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
 @SuppressWarnings("unused")
 @Resource(name = RestConstants.VERSION_1 + "/queue-entry", supportedClass = QueueEntry.class, supportedOpenmrsVersions = {
         "2.3 - 9.*" })
+@Setter
 public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 	
-	private final QueueServicesWrapper services;
+	private QueueServicesWrapper services;
 	
-	@Getter
-	private final QueueEntrySearchCriteriaParser searchCriteriaParser;
+	private QueueEntrySearchCriteriaParser searchCriteriaParser;
 	
 	public QueueEntryResource() {
-		services = Context.getRegisteredComponents(QueueServicesWrapper.class).get(0);
-		searchCriteriaParser = Context.getRegisteredComponents(QueueEntrySearchCriteriaParser.class).get(0);
 	}
 	
 	public QueueEntryResource(QueueServicesWrapper services, QueueEntrySearchCriteriaParser searchCriteriaParser) {
@@ -70,7 +72,7 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 	
 	@Override
 	public QueueEntry getByUniqueId(@NotNull String uuid) {
-		Optional<QueueEntry> queueEntryOptional = services.getQueueEntryService().getQueueEntryByUuid(uuid);
+		Optional<QueueEntry> queueEntryOptional = getServices().getQueueEntryService().getQueueEntryByUuid(uuid);
 		if (!queueEntryOptional.isPresent()) {
 			throw new ObjectNotFoundException("Could not find visit queue entry with uuid " + uuid);
 		}
@@ -79,7 +81,7 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 	
 	@Override
 	protected void delete(QueueEntry qe, String reason, RequestContext requestContext) throws ResponseException {
-		services.getQueueEntryService().voidQueueEntry(qe, reason);
+		getServices().getQueueEntryService().voidQueueEntry(qe, reason);
 	}
 	
 	@Override
@@ -89,18 +91,18 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 	
 	@Override
 	public QueueEntry save(QueueEntry queueEntry) {
-		return services.getQueueEntryService().saveQueueEntry(queueEntry);
+		return getServices().getQueueEntryService().saveQueueEntry(queueEntry);
 	}
 	
 	@Override
 	public void purge(QueueEntry queueEntry, RequestContext requestContext) throws ResponseException {
-		services.getQueueEntryService().purgeQueueEntry(queueEntry);
+		getServices().getQueueEntryService().purgeQueueEntry(queueEntry);
 	}
 	
 	@Override
 	protected PageableResult doGetAll(RequestContext requestContext) throws ResponseException {
 		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
-		List<QueueEntry> activeEntries = services.getQueueEntryService().getQueueEntries(criteria);
+		List<QueueEntry> activeEntries = getServices().getQueueEntryService().getQueueEntries(criteria);
 		return new NeedsPaging<>(new ArrayList<>(activeEntries), requestContext);
 	}
 	
@@ -108,8 +110,8 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 	@SuppressWarnings("unchecked")
 	protected PageableResult doSearch(RequestContext requestContext) {
 		Map<String, String[]> parameters = requestContext.getRequest().getParameterMap();
-		QueueEntrySearchCriteria criteria = searchCriteriaParser.constructFromRequest(parameters);
-		List<QueueEntry> queueEntries = services.getQueueEntryService().getQueueEntries(criteria);
+		QueueEntrySearchCriteria criteria = getSearchCriteriaParser().constructFromRequest(parameters);
+		List<QueueEntry> queueEntries = getServices().getQueueEntryService().getQueueEntries(criteria);
 		return new NeedsPaging<>(queueEntries, requestContext);
 	}
 	
@@ -285,11 +287,25 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 	
 	@PropertyGetter("previousQueueEntry")
 	public QueueEntry getPreviousQueueEntry(QueueEntry queueEntry) {
-		return services.getQueueEntryService().getPreviousQueueEntry(queueEntry);
+		return getServices().getQueueEntryService().getPreviousQueueEntry(queueEntry);
 	}
 	
 	@Override
 	public String getResourceVersion() {
 		return "2.3";
+	}
+	
+	public QueueServicesWrapper getServices() {
+		if (services == null) {
+			services = Context.getRegisteredComponents(QueueServicesWrapper.class).get(0);
+		}
+		return services;
+	}
+	
+	public QueueEntrySearchCriteriaParser getSearchCriteriaParser() {
+		if (searchCriteriaParser == null) {
+			searchCriteriaParser = Context.getRegisteredComponents(QueueEntrySearchCriteriaParser.class).get(0);
+		}
+		return searchCriteriaParser;
 	}
 }

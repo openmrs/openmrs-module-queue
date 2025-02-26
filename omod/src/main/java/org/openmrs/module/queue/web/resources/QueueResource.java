@@ -20,6 +20,7 @@ import io.swagger.models.Model;
 import io.swagger.models.ModelImpl;
 import io.swagger.models.properties.RefProperty;
 import io.swagger.models.properties.StringProperty;
+import lombok.Setter;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.api.search.QueueSearchCriteria;
@@ -45,15 +46,14 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
 @SuppressWarnings("unused")
 @Resource(name = RestConstants.VERSION_1 + "/queue", supportedClass = Queue.class, supportedOpenmrsVersions = {
         "2.3 - 9.*" })
+@Setter
 public class QueueResource extends DelegatingCrudResource<Queue> {
 	
-	private final QueueServicesWrapper services;
+	private QueueServicesWrapper services;
 	
-	private final QueueSearchCriteriaParser searchCriteriaParser;
+	private QueueSearchCriteriaParser searchCriteriaParser;
 	
 	public QueueResource() {
-		this.services = Context.getRegisteredComponents(QueueServicesWrapper.class).get(0);
-		this.searchCriteriaParser = Context.getRegisteredComponents(QueueSearchCriteriaParser.class).get(0);
 	}
 	
 	public QueueResource(QueueServicesWrapper services, QueueSearchCriteriaParser searchCriteriaParser) {
@@ -63,12 +63,12 @@ public class QueueResource extends DelegatingCrudResource<Queue> {
 	
 	@Override
 	public NeedsPaging<Queue> doGetAll(RequestContext requestContext) throws ResponseException {
-		return new NeedsPaging<>(new ArrayList<>(services.getQueueService().getAllQueues()), requestContext);
+		return new NeedsPaging<>(new ArrayList<>(getServices().getQueueService().getAllQueues()), requestContext);
 	}
 	
 	@Override
 	public Queue getByUniqueId(@NotNull String uuid) {
-		Optional<Queue> optionalQueue = services.getQueueService().getQueueByUuid(uuid);
+		Optional<Queue> optionalQueue = getServices().getQueueService().getQueueByUuid(uuid);
 		if (!optionalQueue.isPresent()) {
 			throw new ObjectNotFoundException("Could not find queue with UUID " + uuid);
 		}
@@ -77,11 +77,11 @@ public class QueueResource extends DelegatingCrudResource<Queue> {
 	
 	@Override
 	protected void delete(Queue queue, String retireReason, RequestContext requestContext) throws ResponseException {
-		Optional<Queue> optionalQueue = services.getQueueService().getQueueByUuid(queue.getUuid());
+		Optional<Queue> optionalQueue = getServices().getQueueService().getQueueByUuid(queue.getUuid());
 		if (!optionalQueue.isPresent()) {
 			throw new ObjectNotFoundException("Could not find queue with uuid " + queue.getUuid());
 		}
-		services.getQueueService().retireQueue(queue, retireReason);
+		getServices().getQueueService().retireQueue(queue, retireReason);
 	}
 	
 	@Override
@@ -91,12 +91,12 @@ public class QueueResource extends DelegatingCrudResource<Queue> {
 	
 	@Override
 	public Queue save(Queue queue) {
-		return services.getQueueService().saveQueue(queue);
+		return getServices().getQueueService().saveQueue(queue);
 	}
 	
 	@Override
 	public void purge(Queue queue, RequestContext requestContext) throws ResponseException {
-		services.getQueueService().purgeQueue(queue);
+		getServices().getQueueService().purgeQueue(queue);
 	}
 	
 	@Override
@@ -205,8 +205,8 @@ public class QueueResource extends DelegatingCrudResource<Queue> {
 	@SuppressWarnings("unchecked")
 	protected PageableResult doSearch(RequestContext requestContext) {
 		Map<String, String[]> parameters = requestContext.getRequest().getParameterMap();
-		QueueSearchCriteria criteria = searchCriteriaParser.constructFromRequest(parameters);
-		List<Queue> queueEntries = services.getQueueService().getQueues(criteria);
+		QueueSearchCriteria criteria = getSearchCriteriaParser().constructFromRequest(parameters);
+		List<Queue> queueEntries = getServices().getQueueService().getQueues(criteria);
 		return new NeedsPaging<>(queueEntries, requestContext);
 	}
 	
@@ -217,16 +217,30 @@ public class QueueResource extends DelegatingCrudResource<Queue> {
 	
 	@PropertyGetter("allowedPriorities")
 	public Object getAllowedPriorities(Queue delegate) {
-		return services.getAllowedPriorities(delegate);
+		return getServices().getAllowedPriorities(delegate);
 	}
 	
 	@PropertyGetter("allowedStatuses")
 	public Object getAllowedStatuses(Queue delegate) {
-		return services.getAllowedStatuses(delegate);
+		return getServices().getAllowedStatuses(delegate);
 	}
 	
 	@Override
 	public String getResourceVersion() {
 		return "2.3";
+	}
+	
+	public QueueServicesWrapper getServices() {
+		if (services == null) {
+			services = Context.getRegisteredComponents(QueueServicesWrapper.class).get(0);
+		}
+		return services;
+	}
+	
+	public QueueSearchCriteriaParser getSearchCriteriaParser() {
+		if (searchCriteriaParser == null) {
+			searchCriteriaParser = Context.getRegisteredComponents(QueueSearchCriteriaParser.class).get(0);
+		}
+		return searchCriteriaParser;
 	}
 }
