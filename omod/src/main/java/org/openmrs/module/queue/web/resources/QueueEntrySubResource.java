@@ -19,6 +19,7 @@ import java.util.Optional;
 import io.swagger.models.Model;
 import io.swagger.models.ModelImpl;
 import io.swagger.models.properties.*;
+import lombok.Setter;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
@@ -44,12 +45,12 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
 @SuppressWarnings("unused")
 @SubResource(parent = QueueResource.class, path = "entry", supportedClass = QueueEntry.class, supportedOpenmrsVersions = {
         "2.3 - 9.*" }, order = 10)
+@Setter
 public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Queue, QueueResource> {
 	
-	private final QueueServicesWrapper services;
+	private QueueServicesWrapper services;
 	
 	public QueueEntrySubResource() {
-		this.services = Context.getRegisteredComponents(QueueServicesWrapper.class).get(0);
 	}
 	
 	public QueueEntrySubResource(QueueServicesWrapper services) {
@@ -71,13 +72,13 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
 		criteria.setQueues(Collections.singletonList(queue));
 		criteria.setIsEnded(false);
-		Collection<QueueEntry> queueEntries = services.getQueueEntryService().getQueueEntries(criteria);
+		Collection<QueueEntry> queueEntries = getServices().getQueueEntryService().getQueueEntries(criteria);
 		return new NeedsPaging<>(new ArrayList<>(queueEntries), requestContext);
 	}
 	
 	@Override
 	public QueueEntry getByUniqueId(@NotNull String uuid) {
-		Optional<QueueEntry> queueEntryOptional = services.getQueueEntryService().getQueueEntryByUuid(uuid);
+		Optional<QueueEntry> queueEntryOptional = getServices().getQueueEntryService().getQueueEntryByUuid(uuid);
 		if (!queueEntryOptional.isPresent()) {
 			throw new ObjectNotFoundException("Could not find queue entry with UUID " + uuid);
 		}
@@ -86,7 +87,7 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 	
 	@Override
 	protected void delete(QueueEntry queueEntry, String voidReason, RequestContext requestContext) throws ResponseException {
-		services.getQueueEntryService().voidQueueEntry(queueEntry, voidReason);
+		getServices().getQueueEntryService().voidQueueEntry(queueEntry, voidReason);
 	}
 	
 	@Override
@@ -96,12 +97,12 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 	
 	@Override
 	public QueueEntry save(QueueEntry queueEntry) {
-		return services.getQueueEntryService().saveQueueEntry(queueEntry);
+		return getServices().getQueueEntryService().saveQueueEntry(queueEntry);
 	}
 	
 	@Override
 	public void purge(QueueEntry queueEntry, RequestContext requestContext) throws ResponseException {
-		services.getQueueEntryService().purgeQueueEntry(queueEntry);
+		getServices().getQueueEntryService().purgeQueueEntry(queueEntry);
 	}
 	
 	@Override
@@ -237,5 +238,12 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 	@Override
 	public String getResourceVersion() {
 		return "2.3";
+	}
+	
+	public QueueServicesWrapper getServices() {
+		if (services == null) {
+			services = Context.getRegisteredComponents(QueueServicesWrapper.class).get(0);
+		}
+		return services;
 	}
 }

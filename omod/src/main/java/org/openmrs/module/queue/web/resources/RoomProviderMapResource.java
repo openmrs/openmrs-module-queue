@@ -18,6 +18,7 @@ import io.swagger.models.Model;
 import io.swagger.models.ModelImpl;
 import io.swagger.models.properties.RefProperty;
 import io.swagger.models.properties.StringProperty;
+import lombok.Setter;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.api.search.RoomProviderMapSearchCriteria;
@@ -42,15 +43,14 @@ import org.openmrs.module.webservices.rest.web.response.ResponseException;
 @SuppressWarnings("unused")
 @Resource(name = RestConstants.VERSION_1
         + "/queue-room-provider", supportedClass = RoomProviderMap.class, supportedOpenmrsVersions = { "2.3 - 9.*" })
+@Setter
 public class RoomProviderMapResource extends DelegatingCrudResource<RoomProviderMap> {
 	
-	private final QueueServicesWrapper services;
+	private QueueServicesWrapper services;
 	
-	private final RoomProviderMapSearchCriteriaParser searchCriteriaParser;
+	private RoomProviderMapSearchCriteriaParser searchCriteriaParser;
 	
 	public RoomProviderMapResource() {
-		this.services = Context.getRegisteredComponents(QueueServicesWrapper.class).get(0);
-		this.searchCriteriaParser = Context.getRegisteredComponents(RoomProviderMapSearchCriteriaParser.class).get(0);
 	}
 	
 	public RoomProviderMapResource(QueueServicesWrapper services, RoomProviderMapSearchCriteriaParser parser) {
@@ -60,12 +60,12 @@ public class RoomProviderMapResource extends DelegatingCrudResource<RoomProvider
 	
 	@Override
 	public NeedsPaging<RoomProviderMap> doGetAll(RequestContext ctx) throws ResponseException {
-		return new NeedsPaging<>(new ArrayList<>(services.getRoomProviderMapService().getAllRoomProviderMaps()), ctx);
+		return new NeedsPaging<>(new ArrayList<>(getServices().getRoomProviderMapService().getAllRoomProviderMaps()), ctx);
 	}
 	
 	@Override
 	public RoomProviderMap getByUniqueId(String uuid) {
-		Optional<RoomProviderMap> optional = services.getRoomProviderMapService().getRoomProviderMapByUuid(uuid);
+		Optional<RoomProviderMap> optional = getServices().getRoomProviderMapService().getRoomProviderMapByUuid(uuid);
 		if (!optional.isPresent()) {
 			throw new ObjectNotFoundException("Could not find roomProviderMap with UUID " + uuid);
 		}
@@ -74,7 +74,7 @@ public class RoomProviderMapResource extends DelegatingCrudResource<RoomProvider
 	
 	@Override
 	protected void delete(RoomProviderMap rpm, String voidReason, RequestContext context) throws ResponseException {
-		services.getRoomProviderMapService().voidRoomProviderMap(rpm, voidReason);
+		getServices().getRoomProviderMapService().voidRoomProviderMap(rpm, voidReason);
 	}
 	
 	@Override
@@ -84,20 +84,20 @@ public class RoomProviderMapResource extends DelegatingCrudResource<RoomProvider
 	
 	@Override
 	public RoomProviderMap save(RoomProviderMap roomProviderMap) {
-		return services.getRoomProviderMapService().saveRoomProviderMap(roomProviderMap);
+		return getServices().getRoomProviderMapService().saveRoomProviderMap(roomProviderMap);
 	}
 	
 	@Override
 	public void purge(RoomProviderMap roomProviderMap, RequestContext requestContext) throws ResponseException {
-		services.getRoomProviderMapService().purgeRoomProviderMap(roomProviderMap);
+		getServices().getRoomProviderMapService().purgeRoomProviderMap(roomProviderMap);
 	}
 	
 	@Override
 	@SuppressWarnings("unchecked")
 	protected PageableResult doSearch(RequestContext requestContext) {
 		Map<String, String[]> parameters = requestContext.getRequest().getParameterMap();
-		RoomProviderMapSearchCriteria criteria = searchCriteriaParser.constructFromRequest(parameters);
-		List<RoomProviderMap> rpms = services.getRoomProviderMapService().getRoomProviderMaps(criteria);
+		RoomProviderMapSearchCriteria criteria = getSearchCriteriaParser().constructFromRequest(parameters);
+		List<RoomProviderMap> rpms = getServices().getRoomProviderMapService().getRoomProviderMaps(criteria);
 		return new NeedsPaging<>(rpms, requestContext);
 	}
 	
@@ -176,5 +176,19 @@ public class RoomProviderMapResource extends DelegatingCrudResource<RoomProvider
 			model.property("provider", new RefProperty("#/definitions/ProviderCreate"));
 		}
 		return model;
+	}
+	
+	public QueueServicesWrapper getServices() {
+		if (services == null) {
+			services = Context.getRegisteredComponents(QueueServicesWrapper.class).get(0);
+		}
+		return services;
+	}
+	
+	public RoomProviderMapSearchCriteriaParser getSearchCriteriaParser() {
+		if (searchCriteriaParser == null) {
+			searchCriteriaParser = Context.getRegisteredComponents(RoomProviderMapSearchCriteriaParser.class).get(0);
+		}
+		return searchCriteriaParser;
 	}
 }
