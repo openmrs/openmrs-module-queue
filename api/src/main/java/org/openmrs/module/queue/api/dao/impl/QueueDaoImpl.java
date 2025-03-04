@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Order;
 import org.openmrs.module.queue.api.dao.QueueDao;
 import org.openmrs.module.queue.api.search.QueueSearchCriteria;
 import org.openmrs.module.queue.model.Queue;
@@ -31,6 +32,7 @@ public class QueueDaoImpl extends AbstractBaseQueueDaoImpl<Queue> implements Que
 		includeVoidedObjects(c, searchCriteria.isIncludeRetired());
 		limitByCollectionProperty(c, "q.location", searchCriteria.getLocations());
 		limitByCollectionProperty(c, "q.service", searchCriteria.getServices());
+		c.addOrder(Order.asc("name"));
 		return c.list();
 	}
 }
