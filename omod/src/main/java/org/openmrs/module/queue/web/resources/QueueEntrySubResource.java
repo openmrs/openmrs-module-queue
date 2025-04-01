@@ -232,6 +232,9 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 	@PropertyGetter("display")
 	public String getDisplay(QueueEntry queueEntry) {
 		//Display patient name
+		if (queueEntry.getPatient().getPerson().getPersonName() == null) {
+			return "";
+		}
 		return queueEntry.getPatient().getPerson().getPersonName().getFullName();
 	}
 	
