@@ -45,7 +45,7 @@ public class QueueEntry extends BaseChangeableOpenmrsData {
 	private static final long serialVersionUID = 1L;
 	
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "queue_entry_id")
 	private Integer queueEntryId;
 	
