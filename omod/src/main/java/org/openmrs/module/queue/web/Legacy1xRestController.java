@@ -44,6 +44,9 @@ import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.web.resources.QueueEntryResource;
 import org.openmrs.module.queue.web.resources.QueueRoomResource;
 import org.openmrs.module.queue.web.resources.RoomProviderMapResource;
+import org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser;
+import org.openmrs.module.queue.web.resources.parser.QueueRoomSearchCriteriaParser;
+import org.openmrs.module.queue.web.resources.parser.RoomProviderMapSearchCriteriaParser;
 import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
@@ -75,6 +78,15 @@ public class Legacy1xRestController extends BaseRestController {
 	QueueServicesWrapper services;
 	
 	@Autowired
+	QueueEntrySearchCriteriaParser queueEntrySearchCriteriaParser;
+	
+	@Autowired
+	QueueRoomSearchCriteriaParser queueRoomSearchCriteriaParser;
+	
+	@Autowired
+	RoomProviderMapSearchCriteriaParser roomProviderMapSearchCriteriaParser;
+	
+	@Autowired
 	private QueueEntryMetricRestController queueEntryMetricRestController;
 	
 	private final QueueEntryResource queueEntryResource;
@@ -84,9 +96,9 @@ public class Legacy1xRestController extends BaseRestController {
 	private final RoomProviderMapResource roomProviderMapResource;
 	
 	public Legacy1xRestController() {
-		queueEntryResource = new QueueEntryResource();
-		queueRoomResource = new QueueRoomResource();
-		roomProviderMapResource = new RoomProviderMapResource();
+		queueEntryResource = new QueueEntryResource(services, queueEntrySearchCriteriaParser);
+		queueRoomResource = new QueueRoomResource(services, queueRoomSearchCriteriaParser);
+		roomProviderMapResource = new RoomProviderMapResource(services, roomProviderMapSearchCriteriaParser);
 	}
 	
 	@RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/visit-queue-entry", method = GET)

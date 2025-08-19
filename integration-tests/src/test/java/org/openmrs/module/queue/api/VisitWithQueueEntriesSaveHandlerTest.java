@@ -10,8 +10,11 @@
 package org.openmrs.module.queue.api;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -83,4 +86,32 @@ public class VisitWithQueueEntriesSaveHandlerTest extends BaseModuleContextSensi
 		assertThat(queueEntry.getEndedAt(), equalTo(stopDate));
 	}
 	
+	@Test
+	public void shouldNotVoidQueueEntriesIfVisitIsNotVoided() {
+		assertFalse(visit.getVoided());
+		assertFalse(queueEntry.getVoided());
+		visit = visitService.saveVisit(visit);
+		queueEntry = queueEntryService.getQueueEntryById(queueEntry.getId()).get();
+		assertFalse(visit.getVoided());
+		assertFalse(queueEntry.getVoided());
+	}
+	
+	@Test
+	public void shouldVoidQueueEntriesIfVisitIsVoided() {
+		assertFalse(visit.getVoided());
+		assertFalse(queueEntry.getVoided());
+		visit.setVoided(true);
+		String voidReason = "for testing";
+		visit.setVoidReason(voidReason);
+		visit = visitService.saveVisit(visit);
+		queueEntry = queueEntryService.getQueueEntryById(queueEntry.getId()).get();
+		assertTrue(visit.getVoided());
+		assertThat(visit.getVoidReason(), equalTo(voidReason));
+		assertNotNull(visit.getDateVoided());
+		assertNotNull(visit.getVoidedBy());
+		assertTrue(queueEntry.getVoided());
+		assertThat(queueEntry.getVoidReason(), equalTo(voidReason));
+		assertThat(queueEntry.getDateVoided(), equalTo(visit.getDateVoided()));
+		assertThat(queueEntry.getVoidedBy(), equalTo(visit.getVoidedBy()));
+	}
 }
