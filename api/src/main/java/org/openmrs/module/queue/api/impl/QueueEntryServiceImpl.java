@@ -101,6 +101,17 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 				throw new IllegalArgumentException("Patient mismatch - visit.patient does not match patient");
 			}
 		}
+		
+		if (isDuplicate(queueEntry)) {
+			throw new DuplicateQueueEntryException("queue.entry.duplicate.patient");
+		}
+		
+		Double sortWeight = getSortWeightGenerator().generateSortWeight(queueEntry);
+		queueEntry.setSortWeight(sortWeight);
+		return dao.createOrUpdate(queueEntry);
+	}
+	
+	private boolean isDuplicate(QueueEntry queueEntry) {
 		QueueEntrySearchCriteria searchCriteria = new QueueEntrySearchCriteria();
 		searchCriteria.setPatient(queueEntry.getPatient());
 		searchCriteria.setQueues(Collections.singletonList(queueEntry.getQueue()));
@@ -109,13 +120,11 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 			if (!qe.equals(queueEntry)) {
 				if (QueueUtils.datesOverlap(qe.getStartedAt(), qe.getEndedAt(), queueEntry.getStartedAt(),
 				    queueEntry.getEndedAt())) {
-					throw new DuplicateQueueEntryException("queue.entry.duplicate.patient");
+					return true;
 				}
 			}
 		}
-		Double sortWeight = getSortWeightGenerator().generateSortWeight(queueEntry);
-		queueEntry.setSortWeight(sortWeight);
-		return dao.createOrUpdate(queueEntry);
+		return false;
 	}
 	
 	/**
@@ -123,12 +132,18 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	 */
 	@Override
 	public QueueEntry transitionQueueEntry(QueueEntryTransition queueEntryTransition) {
+		// Create a new queue entry
+		QueueEntry queueEntryToStart = queueEntryTransition.constructNewQueueEntry();
+		if (isDuplicate(queueEntryToStart)) {
+			throw new DuplicateQueueEntryException("queue.entry.duplicate.patient");
+		}
+		
 		// End the initial queue entry
 		QueueEntry queueEntryToStop = queueEntryTransition.getQueueEntryToTransition();
 		queueEntryToStop.setEndedAt(queueEntryTransition.getTransitionDate());
 		getProxiedQueueEntryService().saveQueueEntry(queueEntryToStop);
-		// Create a new queue entry
-		QueueEntry queueEntryToStart = queueEntryTransition.constructNewQueueEntry();
+		
+		// Save the new queue entry
 		return getProxiedQueueEntryService().saveQueueEntry(queueEntryToStart);
 	}
 	
