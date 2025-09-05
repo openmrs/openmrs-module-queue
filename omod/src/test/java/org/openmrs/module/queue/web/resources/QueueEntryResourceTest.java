@@ -16,7 +16,11 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_ENDED_ON_OR_AFTER;
 import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_ENDED_ON_OR_BEFORE;
 import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_HAS_VISIT;
@@ -34,9 +38,6 @@ import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCrit
 import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_STARTED_ON_OR_BEFORE;
 import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_STATUS;
 import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_VISIT;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -47,11 +48,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.openmrs.Concept;
 import org.openmrs.Location;
 import org.openmrs.Patient;
@@ -77,11 +79,8 @@ import org.openmrs.module.webservices.rest.web.representation.CustomRepresentati
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ Context.class, RestUtil.class })
+@ExtendWith(MockitoExtension.class)
 public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, QueueEntryResource> {
 	
 	private static final String QUEUE_ENTRY_UUID = "6hje567a-fca0-11e5-9e59-08002719a7";
@@ -122,26 +121,26 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	
 	ArgumentCaptor<QueueEntrySearchCriteria> queueEntryArgumentCaptor;
 	
-	@Before
+	@BeforeEach
 	public void prepareMocks() {
-		mockStatic(RestUtil.class);
-		mockStatic(Context.class);
-		when(queueServicesWrapper.getQueueService()).thenReturn(queueService);
-		when(queueServicesWrapper.getQueueEntryService()).thenReturn(queueEntryService);
-		when(queueServicesWrapper.getQueueRoomService()).thenReturn(queueRoomService);
-		when(queueServicesWrapper.getRoomProviderMapService()).thenReturn(roomProviderMapService);
-		when(queueServicesWrapper.getConceptService()).thenReturn(conceptService);
-		when(queueServicesWrapper.getLocationService()).thenReturn(locationService);
-		when(queueServicesWrapper.getPatientService()).thenReturn(patientService);
+		setRestUtil(mockStatic(RestUtil.class));
+		setContext(mockStatic(Context.class));
+		lenient().when(queueServicesWrapper.getQueueService()).thenReturn(queueService);
+		lenient().when(queueServicesWrapper.getQueueEntryService()).thenReturn(queueEntryService);
+		lenient().when(queueServicesWrapper.getQueueRoomService()).thenReturn(queueRoomService);
+		lenient().when(queueServicesWrapper.getRoomProviderMapService()).thenReturn(roomProviderMapService);
+		lenient().when(queueServicesWrapper.getConceptService()).thenReturn(conceptService);
+		lenient().when(queueServicesWrapper.getLocationService()).thenReturn(locationService);
+		lenient().when(queueServicesWrapper.getPatientService()).thenReturn(patientService);
 		
 		//By pass authentication
-		when(Context.isAuthenticated()).thenReturn(true);
+		getContext().when(Context::isAuthenticated).thenReturn(true);
 		
-		when(Context.getRegisteredComponents(QueueServicesWrapper.class))
+		getContext().when(() -> Context.getRegisteredComponents(QueueServicesWrapper.class))
 		        .thenReturn(Collections.singletonList(queueServicesWrapper));
 		
 		QueueEntrySearchCriteriaParser searchCriteriaParser = new QueueEntrySearchCriteriaParser(queueServicesWrapper);
-		when(Context.getRegisteredComponents(QueueEntrySearchCriteriaParser.class))
+		getContext().when(() -> Context.getRegisteredComponents(QueueEntrySearchCriteriaParser.class))
 		        .thenReturn(Collections.singletonList(searchCriteriaParser));
 		
 		resource = new QueueEntryResource();
@@ -152,9 +151,9 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 		
 		requestContext = mock(RequestContext.class);
 		request = mock(HttpServletRequest.class);
-		when(requestContext.getRequest()).thenReturn(request);
+		lenient().when(requestContext.getRequest()).thenReturn(request);
 		parameterMap = new HashMap<>();
-		when(request.getParameterMap()).thenReturn(parameterMap);
+		lenient().when(request.getParameterMap()).thenReturn(parameterMap);
 		queueEntryArgumentCaptor = ArgumentCaptor.forClass(QueueEntrySearchCriteria.class);
 	}
 	

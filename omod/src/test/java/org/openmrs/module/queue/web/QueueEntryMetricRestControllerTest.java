@@ -14,12 +14,13 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.openmrs.module.queue.web.QueueEntryMetricRestController.COUNT;
 import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_STATUS;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -29,11 +30,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.openmrs.Concept;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.LocationService;
@@ -48,11 +52,8 @@ import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser;
 import org.openmrs.module.webservices.rest.SimpleObject;
 import org.openmrs.module.webservices.rest.web.RestUtil;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ Context.class, RestUtil.class })
+@ExtendWith(MockitoExtension.class)
 public class QueueEntryMetricRestControllerTest {
 	
 	private QueueEntryMetricRestController controller;
@@ -81,32 +82,36 @@ public class QueueEntryMetricRestControllerTest {
 	@Mock
 	private QueueServicesWrapper queueServicesWrapper;
 	
+	private MockedStatic<RestUtil> restUtil;
+	
+	private MockedStatic<Context> context;
+	
 	HttpServletRequest request;
 	
 	Map<String, String[]> parameterMap;
 	
 	ArgumentCaptor<QueueEntrySearchCriteria> queueEntryArgumentCaptor;
 	
-	@Before
+	@BeforeEach
 	public void prepareMocks() {
-		mockStatic(RestUtil.class);
-		mockStatic(Context.class);
-		when(queueServicesWrapper.getQueueService()).thenReturn(queueService);
-		when(queueServicesWrapper.getQueueEntryService()).thenReturn(queueEntryService);
-		when(queueServicesWrapper.getQueueRoomService()).thenReturn(queueRoomService);
-		when(queueServicesWrapper.getRoomProviderMapService()).thenReturn(roomProviderMapService);
-		when(queueServicesWrapper.getConceptService()).thenReturn(conceptService);
-		when(queueServicesWrapper.getLocationService()).thenReturn(locationService);
-		when(queueServicesWrapper.getPatientService()).thenReturn(patientService);
+		restUtil = mockStatic(RestUtil.class);
+		context = mockStatic(Context.class);
+		lenient().when(queueServicesWrapper.getQueueService()).thenReturn(queueService);
+		lenient().when(queueServicesWrapper.getQueueEntryService()).thenReturn(queueEntryService);
+		lenient().when(queueServicesWrapper.getQueueRoomService()).thenReturn(queueRoomService);
+		lenient().when(queueServicesWrapper.getRoomProviderMapService()).thenReturn(roomProviderMapService);
+		lenient().when(queueServicesWrapper.getConceptService()).thenReturn(conceptService);
+		lenient().when(queueServicesWrapper.getLocationService()).thenReturn(locationService);
+		lenient().when(queueServicesWrapper.getPatientService()).thenReturn(patientService);
 		
 		//By pass authentication
-		when(Context.isAuthenticated()).thenReturn(true);
+		context.when(Context::isAuthenticated).thenReturn(true);
 		
 		QueueEntrySearchCriteriaParser searchCriteriaParser = new QueueEntrySearchCriteriaParser(queueServicesWrapper);
-		when(Context.getRegisteredComponents(QueueEntrySearchCriteriaParser.class))
+		context.when(() -> Context.getRegisteredComponents(QueueEntrySearchCriteriaParser.class))
 		        .thenReturn(Collections.singletonList(searchCriteriaParser));
 		
-		when(Context.getRegisteredComponents(QueueServicesWrapper.class))
+		context.when(() -> Context.getRegisteredComponents(QueueServicesWrapper.class))
 		        .thenReturn(Collections.singletonList(queueServicesWrapper));
 		
 		controller = new QueueEntryMetricRestController(searchCriteriaParser, queueServicesWrapper);
@@ -116,6 +121,12 @@ public class QueueEntryMetricRestControllerTest {
 		when(request.getParameterMap()).thenReturn(parameterMap);
 		queueEntryArgumentCaptor = ArgumentCaptor.forClass(QueueEntrySearchCriteria.class);
 		when(queueEntryService.getCountOfQueueEntries(any())).thenReturn(50L);
+	}
+	
+	@AfterEach
+	public void cleanup() {
+		restUtil.close();
+		context.close();
 	}
 	
 	@Test

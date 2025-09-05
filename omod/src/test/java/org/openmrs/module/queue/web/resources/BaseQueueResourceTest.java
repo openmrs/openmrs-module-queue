@@ -13,12 +13,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mockStatic;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.mockito.MockedStatic;
 import org.openmrs.OpenmrsObject;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.webservices.rest.web.RestUtil;
@@ -26,12 +28,9 @@ import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentat
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceDescription;
 import org.openmrs.module.webservices.rest.web.resource.impl.DelegatingResourceHandler;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 
 @Getter(AccessLevel.PACKAGE)
 @Setter(AccessLevel.PACKAGE)
-@PrepareForTest({ Context.class, RestUtil.class })
 public class BaseQueueResourceTest<Q extends OpenmrsObject, O extends DelegatingResourceHandler<Q>> {
 	
 	private O resource;
@@ -40,13 +39,26 @@ public class BaseQueueResourceTest<Q extends OpenmrsObject, O extends Delegating
 	@Setter(AccessLevel.PACKAGE)
 	private Q object;
 	
-	@Before
+	@Getter(AccessLevel.PACKAGE)
+	@Setter(AccessLevel.PACKAGE)
+	private MockedStatic<RestUtil> restUtil;
+	
+	@Getter(AccessLevel.PACKAGE)
+	@Setter(AccessLevel.PACKAGE)
+	private MockedStatic<Context> context;
+	
+	@BeforeEach
 	public void prepareMocks() {
-		PowerMockito.mockStatic(RestUtil.class);
-		
-		PowerMockito.mockStatic(Context.class);
+		restUtil = mockStatic(RestUtil.class);
+		context = mockStatic(Context.class);
 		//By pass authentication
-		when(Context.isAuthenticated()).thenReturn(true);
+		context.when(Context::isAuthenticated).thenReturn(true);
+	}
+	
+	@AfterEach
+	public void cleanup() {
+		restUtil.close();
+		context.close();
 	}
 	
 	public void verifyDefaultRepresentation(String... properties) {

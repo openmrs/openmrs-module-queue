@@ -16,11 +16,12 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_LOCATION;
 import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_SERVICE;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -33,11 +34,12 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.hamcrest.Matchers;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.openmrs.Concept;
 import org.openmrs.Location;
 import org.openmrs.module.queue.api.QueueService;
@@ -50,9 +52,8 @@ import org.openmrs.module.webservices.rest.web.representation.CustomRepresentati
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(PowerMockRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class QueueResourceTest extends BaseQueueResourceTest<Queue, QueueResource> {
 	
 	private static final String QUEUE_UUID = "6hje567a-fca0-11e5-9e59-08002719a7";
@@ -79,14 +80,15 @@ public class QueueResourceTest extends BaseQueueResourceTest<Queue, QueueResourc
 	
 	ArgumentCaptor<QueueSearchCriteria> queueSearchCriteriaCaptor;
 	
-	@Before
+	@BeforeEach
 	public void setup() {
+		this.cleanup();
 		queue = new Queue();
 		queue.setUuid(QUEUE_UUID);
 		queue.setName(QUEUE_NAME);
 		
 		this.prepareMocks();
-		when(queueServicesWrapper.getQueueService()).thenReturn(queueService);
+		lenient().when(queueServicesWrapper.getQueueService()).thenReturn(queueService);
 		
 		QueueSearchCriteriaParser parser = new QueueSearchCriteriaParser(queueServicesWrapper);
 		resource = new QueueResource(queueServicesWrapper, parser);
@@ -95,9 +97,9 @@ public class QueueResourceTest extends BaseQueueResourceTest<Queue, QueueResourc
 		
 		requestContext = mock(RequestContext.class);
 		request = mock(HttpServletRequest.class);
-		when(requestContext.getRequest()).thenReturn(request);
+		lenient().when(requestContext.getRequest()).thenReturn(request);
 		parameterMap = new HashMap<>();
-		when(request.getParameterMap()).thenReturn(parameterMap);
+		lenient().when(request.getParameterMap()).thenReturn(parameterMap);
 		queueSearchCriteriaCaptor = ArgumentCaptor.forClass(QueueSearchCriteria.class);
 	}
 	
