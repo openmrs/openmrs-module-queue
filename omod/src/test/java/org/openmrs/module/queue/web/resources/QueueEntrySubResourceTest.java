@@ -13,16 +13,18 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.Optional;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.LocationService;
 import org.openmrs.api.PatientService;
@@ -37,9 +39,8 @@ import org.openmrs.module.webservices.rest.web.representation.CustomRepresentati
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(PowerMockRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class QueueEntrySubResourceTest extends BaseQueueResourceTest<QueueEntry, QueueEntrySubResource> {
 	
 	private static final String QUEUE_ENTRY_UUID = "6hje567a-fca0-11e5-9e59-08002719a7";
@@ -70,20 +71,21 @@ public class QueueEntrySubResourceTest extends BaseQueueResourceTest<QueueEntry,
 	
 	private QueueEntry queueEntry;
 	
-	@Before
+	@BeforeEach
 	public void setup() {
+		this.cleanup();
 		this.prepareMocks();
 		queueEntry = mock(QueueEntry.class);
-		when(queueServicesWrapper.getQueueService()).thenReturn(queueService);
-		when(queueServicesWrapper.getQueueEntryService()).thenReturn(queueEntryService);
-		when(queueServicesWrapper.getQueueRoomService()).thenReturn(queueRoomService);
-		when(queueServicesWrapper.getRoomProviderMapService()).thenReturn(roomProviderMapService);
-		when(queueServicesWrapper.getConceptService()).thenReturn(conceptService);
-		when(queueServicesWrapper.getLocationService()).thenReturn(locationService);
-		when(queueServicesWrapper.getPatientService()).thenReturn(patientService);
+		lenient().when(queueServicesWrapper.getQueueService()).thenReturn(queueService);
+		lenient().when(queueServicesWrapper.getQueueEntryService()).thenReturn(queueEntryService);
+		lenient().when(queueServicesWrapper.getQueueRoomService()).thenReturn(queueRoomService);
+		lenient().when(queueServicesWrapper.getRoomProviderMapService()).thenReturn(roomProviderMapService);
+		lenient().when(queueServicesWrapper.getConceptService()).thenReturn(conceptService);
+		lenient().when(queueServicesWrapper.getLocationService()).thenReturn(locationService);
+		lenient().when(queueServicesWrapper.getPatientService()).thenReturn(patientService);
 		
-		when(queueEntry.getUuid()).thenReturn(QUEUE_ENTRY_UUID);
-		when(Context.getRegisteredComponents(QueueServicesWrapper.class))
+		lenient().when(queueEntry.getUuid()).thenReturn(QUEUE_ENTRY_UUID);
+		getContext().when(() -> Context.getRegisteredComponents(QueueServicesWrapper.class))
 		        .thenReturn(Collections.singletonList(queueServicesWrapper));
 		
 		this.setResource(new QueueEntrySubResource());
