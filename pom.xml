@@ -3,7 +3,7 @@
 
     <groupId>org.openmrs.module</groupId>
     <artifactId>queue</artifactId>
-    <version>2.9.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Queue</name>
     <description>Patient Queues</description>
@@ -133,33 +133,23 @@
                         <groupId>org.powermock</groupId>
                         <artifactId>powermock-api-mockito</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>org.powermock</groupId>
+                        <artifactId>powermock-api-mockito2</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <!-- End OpenMRS core -->
-
-            <!-- Test dependencies -->
             <dependency>
                 <groupId>org.mockito</groupId>
-                <artifactId>mockito-core</artifactId>
-                <version>3.10.0</version>
+                <artifactId>mockito-inline</artifactId>
+                <version>${mockitoInlineVersion}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>org.hamcrest</groupId>
-                <artifactId>hamcrest-core</artifactId>
-                <version>2.2</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-module-junit4</artifactId>
-                <version>${powerMockitoVersion}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-api-mockito2</artifactId>
-                <version>${powerMockitoVersion}</version>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy</artifactId>
+                <version>${byteBuddyVersion}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
@@ -182,20 +172,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-core</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
+            <artifactId>mockito-inline</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-module-junit4</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito2</artifactId>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
         </dependency>
     </dependencies>
 
@@ -347,10 +329,11 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
-        <lombokVersion>1.18.20</lombokVersion>
-        <powerMockitoVersion>2.0.9</powerMockitoVersion>
-        <webservicesRestVersion>2.32.0</webservicesRestVersion>
-        <openmrsPlatformVersion>2.3.4</openmrsPlatformVersion>
-        <openmrsPlatformToolsVersion>2.4.0</openmrsPlatformToolsVersion>
+        <lombokVersion>1.18.38</lombokVersion>
+        <webservicesRestVersion>3.0.0-SNAPSHOT</webservicesRestVersion>
+        <byteBuddyVersion>1.17.7</byteBuddyVersion>
+        <mockitoInlineVersion>4.8.0</mockitoInlineVersion>
+        <openmrsPlatformVersion>2.7.4</openmrsPlatformVersion>
+        <openmrsPlatformToolsVersion>2.7.4</openmrsPlatformToolsVersion>
     </properties>
 </project>
