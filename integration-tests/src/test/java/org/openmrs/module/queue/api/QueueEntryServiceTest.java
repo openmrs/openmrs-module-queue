@@ -13,6 +13,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import org.junit.Before;
@@ -62,7 +63,8 @@ public class QueueEntryServiceTest extends BaseModuleContextSensitiveTest {
 		assertNull(queueEntry.getEndedAt());
 		QueueEntryTransition transition = new QueueEntryTransition();
 		transition.setQueueEntryToTransition(queueEntry);
-		transition.setTransitionDate(queueEntry.getStartedAt());
-		assertNotNull(queueEntryService.getQueueEntryById(1).get().getEndedAt());
+		transition.setTransitionDate(new Date());
+		queueEntryService.transitionQueueEntry(transition);
+		assertNotNull(queueEntryService.getQueueEntryById(2).get().getEndedAt());
 	}
 }
