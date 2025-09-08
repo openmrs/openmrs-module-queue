@@ -1,25 +1,73 @@
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public License,
- * v. 2.0. If a copy of the MPL was not distributed with this file, You can
- * obtain one at http://mozilla.org/MPL/2.0/. OpenMRS is also distributed under
- * the terms of the Healthcare Disclaimer located at http://openmrs.org/license.
- *
- * Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
- * graphic logo is a trademark of OpenMRS Inc.
- */
 package org.openmrs.module.queue.exception;
 
 import org.openmrs.api.ValidationException;
 
+import java.io.Serial;
+
+/**
+ * Exception thrown when a patient is already present in a queue
+ * and another attempt is made to add them again.
+ */
 public class DuplicateQueueEntryException extends ValidationException {
-	
-	private static final long serialVersionUID = 1L;
-	
-	/**
-	 * @param message
-	 */
-	public DuplicateQueueEntryException(String message) {
-		super(message);
-	}
-	
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    private final Integer patientId;
+    private final Integer queueId;
+
+    /**
+     * Creates a new DuplicateQueueEntryException with a plain message.
+     *
+     * @param message the error message
+     */
+    public DuplicateQueueEntryException(String message) {
+        super(message);
+        this.patientId = null;
+        this.queueId = null;
+    }
+
+    /**
+     * Creates a new DuplicateQueueEntryException with a message and a cause.
+     *
+     * @param message the error message
+     * @param cause   the underlying cause of the exception
+     */
+    public DuplicateQueueEntryException(String message, Throwable cause) {
+        super(message, cause);
+        this.patientId = null;
+        this.queueId = null;
+    }
+
+    /**
+     * Creates a new DuplicateQueueEntryException with patient and queue IDs.
+     *
+     * @param patientId the ID of the patient already in the queue
+     * @param queueId   the ID of the queue
+     */
+    public DuplicateQueueEntryException(Integer patientId, Integer queueId) {
+        super("Patient with ID " + patientId + " is already in queue " + queueId);
+        this.patientId = patientId;
+        this.queueId = queueId;
+    }
+
+    /**
+     * Creates a new DuplicateQueueEntryException with an i18n message code and arguments.
+     *
+     * @param messageCode the i18n message code
+     * @param parameters  parameters for the message
+     */
+    public DuplicateQueueEntryException(String messageCode, Object... parameters) {
+        super(messageCode, parameters);
+        this.patientId = null;
+        this.queueId = null;
+    }
+
+    public Integer getPatientId() {
+        return patientId;
+    }
+
+    public Integer getQueueId() {
+        return queueId;
+    }
 }
