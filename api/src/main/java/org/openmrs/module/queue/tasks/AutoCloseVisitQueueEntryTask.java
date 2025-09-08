@@ -78,7 +78,7 @@ public class AutoCloseVisitQueueEntryTask implements Runnable {
 	
 	/**
 	 * @param queueEntry the QueueEntry to save
-     */
+	 */
 	protected void saveQueueEntry(QueueEntry queueEntry) {
 		Context.getService(QueueEntryService.class).saveQueueEntry(queueEntry);
 	}
