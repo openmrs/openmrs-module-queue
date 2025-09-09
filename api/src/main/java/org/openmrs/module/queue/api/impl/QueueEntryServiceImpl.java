@@ -134,14 +134,15 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	public QueueEntry transitionQueueEntry(QueueEntryTransition queueEntryTransition) {
 		// Create a new queue entry
 		QueueEntry queueEntryToStart = queueEntryTransition.constructNewQueueEntry();
-		if (isDuplicate(queueEntryToStart)) {
-			throw new DuplicateQueueEntryException("queue.entry.duplicate.patient");
-		}
 		
 		// End the initial queue entry
 		QueueEntry queueEntryToStop = queueEntryTransition.getQueueEntryToTransition();
 		queueEntryToStop.setEndedAt(queueEntryTransition.getTransitionDate());
 		getProxiedQueueEntryService().saveQueueEntry(queueEntryToStop);
+		
+		if (isDuplicate(queueEntryToStart)) {
+			throw new DuplicateQueueEntryException("queue.entry.duplicate.patient");
+		}
 		
 		// Save the new queue entry
 		return getProxiedQueueEntryService().saveQueueEntry(queueEntryToStart);

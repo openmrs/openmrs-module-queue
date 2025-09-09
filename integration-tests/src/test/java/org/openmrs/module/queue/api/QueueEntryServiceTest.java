@@ -13,6 +13,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import org.junit.Before;
@@ -47,26 +48,23 @@ public class QueueEntryServiceTest extends BaseModuleContextSensitiveTest {
 		INITIAL_DATASET_XML.forEach(this::executeDataSet);
 	}
 	
-	@Test
+	@Test(expected = DuplicateQueueEntryException.class)
 	public void transitionQueueEntryShouldNotEndInitialIfNewIsDuplicate() {
 		QueueEntry queueEntry = queueEntryService.getQueueEntryById(3).get();
 		QueueEntryTransition transition = new QueueEntryTransition();
 		transition.setQueueEntryToTransition(queueEntry);
 		transition.setTransitionDate(queueEntry.getStartedAt());
-		try {
-			queueEntryService.transitionQueueEntry(transition);
-		}
-		catch (DuplicateQueueEntryException ex) {
-			assertNull(queueEntryService.getQueueEntryById(3).get().getEndedAt());
-		}
+		queueEntryService.transitionQueueEntry(transition);
 	}
 	
 	@Test
 	public void transitionQueueEntryShouldEndInitialIfNewIsNotDuplicate() {
-		QueueEntry queueEntry = queueEntryService.getQueueEntryById(1).get();
+		QueueEntry queueEntry = queueEntryService.getQueueEntryById(2).get();
+		assertNull(queueEntry.getEndedAt());
 		QueueEntryTransition transition = new QueueEntryTransition();
 		transition.setQueueEntryToTransition(queueEntry);
-		transition.setTransitionDate(queueEntry.getStartedAt());
-		assertNotNull(queueEntryService.getQueueEntryById(1).get().getEndedAt());
+		transition.setTransitionDate(new Date());
+		queueEntryService.transitionQueueEntry(transition);
+		assertNotNull(queueEntryService.getQueueEntryById(2).get().getEndedAt());
 	}
 }
