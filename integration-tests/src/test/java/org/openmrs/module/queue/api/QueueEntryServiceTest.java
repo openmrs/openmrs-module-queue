@@ -67,4 +67,13 @@ public class QueueEntryServiceTest extends BaseModuleContextSensitiveTest {
 		queueEntryService.transitionQueueEntry(transition);
 		assertNotNull(queueEntryService.getQueueEntryById(2).get().getEndedAt());
 	}
+	
+	@Test
+	public void removeQueueEntryFromQueue() {
+		QueueEntry queueEntry = queueEntryService.getQueueEntryById(2).get();
+		assertNull(queueEntry.getEndedAt());
+		queueEntry.setEndedAt(new Date());
+		queueEntryService.saveQueueEntry(queueEntry);
+		assertNotNull(queueEntryService.getQueueEntryById(2).get().getEndedAt());
+	}
 }
