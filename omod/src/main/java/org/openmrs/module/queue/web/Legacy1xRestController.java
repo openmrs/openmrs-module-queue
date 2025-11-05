@@ -65,6 +65,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
@@ -110,7 +111,8 @@ public class Legacy1xRestController extends BaseRestController {
 		result.add("results", visitQueueEntries);
 		RequestContext requestContext = RestUtil.getRequestContext(request, response, Representation.REF);
 		Map<String, String[]> parameters = new HashMap<String, String[]>(requestContext.getRequest().getParameterMap());
-		// The queueEntryResource does not limit to active by default, but the legacy resource does
+		// The queueEntryResource does not limit to active by default, but the legacy
+		// resource does
 		if (!parameters.containsKey("isEnded")) {
 			parameters.put("isEnded", new String[] { "false" });
 		}
@@ -211,19 +213,32 @@ public class Legacy1xRestController extends BaseRestController {
 			String ticketNumber = actualObj.get("ticketNumber").textValue();
 			String status = actualObj.get("status").textValue();
 			
+			// Location is optional
+			String locationUuid = actualObj.has("locationUuid") ? actualObj.get("locationUuid").textValue() : null;
+			
 			if (servicePointName.isEmpty() || ticketNumber.isEmpty() || status.isEmpty()) {
 				return new ResponseEntity<Object>("One of the required fields is empty", new HttpHeaders(), BAD_REQUEST);
 			}
 			
-			QueueTicketAssignments.updateTicketAssignment(servicePointName, ticketNumber, status);
+			QueueTicketAssignments.updateTicketAssignment(servicePointName, ticketNumber, status, locationUuid);
 			return new ResponseEntity<Object>("Ticket successfully assigned!", new HttpHeaders(), HttpStatus.OK);
 		}
 		return new ResponseEntity<Object>("The request could not be interpreted", new HttpHeaders(), BAD_REQUEST);
 	}
 	
 	@RequestMapping(method = GET, value = "/rest/" + RestConstants.VERSION_1 + "/queueutil/active-tickets")
-	public Object getActiveTickets() {
-		return new ResponseEntity<>(QueueTicketAssignments.getActiveTicketAssignments(), new HttpHeaders(), HttpStatus.OK);
+	@ResponseBody
+	public Object getActiveTickets(@RequestParam(value = "locationUuid", required = false) String locationUuid) {
+		Map<String, QueueTicketAssignments.TicketAssignment> activeTickets;
+		
+		// If locationUuid parameter is provided, filter by locationUuid
+		if (StringUtils.isNotBlank(locationUuid)) {
+			activeTickets = QueueTicketAssignments.getActiveTicketAssignmentsByLocation(locationUuid);
+		} else {
+			activeTickets = QueueTicketAssignments.getActiveTicketAssignments();
+		}
+		
+		return new ResponseEntity<>(activeTickets, new HttpHeaders(), HttpStatus.OK);
 	}
 	
 	@RequestMapping(method = { GET, POST }, value = "/rest/" + RestConstants.VERSION_1 + "/queue-entry-number")
