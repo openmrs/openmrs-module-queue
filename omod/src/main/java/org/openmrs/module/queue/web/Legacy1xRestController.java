@@ -137,7 +137,25 @@ public class Legacy1xRestController extends BaseRestController {
 		SimpleObject queueEntry = new SimpleObject();
 		Map<String, Object> postedQueueEntry = post.get("queueEntry");
 		for (String key : postedQueueEntry.keySet()) {
-			queueEntry.add(key, postedQueueEntry.get(key));
+			Object value = postedQueueEntry.get(key);
+			//queueEntry.add(key, postedQueueEntry.get(key));
+			if ("priority".equals(key)) {
+				if (value instanceof Map) {
+					Map<?, ?> priorityMap = (Map<?, ?>) value;
+					Object uuid = priorityMap.get("uuid");
+					
+					// If uuid is empty or null, don't add priority (it will be null)
+					if (uuid != null && uuid instanceof String && !((String) uuid).trim().isEmpty()) {
+						queueEntry.add(key, uuid); // Add just the UUID string
+					}
+					// Otherwise skip adding priority, leaving it null
+				} else if (value instanceof String && !((String) value).trim().isEmpty()) {
+					queueEntry.add(key, value);
+				}
+				// Skip if empty string or null
+			} else {
+				queueEntry.add(key, value);
+			}
 		}
 		queueEntry.add("visit", post.get("visit"));
 		Object created = queueEntryResource.create(queueEntry, requestContext);

@@ -747,4 +747,15 @@
         </sql>
     </changeSet>
 
+    <changeSet id="make_queue_entry_priority_nullable_202511121050" author="makombe">
+
+        <preConditions onFail="MARK_RAN" onError="WARN">
+            <tableExists tableName="queue_entry"/>
+            <columnExists tableName="queue_entry" columnName="priority"/>
+        </preConditions>
+        <dropNotNullConstraint tableName="queue_entry" 
+                            columnName="priority" 
+                            columnDataType="int"/>
+    </changeSet>
+
 </databaseChangeLog>

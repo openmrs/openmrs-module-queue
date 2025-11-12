@@ -25,6 +25,7 @@ import io.swagger.models.properties.RefProperty;
 import io.swagger.models.properties.StringProperty;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.openmrs.Concept;
 import org.openmrs.PersonName;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
@@ -34,6 +35,7 @@ import org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaPar
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
+import org.openmrs.module.webservices.rest.web.annotation.PropertySetter;
 import org.openmrs.module.webservices.rest.web.annotation.Resource;
 import org.openmrs.module.webservices.rest.web.representation.CustomRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
@@ -243,7 +245,8 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 			description.addProperty("queueComingFrom", Representation.DEFAULT);
 			description.addProperty("providerWaitingFor", Representation.DEFAULT);
 			
-			// gets the previous queue entry, but with REF representation so it doesn't recursively
+			// gets the previous queue entry, but with REF representation so it doesn't
+			// recursively
 			// fetch more previous entries.
 			description.addProperty("previousQueueEntry", Representation.REF);
 			
@@ -290,6 +293,47 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 		return getServices().getQueueEntryService().getPreviousQueueEntry(queueEntry);
 	}
 	
+	@PropertySetter("priority")
+	public static void setPriority(QueueEntry instance, Object value) {
+		if (value == null) {
+			instance.setPriority(null);
+			return;
+		}
+		
+		// Handle object with uuid property
+		if (value instanceof Map) {
+			Map<?, ?> map = (Map<?, ?>) value;
+			Object uuidValue = map.get("uuid");
+			
+			if (uuidValue == null || (uuidValue instanceof String && ((String) uuidValue).trim().isEmpty())) {
+				instance.setPriority(null);
+				return;
+			}
+			
+			if (uuidValue instanceof String) {
+				String uuid = ((String) uuidValue).trim();
+				Concept concept = Context.getConceptService().getConceptByUuid(uuid);
+				if (concept != null) {
+					instance.setPriority(concept);
+				}
+			}
+			return;
+		}
+		
+		// Handle direct string UUID
+		if (value instanceof String) {
+			String uuid = ((String) value).trim();
+			if (!uuid.isEmpty()) {
+				Concept concept = Context.getConceptService().getConceptByUuid(uuid);
+				if (concept != null) {
+					instance.setPriority(concept);
+				}
+			} else {
+				instance.setPriority(null);
+			}
+		}
+	}
+	
 	@Override
 	public String getResourceVersion() {
 		return "2.3";
@@ -308,4 +352,5 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 		}
 		return searchCriteriaParser;
 	}
+	
 }

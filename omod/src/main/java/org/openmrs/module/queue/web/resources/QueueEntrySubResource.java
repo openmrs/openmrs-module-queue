@@ -14,12 +14,14 @@ import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 
 import io.swagger.models.Model;
 import io.swagger.models.ModelImpl;
 import io.swagger.models.properties.*;
 import lombok.Setter;
+import org.openmrs.Concept;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
@@ -28,6 +30,7 @@ import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.annotation.PropertyGetter;
+import org.openmrs.module.webservices.rest.web.annotation.PropertySetter;
 import org.openmrs.module.webservices.rest.web.annotation.SubResource;
 import org.openmrs.module.webservices.rest.web.representation.CustomRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
@@ -183,7 +186,7 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 			resourceDescription.addProperty("queueComingFrom", Representation.FULL);
 			resourceDescription.addProperty("providerWaitingFor", Representation.FULL);
 		} else if (representation instanceof CustomRepresentation) {
-			//Let the user decide
+			// Let the user decide
 			resourceDescription = null;
 		}
 		return resourceDescription;
@@ -231,11 +234,51 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 	
 	@PropertyGetter("display")
 	public String getDisplay(QueueEntry queueEntry) {
-		//Display patient name
+		// Display patient name
 		if (queueEntry.getPatient().getPerson().getPersonName() == null) {
 			return "";
 		}
 		return queueEntry.getPatient().getPerson().getPersonName().getFullName();
+	}
+	
+	@PropertySetter("priority")
+	public static void setPriority(QueueEntry instance, Object value) {
+		if (value == null) {
+			instance.setPriority(null);
+			return;
+		}
+		
+		// Handle object with uuid property
+		if (value instanceof Map) {
+			Map<?, ?> map = (Map<?, ?>) value;
+			Object uuidValue = map.get("uuid");
+			
+			if (uuidValue == null || (uuidValue instanceof String && ((String) uuidValue).trim().isEmpty())) {
+				instance.setPriority(null);
+				return;
+			}
+			
+			if (uuidValue instanceof String) {
+				String uuid = ((String) uuidValue).trim();
+				Concept concept = Context.getConceptService().getConceptByUuid(uuid);
+				if (concept != null) {
+					instance.setPriority(concept);
+				}
+			}
+			return;
+		}
+		
+		if (value instanceof String) {
+			String uuid = ((String) value).trim();
+			if (!uuid.isEmpty()) {
+				Concept concept = Context.getConceptService().getConceptByUuid(uuid);
+				if (concept != null) {
+					instance.setPriority(concept);
+				}
+			} else {
+				instance.setPriority(null);
+			}
+		}
 	}
 	
 	@Override
@@ -249,4 +292,5 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 		}
 		return services;
 	}
+	
 }

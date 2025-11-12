@@ -63,7 +63,7 @@ public class QueueEntry extends BaseChangeableOpenmrsData {
 	private Visit visit;
 	
 	@ManyToOne
-	@JoinColumn(name = "priority", referencedColumnName = "concept_id", nullable = false)
+	@JoinColumn(name = "priority", referencedColumnName = "concept_id", nullable = true)
 	private Concept priority;
 	
 	@Column(name = "priority_comment")

@@ -73,9 +73,7 @@ public class QueueEntryValidator implements Validator {
 				    "The property status should be a member of configured queue status conceptSet.");
 			}
 		}
-		if (queueEntry.getPriority() == null) {
-			errors.rejectValue("priority", "queueEntry.priority.null", "The property priority should not be null");
-		} else {
+		if (queueEntry.getPriority() != null) {
 			if (!queueServices.getAllowedPriorities(queue).contains(queueEntry.getPriority())) {
 				errors.rejectValue("priority", "queueEntry.priority.invalid",
 				    "The property priority should be a member of configured queue priority conceptSet.");
