@@ -102,7 +102,7 @@ second based on `startedAt`.  To leverage this option, one should ensure that th
 their Priority Concept Set are ordered from least to highest priority.
 
 #### Custom Sort Weight Generators
-Modules that require this module can define and configure own custom algorithms.  This would involve:
+Modules that require this module can define and configure their own custom algorithms.  This would involve:
 * Create a Spring Component in your module that implements the `SortWeightGenerator` interface
 * Provide a specific bean name for this Component that can be referenced
 * Configure the `queue.sortWeightGenerator` global property with this bean name
@@ -111,3 +111,19 @@ Modules that require this module can define and configure own custom algorithms.
 ## Documentation
 
 - REST documentation [here](https://rest.openmrs.org/#queue)
+
+## Development
+
+### Building
+
+To build the module, run:
+
+```bash
+mvn clean install
+```
+
+To skip tests during build:
+
+```bash
+mvn clean install -DskipTests
+```
