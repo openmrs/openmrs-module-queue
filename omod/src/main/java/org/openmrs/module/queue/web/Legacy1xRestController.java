@@ -136,21 +136,31 @@ public class Legacy1xRestController extends BaseRestController {
 		RequestContext requestContext = RestUtil.getRequestContext(request, response);
 		SimpleObject queueEntry = new SimpleObject();
 		Map<String, Object> postedQueueEntry = post.get("queueEntry");
-		for (String key : postedQueueEntry.keySet()) {
-			Object value = postedQueueEntry.get(key);
-			// Handle complex objects by extracting UUID if present
-			value = extractUuidFromComplexObject(value);
-			queueEntry.add(key, value);
+		if (postedQueueEntry != null) {
+			for (String key : postedQueueEntry.keySet()) {
+				Object value = postedQueueEntry.get(key);
+				// Handle complex objects by extracting UUID if present
+				Object extractedValue = extractUuidFromComplexObject(value);
+				queueEntry.add(key, extractedValue);
+				log.debug("Extracted {}: {} -> {}", key, value, extractedValue);
+			}
+		} else {
+			log.warn("postedQueueEntry is null in postVisitQueueEntry");
 		}
-		queueEntry.add("visit", post.get("visit"));
+		// Extract UUID from visit object if it's a complex object
+		Object visit = extractUuidFromComplexObject(post.get("visit"));
+		if (visit != null) {
+			queueEntry.add("visit", visit);
+		}
+		log.debug("Final queueEntry SimpleObject: {}", queueEntry);
 		Object created = queueEntryResource.create(queueEntry, requestContext);
 		return RestUtil.created(response, created);
 	}
 	
 	/**
-	 * Extracts UUID from complex objects that have a uuid field
-	 * This handles cases where the frontend sends complex objects like:
-	 * {"uuid": "some-uuid", "display": "some-display"} instead of just "some-uuid"
+	 * Extracts UUID from complex objects that have a uuid field This handles cases where the frontend
+	 * sends complex objects like: {"uuid": "some-uuid", "display": "some-display"} instead of just
+	 * "some-uuid"
 	 */
 	private Object extractUuidFromComplexObject(Object value) {
 		if (value instanceof Map) {
