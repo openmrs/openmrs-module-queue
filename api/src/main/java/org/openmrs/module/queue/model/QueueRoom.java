@@ -35,7 +35,7 @@ public class QueueRoom extends BaseChangeableOpenmrsMetadata {
 	private static final long serialVersionUID = 1L;
 	
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "queue_room_id")
 	private Integer queueRoom;
 	

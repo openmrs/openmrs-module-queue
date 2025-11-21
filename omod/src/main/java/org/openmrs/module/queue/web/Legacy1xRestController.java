@@ -136,12 +136,40 @@ public class Legacy1xRestController extends BaseRestController {
 		RequestContext requestContext = RestUtil.getRequestContext(request, response);
 		SimpleObject queueEntry = new SimpleObject();
 		Map<String, Object> postedQueueEntry = post.get("queueEntry");
-		for (String key : postedQueueEntry.keySet()) {
-			queueEntry.add(key, postedQueueEntry.get(key));
+		if (postedQueueEntry != null) {
+			for (String key : postedQueueEntry.keySet()) {
+				Object value = postedQueueEntry.get(key);
+				// Handle complex objects by extracting UUID if present
+				Object extractedValue = extractUuidFromComplexObject(value);
+				queueEntry.add(key, extractedValue);
+				log.debug("Extracted {}: {} -> {}", key, value, extractedValue);
+			}
+		} else {
+			log.warn("postedQueueEntry is null in postVisitQueueEntry");
 		}
-		queueEntry.add("visit", post.get("visit"));
+		// Extract UUID from visit object if it's a complex object
+		Object visit = extractUuidFromComplexObject(post.get("visit"));
+		if (visit != null) {
+			queueEntry.add("visit", visit);
+		}
+		log.debug("Final queueEntry SimpleObject: {}", queueEntry);
 		Object created = queueEntryResource.create(queueEntry, requestContext);
 		return RestUtil.created(response, created);
+	}
+	
+	/**
+	 * Extracts UUID from complex objects that have a uuid field This handles cases where the frontend
+	 * sends complex objects like: {"uuid": "some-uuid", "display": "some-display"} instead of just
+	 * "some-uuid"
+	 */
+	private Object extractUuidFromComplexObject(Object value) {
+		if (value instanceof Map) {
+			Map<String, Object> map = (Map<String, Object>) value;
+			if (map.containsKey("uuid")) {
+				return map.get("uuid");
+			}
+		}
+		return value;
 	}
 	
 	@RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/queueroom", method = GET)
@@ -163,7 +191,14 @@ public class Legacy1xRestController extends BaseRestController {
 	public Object postRoomProviderMap(HttpServletRequest request, HttpServletResponse response,
 	        @RequestBody SimpleObject post) {
 		RequestContext requestContext = RestUtil.getRequestContext(request, response);
-		Object created = roomProviderMapResource.create(post, requestContext);
+		// Handle complex objects by extracting UUID if present
+		SimpleObject processedPost = new SimpleObject();
+		for (String key : post.keySet()) {
+			Object value = post.get(key);
+			value = extractUuidFromComplexObject(value);
+			processedPost.add(key, value);
+		}
+		Object created = roomProviderMapResource.create(processedPost, requestContext);
 		return RestUtil.created(response, created);
 	}
 	
@@ -175,7 +210,14 @@ public class Legacy1xRestController extends BaseRestController {
 		if (post.get("deleted") != null && "false".equals(post.get("deleted")) && post.size() == 1) {
 			return RestUtil.updated(response, roomProviderMapResource.undelete(uuid, context));
 		}
-		return RestUtil.updated(response, roomProviderMapResource.update(uuid, post, context));
+		// Handle complex objects by extracting UUID if present
+		SimpleObject processedPost = new SimpleObject();
+		for (String key : post.keySet()) {
+			Object value = post.get(key);
+			value = extractUuidFromComplexObject(value);
+			processedPost.add(key, value);
+		}
+		return RestUtil.updated(response, roomProviderMapResource.update(uuid, processedPost, context));
 	}
 	
 	@RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/queue-entry-metrics", method = { GET, POST })

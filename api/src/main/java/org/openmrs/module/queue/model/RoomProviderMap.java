@@ -36,7 +36,7 @@ public class RoomProviderMap extends BaseOpenmrsData {
 	private static final long serialVersionUID = 1L;
 	
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "room_provider_map_id")
 	private Integer roomProviderMapId;
 	

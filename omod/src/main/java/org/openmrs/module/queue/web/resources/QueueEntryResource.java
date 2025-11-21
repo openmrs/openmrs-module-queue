@@ -25,6 +25,7 @@ import io.swagger.models.properties.RefProperty;
 import io.swagger.models.properties.StringProperty;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.openmrs.Concept;
 import org.openmrs.PersonName;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
@@ -92,6 +93,47 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 	@Override
 	public QueueEntry save(QueueEntry queueEntry) {
 		return getServices().getQueueEntryService().saveQueueEntry(queueEntry);
+	}
+	
+	@Override
+	public void setProperty(Object instance, String propertyName, Object propertyValue) throws ResponseException {
+		QueueEntry queueEntry = (QueueEntry) instance;
+		// Manually handle status and priority conversion from UUID strings to Concept objects
+		if ("status".equals(propertyName) && propertyValue instanceof String) {
+			String statusUuid = (String) propertyValue;
+			Concept status = null;
+			try {
+				status = getServices().getConcept(statusUuid);
+			}
+			catch (IllegalArgumentException e) {
+				log.warn("Status concept not found: {}, attempting to use default 'In Service' UUID", statusUuid);
+				// Fallback to "In Service" UUID if the provided UUID doesn't exist
+				String inServiceUuid = "ca7494ae-437f-4fd0-8aae-b88b9a2ba47d";
+				try {
+					status = getServices().getConcept(inServiceUuid);
+					log.info("Using default 'In Service' status concept: {}", inServiceUuid);
+				}
+				catch (IllegalArgumentException fallbackException) {
+					throw new ObjectNotFoundException("Status concept not found: " + statusUuid
+					        + " and fallback 'In Service' concept also not found: " + inServiceUuid);
+				}
+			}
+			if (status != null) {
+				queueEntry.setStatus(status);
+			}
+		} else if ("priority".equals(propertyName) && propertyValue instanceof String) {
+			String priorityUuid = (String) propertyValue;
+			try {
+				Concept priority = getServices().getConcept(priorityUuid);
+				queueEntry.setPriority(priority);
+			}
+			catch (IllegalArgumentException e) {
+				throw new ObjectNotFoundException("Priority concept not found: " + priorityUuid);
+			}
+		} else {
+			// For all other properties, use the default behavior
+			super.setProperty(instance, propertyName, propertyValue);
+		}
 	}
 	
 	@Override
