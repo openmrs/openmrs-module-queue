@@ -133,33 +133,23 @@
                         <groupId>org.powermock</groupId>
                         <artifactId>powermock-api-mockito</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>org.powermock</groupId>
+                        <artifactId>powermock-api-mockito2</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <!-- End OpenMRS core -->
-
-            <!-- Test dependencies -->
             <dependency>
                 <groupId>org.mockito</groupId>
-                <artifactId>mockito-core</artifactId>
-                <version>3.10.0</version>
+                <artifactId>mockito-inline</artifactId>
+                <version>${mockitoInlineVersion}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>org.hamcrest</groupId>
-                <artifactId>hamcrest-core</artifactId>
-                <version>2.2</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-module-junit4</artifactId>
-                <version>${powerMockitoVersion}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-api-mockito2</artifactId>
-                <version>${powerMockitoVersion}</version>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy</artifactId>
+                <version>${byteBuddyVersion}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
@@ -182,20 +172,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-core</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
+            <artifactId>mockito-inline</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-module-junit4</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito2</artifactId>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
         </dependency>
     </dependencies>
 

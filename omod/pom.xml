@@ -127,8 +127,8 @@
                         <configuration>
                             <includeGroupIds>${project.parent.groupId}</includeGroupIds>
                             <includeArtifactIds>${project.parent.artifactId}-api</includeArtifactIds>
-                            <excludeTransitive>true</excludeTransitive>
-                            <includes>**/*</includes>
+                            <includeScope>compile</includeScope>
+                            <includes>**\/*.xml,**\/*.properties</includes>
                             <outputDirectory>${project.build.directory}/classes</outputDirectory>
                         </configuration>
                     </execution>
