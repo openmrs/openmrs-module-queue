@@ -13,6 +13,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -23,7 +24,7 @@ public class QueueTicketAssignments {
 	
 	/**
 	 * The object has: service point/room name as key for ease of search and update and object with
-	 * status and ticket number
+	 * status, ticket number, and location
 	 */
 	private static final Map<String, TicketAssignment> ACTIVE_QUEUE_TICKETS = new HashMap<>();
 	
@@ -33,42 +34,63 @@ public class QueueTicketAssignments {
 	 * @param servicePointName
 	 * @param ticketNumber
 	 * @param status
+	 * @param locationUuid - optional location UUID to associate with the ticket
 	 */
-	synchronized public static void updateTicketAssignment(String servicePointName, String ticketNumber, String status) {
+	synchronized public static void updateTicketAssignment(String servicePointName, String ticketNumber, String status,
+	        String locationUuid) {
+		
 		if (StringUtils.isNotBlank(servicePointName) && StringUtils.isNotBlank(ticketNumber)
 		        && StringUtils.isNotBlank(status)) {
 			
-			/** remove the ticket number from any assignment */
-			
 			// Remove the ticket number from any assignment
-			for (String key : ACTIVE_QUEUE_TICKETS.keySet()) {
-				TicketAssignment assignment = ACTIVE_QUEUE_TICKETS.get(key);
-				if (assignment.getTicketNumber().equals(ticketNumber)) {
-					ACTIVE_QUEUE_TICKETS.remove(key);
-					if (status.equals("completed")) {
-						return;
-					}
-					break;
-				}
+			ACTIVE_QUEUE_TICKETS.entrySet().removeIf(entry -> ticketNumber.equals(entry.getValue().getTicketNumber()));
+			
+			// If ticket is completed, no need to reassign
+			if ("completed".equalsIgnoreCase(status)) {
+				return;
 			}
 			
-			/** Assign ticket to a room if the room already exist */
 			// Assign ticket to a room if the room already exists
 			if (ACTIVE_QUEUE_TICKETS.containsKey(servicePointName)) {
 				TicketAssignment tAssignment = ACTIVE_QUEUE_TICKETS.get(servicePointName);
 				tAssignment.setStatus(status);
 				tAssignment.setTicketNumber(ticketNumber);
+				tAssignment.setLocationUuid(locationUuid);
 				ACTIVE_QUEUE_TICKETS.put(servicePointName, tAssignment);
 			} else {
 				// Else create a new assignment
-				TicketAssignment ticketAssignment = new TicketAssignment(status, ticketNumber);
+				TicketAssignment ticketAssignment = new TicketAssignment(status, ticketNumber, locationUuid);
 				ACTIVE_QUEUE_TICKETS.put(servicePointName, ticketAssignment);
 			}
 		}
 	}
 	
+	/**
+	 * Overloaded method for backward compatibility - calls main method with null location
+	 */
+	synchronized public static void updateTicketAssignment(String servicePointName, String ticketNumber, String status) {
+		updateTicketAssignment(servicePointName, ticketNumber, status, null);
+	}
+	
 	public static Map<String, TicketAssignment> getActiveTicketAssignments() {
 		return ACTIVE_QUEUE_TICKETS;
+	}
+	
+	/**
+	 * Get active ticket assignments filtered by location
+	 *
+	 * @param locationUuid - the location UUID to filter by
+	 * @return Map of filtered ticket assignments for the specified location
+	 */
+	public static Map<String, TicketAssignment> getActiveTicketAssignmentsByLocation(String locationUuid) {
+		if (StringUtils.isBlank(locationUuid)) {
+			return ACTIVE_QUEUE_TICKETS;
+		}
+		
+		return ACTIVE_QUEUE_TICKETS.entrySet().stream().filter(entry -> {
+			String ticketLocation = entry.getValue().getLocationUuid();
+			return ticketLocation != null && ticketLocation.equals(locationUuid);
+		}).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 	}
 	
 	/**
@@ -97,9 +119,17 @@ public class QueueTicketAssignments {
 		
 		private String ticketNumber;
 		
-		public TicketAssignment(String status, String ticketNumber) {
+		private String locationUuid;
+		
+		public TicketAssignment(String status, String ticketNumber, String locationUuid) {
 			this.status = status;
 			this.ticketNumber = ticketNumber;
+			this.locationUuid = locationUuid;
+		}
+		
+		// Backward compatible constructor
+		public TicketAssignment(String status, String ticketNumber) {
+			this(status, ticketNumber, null);
 		}
 		
 		public String getStatus() {
@@ -116,6 +146,14 @@ public class QueueTicketAssignments {
 		
 		public void setTicketNumber(String ticketNumber) {
 			this.ticketNumber = ticketNumber;
+		}
+		
+		public String getLocationUuid() {
+			return locationUuid;
+		}
+		
+		public void setLocationUuid(String locationUuid) {
+			this.locationUuid = locationUuid;
 		}
 	}
 }
