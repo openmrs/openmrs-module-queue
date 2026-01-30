@@ -9,16 +9,16 @@
  */
 package org.openmrs.module.queue.api.digitalSignage;
 
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 /**
  * A utility class for updating details of active queue tickets
  */
+@Slf4j
 public class QueueTicketAssignments {
 	
 	/**
@@ -68,27 +68,7 @@ public class QueueTicketAssignments {
 	}
 	
 	public static Map<String, TicketAssignment> getActiveTicketAssignments() {
-		return ACTIVE_QUEUE_TICKETS;
-	}
-	
-	/**
-	 * Extracts the request body and returns it as a string
-	 *
-	 * @param reader
-	 * @return
-	 */
-	public static String fetchRequestBody(BufferedReader reader) {
-		StringBuilder requestBodyJsonStr = new StringBuilder();
-		try {
-			String output;
-			while ((output = reader.readLine()) != null) {
-				requestBodyJsonStr.append(output);
-			}
-		}
-		catch (IOException e) {
-			System.out.println("IOException: " + e.getMessage());
-		}
-		return requestBodyJsonStr.toString();
+		return new HashMap<>(ACTIVE_QUEUE_TICKETS);
 	}
 	
 	public static class TicketAssignment {

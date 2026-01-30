@@ -12,16 +12,19 @@ package org.openmrs.module.queue.api;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang.time.DateUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,7 +47,6 @@ import org.openmrs.module.queue.api.dao.QueueEntryDao;
 import org.openmrs.module.queue.api.impl.QueueEntryServiceImpl;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.api.sort.ExistingValueSortWeightGenerator;
-import org.openmrs.module.queue.exception.DuplicateQueueEntryException;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.model.QueueEntryTransition;
@@ -59,7 +61,7 @@ public class QueueEntryServiceTest {
 	private QueueEntryServiceImpl queueEntryService;
 	
 	@Mock
-	private QueueEntryDao<QueueEntry> dao;
+	private QueueEntryDao dao;
 	
 	@Mock
 	private VisitService visitService;
@@ -67,9 +69,11 @@ public class QueueEntryServiceTest {
 	@Captor
 	ArgumentCaptor<QueueEntrySearchCriteria> queueEntrySearchCriteriaArgumentCaptor;
 	
+	AutoCloseable mocksCloser = null;
+	
 	@Before
 	public void setupMocks() {
-		MockitoAnnotations.openMocks(this);
+		mocksCloser = MockitoAnnotations.openMocks(this);
 		queueEntryService = new QueueEntryServiceImpl() {
 			
 			@Override
@@ -80,6 +84,11 @@ public class QueueEntryServiceTest {
 		queueEntryService.setDao(dao);
 		queueEntryService.setVisitService(visitService);
 		queueEntryService.setSortWeightGenerator(new ExistingValueSortWeightGenerator());
+	}
+	
+	@After
+	public void tearDownMocks() throws Exception {
+		mocksCloser.close();
 	}
 	
 	@Test
@@ -120,48 +129,6 @@ public class QueueEntryServiceTest {
 		assertThat(result.getQueueEntryId(), is(QUEUE_ENTRY_ID));
 		assertThat(result.getStatus(), is(conceptStatus));
 		assertThat(result.getPriority(), is(conceptPriority));
-	}
-	
-	@Test
-	public void shouldNotCreateDuplicateOverlappingQueueEntryRecords() {
-		Queue queue = new Queue();
-		Patient patient = new Patient();
-		Concept conceptStatus = new Concept();
-		Concept conceptPriority = new Concept();
-		Date queueStartDate = new Date();
-		
-		QueueEntry savedQueueEntry = new QueueEntry();
-		savedQueueEntry.setQueueEntryId(QUEUE_ENTRY_ID);
-		savedQueueEntry.setQueue(queue);
-		savedQueueEntry.setPatient(patient);
-		savedQueueEntry.setStatus(conceptStatus);
-		savedQueueEntry.setPriority(conceptPriority);
-		savedQueueEntry.setStartedAt(queueStartDate);
-		
-		QueueEntry duplicateQueueEntry = new QueueEntry();
-		duplicateQueueEntry.setQueue(queue);
-		duplicateQueueEntry.setPatient(patient);
-		duplicateQueueEntry.setStartedAt(queueStartDate);
-		
-		QueueEntrySearchCriteria searchCriteria = new QueueEntrySearchCriteria();
-		searchCriteria.setPatient(patient);
-		searchCriteria.setQueues(Collections.singletonList(queue));
-		
-		when(dao.createOrUpdate(savedQueueEntry)).thenReturn(savedQueueEntry);
-		when(dao.getQueueEntries(searchCriteria)).thenReturn(Collections.singletonList(savedQueueEntry));
-		
-		// Should be able to save and re-save a queue entry without causing validation failure
-		savedQueueEntry = queueEntryService.saveQueueEntry(savedQueueEntry);
-		queueEntryService.saveQueueEntry(savedQueueEntry);
-		
-		// Should hit a validation error if a new queue entry is saved with overlapping start date
-		try {
-			queueEntryService.saveQueueEntry(duplicateQueueEntry);
-			fail("Expected DuplicateQueueEntryException");
-		}
-		catch (DuplicateQueueEntryException e) {
-			assertThat(e.getMessage(), is("queue.entry.duplicate.patient"));
-		}
 	}
 	
 	@Test
@@ -228,6 +195,7 @@ public class QueueEntryServiceTest {
 		Date date3 = DateUtils.addHours(date1, 3);
 		
 		QueueEntry queueEntry1 = new QueueEntry();
+		queueEntry1.setQueueEntryId(1);
 		queueEntry1.setQueue(queue1);
 		queueEntry1.setPatient(patient1);
 		queueEntry1.setVisit(visit1);
@@ -241,8 +209,23 @@ public class QueueEntryServiceTest {
 		queueEntry1.setStartedAt(date1);
 		assertNull(queueEntry1.getEndedAt());
 		
-		// Mock the DAO to return the object being saved
-		when(dao.createOrUpdate(any())).thenAnswer(invocation -> invocation.getArguments()[0]);
+		// Mock the DAO to return the object being saved and assign IDs to new entries
+		AtomicInteger idCounter = new AtomicInteger(1);
+		Map<Integer, QueueEntry> entryMap = new HashMap<>();
+		entryMap.put(1, queueEntry1);
+		when(dao.createOrUpdate(any())).thenAnswer(invocation -> {
+			QueueEntry entry = invocation.getArgument(0);
+			if (entry.getId() == null) {
+				entry.setQueueEntryId(idCounter.incrementAndGet());
+			}
+			entryMap.put(entry.getId(), entry);
+			return entry;
+		});
+		when(dao.get(anyInt())).thenAnswer(invocation -> {
+			int id = invocation.getArgument(0);
+			return Optional.ofNullable(entryMap.get(id));
+		});
+		when(dao.updateIfUnmodified(any(), any())).thenReturn(true);
 		
 		// First transition test that no changes are required and all values will be pulled from existing queue entry
 		QueueEntryTransition transition1 = new QueueEntryTransition();
@@ -303,6 +286,7 @@ public class QueueEntryServiceTest {
 		Date date2 = DateUtils.addHours(date1, 6);
 		
 		QueueEntry queueEntry1 = new QueueEntry();
+		queueEntry1.setQueueEntryId(1);
 		queueEntry1.setQueue(queue1);
 		queueEntry1.setPatient(patient1);
 		queueEntry1.setVisit(visit1);
@@ -316,8 +300,23 @@ public class QueueEntryServiceTest {
 		queueEntry1.setStartedAt(date1);
 		assertNull(queueEntry1.getEndedAt());
 		
-		// Mock the DAO to return the object being saved
-		when(dao.createOrUpdate(any())).thenAnswer(invocation -> invocation.getArguments()[0]);
+		// Mock the DAO to return the object being saved and assign IDs to new entries
+		AtomicInteger idCounter = new AtomicInteger(1);
+		Map<Integer, QueueEntry> entryMap = new HashMap<>();
+		entryMap.put(1, queueEntry1);
+		when(dao.createOrUpdate(any())).thenAnswer(invocation -> {
+			QueueEntry entry = invocation.getArgument(0);
+			if (entry.getId() == null) {
+				entry.setQueueEntryId(idCounter.incrementAndGet());
+			}
+			entryMap.put(entry.getId(), entry);
+			return entry;
+		});
+		when(dao.get(anyInt())).thenAnswer(invocation -> {
+			int id = invocation.getArgument(0);
+			return Optional.ofNullable(entryMap.get(id));
+		});
+		when(dao.updateIfUnmodified(any(), any())).thenReturn(true);
 		
 		// Create transition
 		QueueEntryTransition transition1 = new QueueEntryTransition();
@@ -325,17 +324,137 @@ public class QueueEntryServiceTest {
 		transition1.setTransitionDate(date2);
 		QueueEntry queueEntry2 = queueEntryService.transitionQueueEntry(transition1);
 		
-		// Mock the DAO to searches for previous queue entry correctly 
-		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
-		criteria.setPatient(patient1);
-		criteria.setVisit(visit1);
-		criteria.setEndedOn(date2);
-		criteria.setQueues(Arrays.asList(queueEntry2.getQueueComingFrom()));
-		when(dao.getQueueEntries(criteria)).thenReturn(Arrays.asList(queueEntry1));
+		when(dao.getQueueEntries(any())).thenReturn(Arrays.asList(queueEntry1));
+		User user = new User(1);
+		UserContext userContext = mock(UserContext.class);
+		when(userContext.getAuthenticatedUser()).thenReturn(user);
+		Context.setUserContext(userContext);
 		
-		queueEntryService.undoTransition(queueEntry2);
-		assertThat(queueEntry2.getVoided(), equalTo(true));
-		assertNull(queueEntry1.getEndedAt());
+		try {
+			queueEntryService.undoTransition(queueEntry2);
+			
+			assertThat(queueEntry2.getVoided(), equalTo(true));
+			assertNull(queueEntry1.getEndedAt());
+		}
+		finally {
+			Context.setUserContext(null);
+		}
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void shouldThrowWhenTransitioningUnsavedEntry() {
+		QueueEntry unsavedEntry = new QueueEntry();
+		QueueEntryTransition transition = new QueueEntryTransition();
+		transition.setQueueEntryToTransition(unsavedEntry);
+		transition.setTransitionDate(new Date());
+		queueEntryService.transitionQueueEntry(transition);
+	}
+	
+	@Test(expected = IllegalStateException.class)
+	public void shouldThrowWhenTransitioningVoidedEntry() {
+		QueueEntry voidedEntry = new QueueEntry();
+		voidedEntry.setQueueEntryId(1);
+		voidedEntry.setVoided(true);
+		when(dao.get(1)).thenReturn(Optional.of(voidedEntry));
+		
+		QueueEntryTransition transition = new QueueEntryTransition();
+		transition.setQueueEntryToTransition(voidedEntry);
+		transition.setTransitionDate(new Date());
+		queueEntryService.transitionQueueEntry(transition);
+	}
+	
+	@Test(expected = IllegalStateException.class)
+	public void shouldThrowWhenTransitioningEndedEntry() {
+		QueueEntry endedEntry = new QueueEntry();
+		endedEntry.setQueueEntryId(1);
+		endedEntry.setEndedAt(new Date());
+		when(dao.get(1)).thenReturn(Optional.of(endedEntry));
+		
+		QueueEntryTransition transition = new QueueEntryTransition();
+		transition.setQueueEntryToTransition(endedEntry);
+		transition.setTransitionDate(new Date());
+		queueEntryService.transitionQueueEntry(transition);
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void shouldThrowWhenUndoingTransitionOnUnsavedEntry() {
+		QueueEntry unsavedEntry = new QueueEntry();
+		queueEntryService.undoTransition(unsavedEntry);
+	}
+	
+	@Test(expected = IllegalStateException.class)
+	public void shouldThrowWhenUndoingTransitionOnVoidedEntry() {
+		QueueEntry voidedEntry = new QueueEntry();
+		voidedEntry.setQueueEntryId(1);
+		voidedEntry.setVoided(true);
+		when(dao.get(1)).thenReturn(Optional.of(voidedEntry));
+		
+		queueEntryService.undoTransition(voidedEntry);
+	}
+	
+	@Test(expected = IllegalStateException.class)
+	public void shouldThrowWhenUndoingTransitionOnEndedEntry() {
+		QueueEntry endedEntry = new QueueEntry();
+		endedEntry.setQueueEntryId(1);
+		endedEntry.setEndedAt(new Date());
+		when(dao.get(1)).thenReturn(Optional.of(endedEntry));
+		
+		queueEntryService.undoTransition(endedEntry);
+	}
+	
+	@Test(expected = IllegalStateException.class)
+	public void shouldThrowWhenTransitioningConcurrentlyModifiedEntry() {
+		QueueEntry queueEntry = new QueueEntry();
+		queueEntry.setQueueEntryId(1);
+		queueEntry.setQueue(new Queue());
+		queueEntry.setPatient(new Patient());
+		queueEntry.setStatus(new Concept());
+		queueEntry.setPriority(new Concept());
+		queueEntry.setStartedAt(new Date());
+		when(dao.get(1)).thenReturn(Optional.of(queueEntry));
+		when(dao.updateIfUnmodified(any(), any())).thenReturn(false);
+		
+		QueueEntryTransition transition = new QueueEntryTransition();
+		transition.setQueueEntryToTransition(queueEntry);
+		transition.setTransitionDate(new Date());
+		queueEntryService.transitionQueueEntry(transition);
+	}
+	
+	@Test(expected = IllegalStateException.class)
+	public void shouldThrowWhenUndoingTransitionOnConcurrentlyModifiedPreviousEntry() {
+		Queue queue1 = new Queue();
+		Patient patient1 = new Patient();
+		Visit visit1 = new Visit();
+		visit1.setPatient(patient1);
+		Concept concept1 = new Concept();
+		Date date1 = DateUtils.addHours(new Date(), -12);
+		Date date2 = DateUtils.addHours(date1, 6);
+		
+		QueueEntry prevEntry = new QueueEntry();
+		prevEntry.setQueueEntryId(1);
+		prevEntry.setQueue(queue1);
+		prevEntry.setPatient(patient1);
+		prevEntry.setVisit(visit1);
+		prevEntry.setStatus(concept1);
+		prevEntry.setPriority(concept1);
+		prevEntry.setStartedAt(date1);
+		prevEntry.setEndedAt(date2);
+		
+		QueueEntry currentEntry = new QueueEntry();
+		currentEntry.setQueueEntryId(2);
+		currentEntry.setQueue(queue1);
+		currentEntry.setPatient(patient1);
+		currentEntry.setVisit(visit1);
+		currentEntry.setStatus(concept1);
+		currentEntry.setPriority(concept1);
+		currentEntry.setStartedAt(date2);
+		currentEntry.setQueueComingFrom(queue1);
+		
+		when(dao.get(2)).thenReturn(Optional.of(currentEntry));
+		when(dao.getQueueEntries(any())).thenReturn(Arrays.asList(prevEntry));
+		when(dao.updateIfUnmodified(any(), any())).thenReturn(false);
+		
+		queueEntryService.undoTransition(currentEntry);
 	}
 	
 	@Test

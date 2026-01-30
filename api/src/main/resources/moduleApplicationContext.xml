@@ -65,6 +65,7 @@
             </list>
         </property>
     </bean>
+
     <bean id="queue.QueueRoomService"
           class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
         <property name="transactionManager" ref="transactionManager"/>
@@ -84,6 +85,7 @@
             </list>
         </property>
     </bean>
+
     <bean id="queue.RoomProviderMapService"
           class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
         <property name="transactionManager" ref="transactionManager"/>
@@ -103,6 +105,7 @@
             </list>
         </property>
     </bean>
+
     <bean id="queueDao" class="org.openmrs.module.queue.api.dao.impl.QueueDaoImpl">
         <constructor-arg ref="sessionFactory"/>
     </bean>

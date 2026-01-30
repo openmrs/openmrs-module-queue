@@ -161,11 +161,6 @@
             <artifactId>lombok</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.openmrs.web</groupId>
-            <artifactId>openmrs-web</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.openmrs.test</groupId>
             <artifactId>openmrs-test</artifactId>
             <type>pom</type>
@@ -188,6 +183,15 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.8.1</version>
+                    <configuration>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombokVersion}</version>
+                            </path>
+                        </annotationProcessorPaths>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -325,11 +329,11 @@
 
     <properties>
         <main.basedir>${project.basedir}</main.basedir>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
-        <lombokVersion>1.18.38</lombokVersion>
+        <lombokVersion>1.18.42</lombokVersion>
         <webservicesRestVersion>3.0.0-SNAPSHOT</webservicesRestVersion>
         <byteBuddyVersion>1.17.7</byteBuddyVersion>
         <mockitoInlineVersion>4.8.0</mockitoInlineVersion>

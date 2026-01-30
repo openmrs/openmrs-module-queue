@@ -11,10 +11,12 @@ package org.openmrs.module.queue.api;
 
 import javax.validation.constraints.NotNull;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 import org.openmrs.Location;
+import org.openmrs.Patient;
 import org.openmrs.Visit;
 import org.openmrs.VisitAttributeType;
 import org.openmrs.annotation.Authorized;
@@ -47,6 +49,31 @@ public interface QueueEntryService {
 	Optional<QueueEntry> getQueueEntryById(@NotNull Integer id);
 	
 	/**
+	 * Fetches the set of queue entries for this patient and queue that overlap with the give startedAt
+	 * and endedAt dates
+	 *
+	 * @param patient The patient this queue entry belongs to
+	 * @param queue The queue to query
+	 * @param startedAt The start point for this queue entry
+	 * @param endedAt The endpoint for this queue entry
+	 * @return A list of overlapping queue entries
+	 */
+	@Authorized(PrivilegeConstants.GET_QUEUE_ENTRIES)
+	List<QueueEntry> getOverlappingQueueEntries(Patient patient, Queue queue, Date startedAt, Date endedAt);
+	
+	/**
+	 * Given a specified queue entry Q, return its previous queue entry P, where P has same patient and
+	 * visit as Q, and P.endedAt time is same as Q.startedAt time, and P.queue is same as
+	 * Q.queueComingFrom
+	 *
+	 * @param queueEntry
+	 * @return the previous queue entry, null otherwise.
+	 * @throws IllegalStateException if multiple previous queue entries are identified
+	 */
+	@Authorized(PrivilegeConstants.GET_QUEUE_ENTRIES)
+	QueueEntry getPreviousQueueEntry(@NotNull QueueEntry queueEntry);
+	
+	/**
 	 * Saves a queue entry
 	 *
 	 * @param queueEntry the queue entry to be saved
@@ -66,7 +93,7 @@ public interface QueueEntryService {
 	QueueEntry transitionQueueEntry(@NotNull QueueEntryTransition queueEntryTransition);
 	
 	/**
-	 * Undos a transition to the input queue entry by voiding it and making its previous queue entry
+	 * Undoes a transition to the input queue entry by voiding it and making its previous queue entry
 	 * active by setting the previous entry's end time to null.
 	 * 
 	 * @see QueueEntryService#getPreviousQueueEntry(QueueEntry)
@@ -110,18 +137,19 @@ public interface QueueEntryService {
 	Long getCountOfQueueEntries(@NotNull QueueEntrySearchCriteria searchCriteria);
 	
 	/**
-	 * @param location
-	 * @param queue
+	 * @param location The location associated with the queue
+	 * @param queue The queue
 	 * @return VisitQueueNumber - used to identify patients in the queue instead of using patient name
 	 */
-	@Authorized({ org.openmrs.util.PrivilegeConstants.ADD_VISITS, org.openmrs.util.PrivilegeConstants.EDIT_VISITS })
+	@Authorized({ PrivilegeConstants.MANAGE_QUEUE_ENTRIES, org.openmrs.util.PrivilegeConstants.ADD_VISITS,
+	        org.openmrs.util.PrivilegeConstants.EDIT_VISITS })
 	String generateVisitQueueNumber(@NotNull Location location, @NotNull Queue queue, @NotNull Visit visit,
 	        @NotNull VisitAttributeType visitAttributeType);
 	
 	/**
 	 * Closes all active queue entries
 	 */
-	@Authorized({ PrivilegeConstants.MANAGE_QUEUE_ENTRIES })
+	@Authorized(PrivilegeConstants.MANAGE_QUEUE_ENTRIES)
 	void closeActiveQueueEntries();
 	
 	/**
@@ -138,16 +166,4 @@ public interface QueueEntryService {
 	 * @param sortWeightGenerator the SortWeightGenerator to set
 	 */
 	void setSortWeightGenerator(SortWeightGenerator sortWeightGenerator);
-	
-	/**
-	 * Given a specified queue entry Q, return its previous queue entry P, where P has same patient and
-	 * visit as Q, and P.endedAt time is same as Q.startedAt time, and P.queue is same as
-	 * Q.queueComingFrom
-	 *
-	 * @param queueEntry
-	 * @return the previous queue entry, null otherwise.
-	 * @throws IllegalStateException if multiple previous queue entries are identified
-	 */
-	@Authorized({ PrivilegeConstants.GET_QUEUE_ENTRIES })
-	QueueEntry getPreviousQueueEntry(@NotNull QueueEntry queueEntry);
 }

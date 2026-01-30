@@ -17,17 +17,16 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import lombok.AccessLevel;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Location;
+import org.openmrs.Patient;
 import org.openmrs.Visit;
 import org.openmrs.VisitAttribute;
 import org.openmrs.VisitAttributeType;
@@ -40,38 +39,26 @@ import org.openmrs.module.queue.api.QueueEntryService;
 import org.openmrs.module.queue.api.dao.QueueEntryDao;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.api.sort.SortWeightGenerator;
-import org.openmrs.module.queue.exception.DuplicateQueueEntryException;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.model.QueueEntryTransition;
-import org.openmrs.module.queue.utils.QueueUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Transactional
-@Setter(AccessLevel.MODULE)
 public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEntryService {
 	
-	private QueueEntryDao<QueueEntry> dao;
+	@Setter
+	private QueueEntryDao dao;
 	
+	@Setter
 	private VisitService visitService;
 	
+	@Setter
 	private AdministrationService administrationService;
 	
 	@Setter
 	private SortWeightGenerator sortWeightGenerator = null;
-	
-	public void setDao(QueueEntryDao<QueueEntry> dao) {
-		this.dao = dao;
-	}
-	
-	public void setVisitService(VisitService visitService) {
-		this.visitService = visitService;
-	}
-	
-	public void setAdministrationService(AdministrationService administrationService) {
-		this.administrationService = administrationService;
-	}
 	
 	/**
 	 * @see QueueEntryService#getQueueEntryByUuid(String)
@@ -91,40 +78,22 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		return dao.get(queueEntryId);
 	}
 	
+	@Override
+	@Transactional(readOnly = true)
+	public List<QueueEntry> getOverlappingQueueEntries(Patient patient, Queue queue, Date startedAt, Date endedAt) {
+		QueueEntrySearchCriteria criteria = QueueEntrySearchCriteria.builder().queues(Collections.singletonList(queue))
+		        .patient(patient).startedOn(startedAt).endedOn(endedAt).build();
+		return dao.getOverlappingQueueEntries(criteria);
+	}
+	
 	/**
 	 * @see QueueEntryService#saveQueueEntry(org.openmrs.module.queue.model.QueueEntry)
 	 */
 	@Override
 	public QueueEntry saveQueueEntry(QueueEntry queueEntry) {
-		if (queueEntry.getVisit() != null) {
-			if (!queueEntry.getVisit().getPatient().equals(queueEntry.getPatient())) {
-				throw new IllegalArgumentException("Patient mismatch - visit.patient does not match patient");
-			}
-		}
-		
-		if (isDuplicate(queueEntry)) {
-			throw new DuplicateQueueEntryException("queue.entry.duplicate.patient");
-		}
-		
 		Double sortWeight = getSortWeightGenerator().generateSortWeight(queueEntry);
 		queueEntry.setSortWeight(sortWeight);
 		return dao.createOrUpdate(queueEntry);
-	}
-	
-	private boolean isDuplicate(QueueEntry queueEntry) {
-		QueueEntrySearchCriteria searchCriteria = new QueueEntrySearchCriteria();
-		searchCriteria.setPatient(queueEntry.getPatient());
-		searchCriteria.setQueues(Collections.singletonList(queueEntry.getQueue()));
-		List<QueueEntry> queueEntries = getQueueEntries(searchCriteria);
-		for (QueueEntry qe : queueEntries) {
-			if (!qe.equals(queueEntry)) {
-				if (QueueUtils.datesOverlap(qe.getStartedAt(), qe.getEndedAt(), queueEntry.getStartedAt(),
-				    queueEntry.getEndedAt())) {
-					return true;
-				}
-			}
-		}
-		return false;
 	}
 	
 	/**
@@ -132,19 +101,36 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	 */
 	@Override
 	public QueueEntry transitionQueueEntry(QueueEntryTransition queueEntryTransition) {
-		// Create a new queue entry
-		QueueEntry queueEntryToStart = queueEntryTransition.constructNewQueueEntry();
-		
-		// End the initial queue entry
 		QueueEntry queueEntryToStop = queueEntryTransition.getQueueEntryToTransition();
-		queueEntryToStop.setEndedAt(queueEntryTransition.getTransitionDate());
-		getProxiedQueueEntryService().saveQueueEntry(queueEntryToStop);
 		
-		if (isDuplicate(queueEntryToStart)) {
-			throw new DuplicateQueueEntryException("queue.entry.duplicate.patient");
+		if (queueEntryToStop.getId() == null) {
+			throw new IllegalArgumentException("Cannot transition a queue entry that has not been saved");
 		}
 		
-		// Save the new queue entry
+		// Reload from database to check current state and guard against concurrent modifications
+		QueueEntry currentState = dao.get(queueEntryToStop.getId())
+		        .orElseThrow(() -> new IllegalArgumentException("Queue entry not found"));
+		if (currentState.getVoided()) {
+			throw new IllegalStateException("Cannot transition a voided queue entry");
+		}
+		if (currentState.getEndedAt() != null) {
+			throw new IllegalStateException("Cannot transition a queue entry that has already ended");
+		}
+		
+		// Capture the dateChanged for optimistic locking
+		Date expectedDateChanged = currentState.getDateChanged();
+		
+		QueueEntry queueEntryToStart = queueEntryTransition.constructNewQueueEntry();
+		
+		// Use optimistic locking to end the current entry
+		queueEntryToStop.setEndedAt(queueEntryTransition.getTransitionDate());
+		boolean updated = dao.updateIfUnmodified(queueEntryToStop, expectedDateChanged);
+		if (!updated) {
+			throw new IllegalStateException("Queue entry was modified by another transaction");
+		}
+		
+		dao.flushSession();
+		
 		return getProxiedQueueEntryService().saveQueueEntry(queueEntryToStart);
 	}
 	
@@ -155,23 +141,39 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	public QueueEntry undoTransition(@NotNull QueueEntry queueEntry) {
 		// TODO: Exceptions should be translatable and human readable on the frontend.
 		// See: https://openmrs.atlassian.net/browse/O3-2988
-		if (queueEntry.getVoided()) {
-			throw new IllegalArgumentException("cannot undo transition on a voided queue entry");
+		if (queueEntry.getId() == null) {
+			throw new IllegalArgumentException("Cannot undo transition on a queue entry that has not been saved");
 		}
-		if (queueEntry.getEndedAt() != null) {
-			throw new IllegalArgumentException("cannot undo transition on an ended queue entry");
-		}
-		QueueEntry prevQueueEntry = getPreviousQueueEntry(queueEntry);
-		if (prevQueueEntry == null) {
-			throw new IllegalArgumentException("specified queue entry does not have a previous queue entry");
-		}
-		prevQueueEntry.setEndedAt(null);
-		prevQueueEntry = dao.createOrUpdate(prevQueueEntry);
 		
-		queueEntry.setVoided(true);
-		queueEntry.setVoidReason("undo transition");
-		dao.createOrUpdate(queueEntry);
-		return prevQueueEntry;
+		// Reload from database to check current state and guard against concurrent modifications
+		QueueEntry currentState = dao.get(queueEntry.getId())
+		        .orElseThrow(() -> new IllegalArgumentException("Queue entry not found"));
+		if (currentState.getVoided()) {
+			throw new IllegalStateException("Cannot undo transition on a voided queue entry");
+		}
+		if (currentState.getEndedAt() != null) {
+			throw new IllegalStateException("Cannot undo transition on an ended queue entry");
+		}
+		
+		QueueEntry prevQueueEntry = getProxiedQueueEntryService().getPreviousQueueEntry(queueEntry);
+		if (prevQueueEntry == null) {
+			throw new IllegalArgumentException("Specified queue entry does not have a previous queue entry");
+		}
+		
+		// Capture the dateChanged for optimistic locking before re-opening the previous entry
+		Date expectedDateChanged = prevQueueEntry.getDateChanged();
+		
+		// Re-open the previous entry using optimistic locking
+		prevQueueEntry.setEndedAt(null);
+		boolean updated = dao.updateIfUnmodified(prevQueueEntry, expectedDateChanged);
+		if (!updated) {
+			throw new IllegalStateException("Previous queue entry was modified by another transaction");
+		}
+		
+		getProxiedQueueEntryService().voidQueueEntry(queueEntry, "Transition undone");
+		
+		// Reload the previous entry to return the updated state
+		return dao.get(prevQueueEntry.getId()).orElse(prevQueueEntry);
 	}
 	
 	/**
@@ -276,12 +278,15 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		if (queueComingFrom == null) {
 			return null;
 		}
+		
 		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
 		criteria.setPatient(queueEntry.getPatient());
 		criteria.setVisit(queueEntry.getVisit());
 		criteria.setEndedOn(queueEntry.getStartedAt());
-		criteria.setQueues(Arrays.asList(queueComingFrom));
+		criteria.setQueues(Collections.singletonList(queueComingFrom));
+		
 		List<QueueEntry> prevQueueEntries = dao.getQueueEntries(criteria);
+		
 		if (prevQueueEntries.size() == 1) {
 			return prevQueueEntries.get(0);
 		} else if (prevQueueEntries.size() > 1) {
