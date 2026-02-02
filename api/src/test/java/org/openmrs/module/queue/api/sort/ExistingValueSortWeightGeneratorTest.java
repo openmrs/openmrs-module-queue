@@ -9,9 +9,10 @@
  */
 package org.openmrs.module.queue.api.sort;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,15 +23,27 @@ import org.openmrs.module.queue.model.QueueEntry;
 @RunWith(MockitoJUnitRunner.class)
 public class ExistingValueSortWeightGeneratorTest {
 	
+	AutoCloseable mockCloseable = null;
+	
 	QueueEntry queueEntry;
 	
 	ExistingValueSortWeightGenerator generator;
 	
 	@Before
 	public void setupMocks() {
-		MockitoAnnotations.openMocks(this);
+		mockCloseable = MockitoAnnotations.openMocks(this);
 		queueEntry = new QueueEntry();
 		generator = new ExistingValueSortWeightGenerator();
+	}
+	
+	@After
+	public void tearDownMocks() {
+		if (mockCloseable != null) {
+			try {
+				mockCloseable.close();
+			}
+			catch (Exception ignored) {}
+		}
 	}
 	
 	@Test

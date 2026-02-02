@@ -40,15 +40,15 @@ public class QueueTimerTask extends TimerTask {
 	public final void run() {
 		if (daemonToken != null && enabled) {
 			try {
-				log.debug("Running task: " + taskClass.getSimpleName());
+				log.debug("Running task: {}", taskClass.getSimpleName());
 				Runnable taskInstance = taskClass.getDeclaredConstructor().newInstance();
-				Daemon.runInDaemonThread(taskInstance, daemonToken);
+				Daemon.runInDaemonThreadWithoutResult(taskInstance, daemonToken);
 			}
 			catch (Exception e) {
-				log.error("An error occurred while running scheduled task " + taskClass.getSimpleName(), e);
+				log.error("An error occurred while running scheduled task {}", taskClass.getSimpleName(), e);
 			}
 		} else {
-			log.debug("Not running scheduled task. DaemonToken = " + daemonToken + "; enabled = " + enabled);
+			log.debug("Not running scheduled task. enabled = {}", enabled);
 		}
 	}
 	

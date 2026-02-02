@@ -32,6 +32,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.Location;
 import org.openmrs.Visit;
@@ -197,7 +198,7 @@ public class Legacy1xRestController extends BaseRestController {
 	@RequestMapping(method = POST, value = "/rest/" + RestConstants.VERSION_1 + "/queueutil/assignticket")
 	@ResponseBody
 	public Object assignTicketToServicePoint(HttpServletRequest request) throws Exception {
-		String requestBody = QueueTicketAssignments.fetchRequestBody(request.getReader());
+		String requestBody = IOUtils.toString(request.getReader());
 		if (requestBody != null) {
 			ObjectMapper mapper = new ObjectMapper();
 			JsonNode actualObj = mapper.readTree(requestBody);

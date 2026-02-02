@@ -33,31 +33,31 @@ public class AutoCloseVisitQueueEntryTask implements Runnable {
 	@Override
 	public void run() {
 		if (currentlyExecuting) {
-			log.debug(getClass() + " is still executing, not running again");
+			log.debug("AutoCloseVisitQueueEntryTask is still executing, not running again");
 			return;
 		}
-		log.debug("Executing: " + getClass());
+		log.debug("Executing AutoCloseVisitQueueEntryTask");
 		try {
 			currentlyExecuting = true;
 			List<QueueEntry> queueEntries = getActiveVisitQueueEntries();
-			log.debug("There are " + queueEntries.size() + " active visit queue entries");
+			log.debug("There are {} active visit queue entries", queueEntries.size());
 			for (QueueEntry queueEntry : queueEntries) {
 				try {
 					Visit visit = queueEntry.getVisit();
 					Date visitStopDatetime = visit.getStopDatetime();
 					if (visitStopDatetime != null) {
-						log.debug("Visit " + visit.getVisitId() + " is closed at " + visitStopDatetime);
-						log.debug("Auto closing queue entry " + queueEntry.getQueueEntryId());
+						log.debug("Visit {} is closed at {}", visit.getVisitId(), visitStopDatetime);
+						log.debug("Auto closing queue entry {}", queueEntry.getQueueEntryId());
 						queueEntry.setEndedAt(visitStopDatetime);
 						saveQueueEntry(queueEntry);
-						log.info("Queue entry auto-closed following close of visit: " + queueEntry.getQueueEntryId());
+						log.info("Queue entry auto-closed following close of visit: {}", queueEntry.getQueueEntryId());
 					}
 				}
 				catch (ValidationException ve) {
-					log.warn("Unable to auto-close queue entry " + queueEntry.getQueueEntryId() + ": " + ve.getMessage());
+					log.warn("Unable to auto-close queue entry {}: {}", queueEntry.getQueueEntryId(), ve.getMessage());
 				}
 				catch (Exception e) {
-					log.warn("Unable to auto-close queue entry " + queueEntry.getQueueEntryId(), e);
+					log.warn("Unable to auto-close queue entry {}", queueEntry.getQueueEntryId(), e);
 				}
 			}
 		}

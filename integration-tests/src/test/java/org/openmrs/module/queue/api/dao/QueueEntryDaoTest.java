@@ -69,7 +69,7 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	
 	@Autowired
 	@Qualifier("queueEntryDao")
-	private QueueEntryDao<QueueEntry> dao;
+	private QueueEntryDao dao;
 	
 	@Autowired
 	private QueueServicesWrapper services;

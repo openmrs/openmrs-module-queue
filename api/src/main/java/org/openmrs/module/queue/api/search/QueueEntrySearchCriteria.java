@@ -13,7 +13,10 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.openmrs.Concept;
 import org.openmrs.Location;
 import org.openmrs.Patient;
@@ -30,6 +33,9 @@ import org.openmrs.module.queue.model.Queue;
  * limit to only those entries whose priority is null, set the priority property to an empty
  * collection
  */
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Data
 public class QueueEntrySearchCriteria implements Serializable {
 	
