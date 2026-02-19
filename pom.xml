@@ -334,7 +334,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
         <lombokVersion>1.18.42</lombokVersion>
-        <webservicesRestVersion>3.0.0-SNAPSHOT</webservicesRestVersion>
+        <webservicesRestVersion>3.0.0</webservicesRestVersion>
         <byteBuddyVersion>1.17.7</byteBuddyVersion>
         <mockitoInlineVersion>4.8.0</mockitoInlineVersion>
         <openmrsPlatformVersion>2.7.4</openmrsPlatformVersion>
