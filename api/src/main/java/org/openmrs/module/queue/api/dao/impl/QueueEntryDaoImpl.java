@@ -9,30 +9,22 @@
  */
 package org.openmrs.module.queue.api.dao.impl;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.validation.constraints.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
 import org.hibernate.Criteria;
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
-import org.openmrs.Patient;
+import org.hibernate.query.Query;
 import org.openmrs.module.queue.api.dao.QueueEntryDao;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
-import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-@SuppressWarnings("unchecked")
 public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> implements QueueEntryDao {
 	
 	public QueueEntryDaoImpl(@Qualifier("sessionFactory") SessionFactory sessionFactory) {
@@ -40,13 +32,17 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 	}
 	
 	@Override
+	@SuppressWarnings("unchecked")
 	public List<QueueEntry> getQueueEntries(QueueEntrySearchCriteria searchCriteria) {
-		Criteria c = createCriteriaFromSearchCriteria(searchCriteria);
-		c.addOrder(Order.desc("qe.sortWeight"));
-		c.addOrder(Order.asc("qe.startedAt"));
-		c.addOrder(Order.asc("qe.dateCreated"));
-		c.addOrder(Order.asc("qe.queueEntryId"));
-		return c.list();
+		
+		Criteria criteria = createCriteriaFromSearchCriteria(searchCriteria);
+		
+		criteria.addOrder(Order.desc("qe.sortWeight"));
+		criteria.addOrder(Order.asc("qe.startedAt"));
+		criteria.addOrder(Order.asc("qe.dateCreated"));
+		criteria.addOrder(Order.asc("qe.queueEntryId"));
+		
+		return criteria.list();
 	}
 	
 	@Override
@@ -57,81 +53,48 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 	}
 	
 	@Override
-	public List<QueueEntry> getOverlappingQueueEntries(QueueEntrySearchCriteria searchCriteria) {
-		Session session = getSessionFactory().getCurrentSession();
-		CriteriaBuilder cb = session.getCriteriaBuilder();
-		CriteriaQuery<QueueEntry> query = cb.createQuery(QueueEntry.class);
-		Root<QueueEntry> root = query.from(QueueEntry.class);
-		List<Predicate> predicates = new ArrayList<>();
+	public boolean updateIfUnmodified(QueueEntry entity, Date lastModified) {
 		
-		predicates.add(cb.equal(root.get("voided"), false));
+		QueueEntry existing = getCurrentSession().get(QueueEntry.class, entity.getQueueEntryId());
 		
-		Collection<Queue> queues = searchCriteria.getQueues();
-		if (queues != null) {
-			if (queues.isEmpty()) {
-				predicates.add(root.get("queue").isNull());
-			} else {
-				predicates.add(root.get("queue").in(searchCriteria.getQueues()));
-			}
+		if (existing == null) {
+			return false;
 		}
 		
-		Patient patient = searchCriteria.getPatient();
-		if (patient != null) {
-			predicates.add(cb.equal(root.get("patient"), patient));
+		Date existingDate = existing.getDateChanged();
+		
+		if (existingDate != null && lastModified != null && !existingDate.equals(lastModified)) {
+			return false;
 		}
 		
-		Date startedAt = searchCriteria.getStartedOn();
-		if (startedAt != null) {
-			// any queue entries that have either not ended or end after this queue entry starts
-			predicates.add(cb.or(root.get("endedAt").isNull(), cb.greaterThan(root.get("endedAt"), startedAt)));
-		}
-		
-		query.where(cb.and(predicates.toArray(new Predicate[0])));
-		
-		return session.createQuery(query).list();
+		getCurrentSession().merge(entity);
+		return true;
 	}
 	
 	@Override
 	public void flushSession() {
-		getSessionFactory().getCurrentSession().flush();
+		getCurrentSession().flush();
 	}
 	
 	@Override
-	public boolean updateIfUnmodified(QueueEntry queueEntry, Date expectedDateChanged) {
-		Session session = getSessionFactory().getCurrentSession();
+	public List<QueueEntry> getOverlappingQueueEntries(@NotNull QueueEntrySearchCriteria searchCriteria) {
 		
-		// Evict the entity to prevent Hibernate from auto-flushing changes
-		session.evict(queueEntry);
+		String hql = "SELECT qe FROM QueueEntry qe " + "WHERE qe.patient = :patient " + "AND qe.queue IN (:queues) "
+		        + "AND qe.voided = false " + "AND qe.endedAt IS NULL";
 		
-		// Build conditional update query - only succeeds if dateChanged matches expected value
-		StringBuilder jpql = new StringBuilder();
-		jpql.append("UPDATE QueueEntry qe SET ");
-		jpql.append("qe.endedAt = :endedAt ");
-		jpql.append("WHERE qe.queueEntryId = :id ");
+		Query<QueueEntry> query = getCurrentSession().createQuery(hql, QueueEntry.class);
 		
-		if (expectedDateChanged == null) {
-			jpql.append("AND qe.dateChanged IS NULL");
-		} else {
-			jpql.append("AND qe.dateChanged = :expectedDateChanged");
-		}
+		query.setParameter("patient", searchCriteria.getPatient());
+		query.setParameterList("queues", searchCriteria.getQueues());
 		
-		javax.persistence.Query query = session.createQuery(jpql.toString());
-		query.setParameter("endedAt", queueEntry.getEndedAt());
-		query.setParameter("id", queueEntry.getQueueEntryId());
-		if (expectedDateChanged != null) {
-			query.setParameter("expectedDateChanged", expectedDateChanged);
-		}
-		
-		int rowsUpdated = query.executeUpdate();
-		return rowsUpdated > 0;
+		return query.list();
 	}
 	
-	/**
-	 * Convert the given {@link QueueEntrySearchCriteria} into ORM criteria
-	 */
 	private Criteria createCriteriaFromSearchCriteria(QueueEntrySearchCriteria searchCriteria) {
+		
 		Criteria c = getCurrentSession().createCriteria(QueueEntry.class, "qe");
 		c.createAlias("queue", "q");
+		
 		includeVoidedObjects(c, searchCriteria.isIncludedVoided());
 		limitByCollectionProperty(c, "queue", searchCriteria.getQueues());
 		limitByCollectionProperty(c, "q.location", searchCriteria.getLocations());
@@ -145,20 +108,21 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 		limitByCollectionProperty(c, "qe.queueComingFrom", searchCriteria.getQueuesComingFrom());
 		limitToGreaterThanOrEqualToProperty(c, "qe.startedAt", searchCriteria.getStartedOnOrAfter());
 		limitToLessThanOrEqualToProperty(c, "qe.startedAt", searchCriteria.getStartedOnOrBefore());
-		limitToEqualsProperty(c, "qe.startedAt", searchCriteria.getStartedOn());
 		limitToGreaterThanOrEqualToProperty(c, "qe.endedAt", searchCriteria.getEndedOnOrAfter());
 		limitToLessThanOrEqualToProperty(c, "qe.endedAt", searchCriteria.getEndedOnOrBefore());
-		limitToEqualsProperty(c, "qe.endedAt", searchCriteria.getEndedOn());
+		
 		if (searchCriteria.getHasVisit() == Boolean.TRUE) {
 			c.add(Restrictions.isNotNull("qe.visit"));
 		} else if (searchCriteria.getHasVisit() == Boolean.FALSE) {
 			c.add(Restrictions.isNull("qe.visit"));
 		}
+		
 		if (searchCriteria.getIsEnded() == Boolean.TRUE) {
 			c.add(Restrictions.isNotNull("qe.endedAt"));
 		} else if (searchCriteria.getIsEnded() == Boolean.FALSE) {
 			c.add(Restrictions.isNull("qe.endedAt"));
 		}
+		
 		return c;
 	}
 }
