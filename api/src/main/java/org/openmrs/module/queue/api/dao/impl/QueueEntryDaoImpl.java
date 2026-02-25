@@ -16,6 +16,7 @@ import java.util.List;
 
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
@@ -36,10 +37,10 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 		
 		Criteria criteria = createCriteriaFromSearchCriteria(searchCriteria);
 		
-		criteria.addOrder(org.hibernate.criterion.Order.desc("qe.sortWeight"));
-		criteria.addOrder(org.hibernate.criterion.Order.asc("qe.startedAt"));
-		criteria.addOrder(org.hibernate.criterion.Order.asc("qe.dateCreated"));
-		criteria.addOrder(org.hibernate.criterion.Order.asc("qe.queueEntryId"));
+		criteria.addOrder(Order.desc("qe.sortWeight"));
+		criteria.addOrder(Order.asc("qe.startedAt"));
+		criteria.addOrder(Order.asc("qe.dateCreated"));
+		criteria.addOrder(Order.asc("qe.queueEntryId"));
 		
 		return criteria.list();
 	}
