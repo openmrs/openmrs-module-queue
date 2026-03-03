@@ -12,12 +12,12 @@ package org.openmrs.module.queue.api;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.openmrs.Visit;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.QueueEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.aop.MethodBeforeAdvice;
 
 /**
@@ -28,7 +28,7 @@ import org.springframework.aop.MethodBeforeAdvice;
  */
 public class VisitWithQueueEntriesDeleteAdvice implements MethodBeforeAdvice {
 	
-	private final Log log = LogFactory.getLog(getClass());
+	private static final Logger log = LoggerFactory.getLogger(VisitWithQueueEntriesDeleteAdvice.class);
 	
 	@Override
 	public void before(Method method, Object[] args, Object target) throws Throwable {
