@@ -14,6 +14,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -25,7 +26,6 @@ import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
-import org.joda.time.DateTime;
 import org.openmrs.Patient;
 import org.openmrs.module.queue.api.dao.QueueEntryDao;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
@@ -117,7 +117,7 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 		}
 		
 		javax.persistence.Query query = session.createQuery(jpql.toString());
-		query.setParameter("endedAt", new DateTime(queueEntry.getEndedAt()).withMillisOfSecond(0).toDate()); // see https://openmrs.atlassian.net/browse/O3-5396
+		query.setParameter("endedAt", Date.from(queueEntry.getEndedAt().toInstant().truncatedTo(ChronoUnit.SECONDS)));
 		query.setParameter("id", queueEntry.getQueueEntryId());
 		if (expectedDateChanged != null) {
 			query.setParameter("expectedDateChanged", expectedDateChanged);
