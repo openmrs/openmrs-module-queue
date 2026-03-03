@@ -319,8 +319,8 @@ public class QueueEntryValidatorTest extends BaseModuleContextSensitiveTest {
 		firstEntry.setPatient(patient);
 		firstEntry.setStatus(validStatus);
 		firstEntry.setPriority(validPriority);
-		firstEntry.setStartedAt(DateUtils.addHours(now, -2));
-		firstEntry.setEndedAt(DateUtils.addHours(now, -1));
+		firstEntry.setStartedAt(DateUtils.addHours(now, -1));
+		firstEntry.setEndedAt(now);
 		services.getQueueEntryService().saveQueueEntry(firstEntry);
 		
 		QueueEntry secondEntry = new QueueEntry();
