@@ -14,6 +14,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -116,7 +117,7 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 		}
 		
 		javax.persistence.Query query = session.createQuery(jpql.toString());
-		query.setParameter("endedAt", queueEntry.getEndedAt());
+		query.setParameter("endedAt", Date.from(queueEntry.getEndedAt().toInstant().truncatedTo(ChronoUnit.SECONDS)));
 		query.setParameter("id", queueEntry.getQueueEntryId());
 		if (expectedDateChanged != null) {
 			query.setParameter("expectedDateChanged", expectedDateChanged);
