@@ -10,7 +10,7 @@
 package org.openmrs.module.queue.api;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
 
 import java.util.Arrays;
 import java.util.List;
@@ -20,7 +20,6 @@ import org.junit.Test;
 import org.openmrs.Visit;
 import org.openmrs.api.VisitService;
 import org.openmrs.module.queue.SpringTestConfiguration;
-import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +59,7 @@ public class VisitWithQueueEntriesDeleteAdviceTest extends BaseModuleContextSens
 	@Test
 	public void shouldPurgeQueueEntriesWhenVisitIsPurged() throws Throwable {
 		assertFalse(queueEntry.getVoided());
+		int visitId = visit.getVisitId();
 		int queueEntryId = queueEntry.getId();
 		
 		// Simulate what the AOP advice does before purgeVisit
@@ -68,13 +68,10 @@ public class VisitWithQueueEntriesDeleteAdviceTest extends BaseModuleContextSens
 		advice.before(purgeMethod, new Object[] { visit }, visitService);
 		
 		// Verify the queue entry was purged
-		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
-		criteria.setVisit(visit);
-		criteria.setIncludedVoided(true);
-		List<QueueEntry> remainingEntries = queueEntryService.getQueueEntries(criteria);
-		assertTrue("Queue entries should be purged before visit purge", remainingEntries.isEmpty());
-		
-		// Now the visit can be purged without FK constraint violation
 		assertFalse(queueEntryService.getQueueEntryById(queueEntryId).isPresent());
+		
+		// Verify the visit can now be purged without FK constraint violation
+		visitService.purgeVisit(visit);
+		assertNull(visitService.getVisit(visitId));
 	}
 }
