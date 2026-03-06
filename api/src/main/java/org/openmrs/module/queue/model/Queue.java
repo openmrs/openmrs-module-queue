@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -34,7 +33,6 @@ import org.openmrs.BaseChangeableOpenmrsMetadata;
 import org.openmrs.Concept;
 import org.openmrs.Location;
 
-@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @Setter
 @Getter
@@ -49,19 +47,19 @@ public class Queue extends BaseChangeableOpenmrsMetadata {
 	@Column(name = "queue_id")
 	private Integer queueId;
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "location_id", nullable = false)
 	private Location location;
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "service", referencedColumnName = "concept_id", nullable = false)
 	private Concept service;
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "priority_concept_set", referencedColumnName = "concept_id")
 	private Concept priorityConceptSet;
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "status_concept_set", referencedColumnName = "concept_id")
 	private Concept statusConceptSet;
 	
