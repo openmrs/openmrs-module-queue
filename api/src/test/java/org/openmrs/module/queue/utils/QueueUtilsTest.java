@@ -12,9 +12,13 @@ package org.openmrs.module.queue.utils;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import org.junit.Test;
+import org.openmrs.module.queue.model.QueueEntry;
 
 public class QueueUtilsTest {
 	
@@ -27,6 +31,59 @@ public class QueueUtilsTest {
 	private static final Date AUG_3 = QueueUtils.parseDate("2023-08-03 10:00:00");
 	
 	private static final Date AUG_4 = QueueUtils.parseDate("2023-08-04 10:00:00");
+	
+	@Test
+	public void computeAverageWaitTime_shouldReturnZeroForNullList() {
+		assertThat(QueueUtils.computeAverageWaitTimeInMinutes(null), is(0.0));
+	}
+	
+	@Test
+	public void computeAverageWaitTime_shouldReturnZeroForEmptyList() {
+		assertThat(QueueUtils.computeAverageWaitTimeInMinutes(Collections.emptyList()), is(0.0));
+	}
+	
+	@Test
+	public void computeAverageWaitTime_shouldReturnZeroWhenAllEntriesHaveNullEndedAt() {
+		QueueEntry entry = new QueueEntry();
+		entry.setStartedAt(AUG_1);
+		entry.setEndedAt(null);
+		List<QueueEntry> entries = Collections.singletonList(entry);
+		assertThat(QueueUtils.computeAverageWaitTimeInMinutes(entries), is(0.0));
+	}
+	
+	@Test
+	public void computeAverageWaitTime_shouldReturnCorrectAverageForEntriesWithEndedAt() {
+		// AUG_1 to AUG_2 = 1440 minutes (24 hours)
+		QueueEntry entry1 = new QueueEntry();
+		entry1.setStartedAt(AUG_1);
+		entry1.setEndedAt(AUG_2);
+		// AUG_1 to AUG_3 = 2880 minutes (48 hours)
+		QueueEntry entry2 = new QueueEntry();
+		entry2.setStartedAt(AUG_1);
+		entry2.setEndedAt(AUG_3);
+		List<QueueEntry> entries = new ArrayList<>();
+		entries.add(entry1);
+		entries.add(entry2);
+		// Average = (1440 + 2880) / 2 = 2160
+		assertThat(QueueUtils.computeAverageWaitTimeInMinutes(entries), is(2160.0));
+	}
+	
+	@Test
+	public void computeAverageWaitTime_shouldSkipEntriesWithNullEndedAt() {
+		// AUG_1 to AUG_2 = 1440 minutes
+		QueueEntry entry1 = new QueueEntry();
+		entry1.setStartedAt(AUG_1);
+		entry1.setEndedAt(AUG_2);
+		// This one has null endedAt, should be skipped
+		QueueEntry entry2 = new QueueEntry();
+		entry2.setStartedAt(AUG_1);
+		entry2.setEndedAt(null);
+		List<QueueEntry> entries = new ArrayList<>();
+		entries.add(entry1);
+		entries.add(entry2);
+		// Only entry1 counts: average = 1440 / 1 = 1440
+		assertThat(QueueUtils.computeAverageWaitTimeInMinutes(entries), is(1440.0));
+	}
 	
 	@Test
 	public void shouldReturnTrueIfDatesOverlap() {
