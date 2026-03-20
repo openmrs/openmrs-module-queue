@@ -114,4 +114,21 @@ public class VisitWithQueueEntriesSaveHandlerTest extends BaseModuleContextSensi
 		assertThat(queueEntry.getDateVoided(), equalTo(visit.getDateVoided()));
 		assertThat(queueEntry.getVoidedBy(), equalTo(visit.getVoidedBy()));
 	}
+	
+	@Test
+	public void shouldVoidQueueEntriesWhenVisitIsVoidedViaVoidVisitMethod() throws Throwable {
+		assertFalse(visit.getVoided());
+		assertFalse(queueEntry.getVoided());
+		String voidReason = "visit deleted";
+		
+		// The AOP advice fires before voidVisit in production (registered via config.xml).
+		// In the test context, config.xml advice is not loaded, so we invoke it directly.
+		VisitWithQueueEntriesDeleteAdvice advice = new VisitWithQueueEntriesDeleteAdvice();
+		java.lang.reflect.Method voidMethod = VisitService.class.getMethod("voidVisit", Visit.class, String.class);
+		advice.before(voidMethod, new Object[] { visit, voidReason }, visitService);
+		
+		queueEntry = queueEntryService.getQueueEntryById(queueEntry.getId()).get();
+		assertTrue(queueEntry.getVoided());
+		assertThat(queueEntry.getVoidReason(), equalTo(voidReason));
+	}
 }
