@@ -116,7 +116,12 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		if (currentState.getEndedAt() != null) {
 			throw new IllegalStateException("Cannot transition a queue entry that has already ended");
 		}
-		
+		// Validate transition date is not in the future (with 1-minute tolerance for clock drift)
+		Date maxAllowedDate = new Date(System.currentTimeMillis() + 60000L);
+		if (queueEntryTransition.getTransitionDate() != null
+		        && queueEntryTransition.getTransitionDate().after(maxAllowedDate)) {
+			throw new APIException("Transition date cannot be in the future");
+		}
 		// Capture the dateChanged for optimistic locking
 		Date expectedDateChanged = currentState.getDateChanged();
 		
