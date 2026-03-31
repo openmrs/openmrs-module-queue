@@ -10,6 +10,8 @@
 package org.openmrs.module.queue.validators;
 
 import lombok.extern.slf4j.Slf4j;
+import org.openmrs.Location;
+import org.openmrs.LocationTag;
 import org.openmrs.annotation.Handler;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
@@ -42,6 +44,16 @@ public class QueueValidator implements Validator {
 		ValidationUtils.rejectIfEmptyOrWhitespace(errors, "location", "queue.location.null", "Location can't be null");
 		
 		// TODO: Check if the location is tagged as a Queue Location?
+		if (queue.getLocation() == null) {
+			errors.rejectValue("location", "queue.location.null", "Location can't be null");
+		} else {
+			Location location = queue.getLocation();
+			LocationTag queueLocationTag = Context.getLocationService().getLocationTagByName("Queue Location");
+
+			if (queueLocationTag == null || !location.getTags().contains(queueLocationTag)) {
+				errors.rejectValue("location", "queue.location.invalid", "Location should be tagged as a Queue Location");
+			}
+		}
 		
 		QueueServicesWrapper queueServices = Context.getRegisteredComponents(QueueServicesWrapper.class).get(0);
 		if (queue.getService() == null) {
