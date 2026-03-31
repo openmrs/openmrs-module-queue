@@ -43,7 +43,6 @@ public class QueueValidator implements Validator {
 		ValidationUtils.rejectIfEmptyOrWhitespace(errors, "name", "queue.name.null", "Queue name can't be null");
 		ValidationUtils.rejectIfEmptyOrWhitespace(errors, "location", "queue.location.null", "Location can't be null");
 		
-		// TODO: Check if the location is tagged as a Queue Location?
 		if (queue.getLocation() == null) {
 			errors.rejectValue("location", "queue.location.null", "Location can't be null");
 		} else {
