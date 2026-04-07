@@ -87,6 +87,12 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 			predicates.add(cb.or(root.get("endedAt").isNull(), cb.greaterThan(root.get("endedAt"), startedAt)));
 		}
 		
+		Date endedAt = searchCriteria.getEndedOn();
+		if (endedAt != null) {
+			// any queue entries that started before this queue entry ends
+			predicates.add(cb.lessThan(root.get("startedAt"), endedAt));
+		}
+		
 		query.where(cb.and(predicates.toArray(new Predicate[0])));
 		
 		return session.createQuery(query).list();

@@ -104,6 +104,9 @@ public class QueueEntryValidator implements Validator {
 	private boolean isDuplicate(QueueEntry queueEntry, QueueEntryService queueEntryService) {
 		List<QueueEntry> queueEntries = queueEntryService.getOverlappingQueueEntries(queueEntry.getPatient(),
 		    queueEntry.getQueue(), queueEntry.getStartedAt(), queueEntry.getEndedAt());
+		// cascade voids (e.g. voiding a patient) may not yet be flushed to the DB when this runs,
+		// so voided entries can slip through the DAO-level filter — remove them here as a safety net
+		queueEntries.removeIf(QueueEntry::getVoided);
 		
 		// if we aren't checking an existing queue entry, any overlaps are "duplicates"
 		if (queueEntry.getId() == null) {
