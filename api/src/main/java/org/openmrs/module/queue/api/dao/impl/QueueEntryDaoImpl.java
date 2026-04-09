@@ -117,7 +117,10 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 		}
 		
 		javax.persistence.Query query = session.createQuery(jpql.toString());
-		query.setParameter("endedAt", Date.from(queueEntry.getEndedAt().toInstant().truncatedTo(ChronoUnit.SECONDS)));
+		Date endedAt = queueEntry.getEndedAt() != null
+		        ? Date.from(queueEntry.getEndedAt().toInstant().truncatedTo(ChronoUnit.SECONDS))
+		        : null;
+		query.setParameter("endedAt", endedAt);
 		query.setParameter("id", queueEntry.getQueueEntryId());
 		if (expectedDateChanged != null) {
 			query.setParameter("expectedDateChanged", expectedDateChanged);
