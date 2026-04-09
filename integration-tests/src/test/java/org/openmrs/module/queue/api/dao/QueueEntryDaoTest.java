@@ -442,6 +442,35 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		assertResults(criteria, 2, 3);
 	}
 	
+	@Test
+	// Dataset entries for queue=3, patient=2: only entry 4 [2022-03-02 16:40:56 → 2022-03-02 18:41:56]
+	public void getOverlappingQueueEntries_shouldReturnEntriesOverlappingWithGivenRange() {
+		Queue queue3 = services.getQueueService().getQueueById(3).orElseThrow(IllegalStateException::new);
+		Patient patient2 = services.getPatientService().getPatient(2);
+		
+		// Open-ended new entry: endedAt=null — entry 4 overlaps (its endedAt > new startedAt)
+		QueueEntrySearchCriteria openCriteria = QueueEntrySearchCriteria.builder().queues(Collections.singletonList(queue3))
+		        .patient(patient2).startedOn(date("2022-03-02 10:00:00")).build();
+		List<QueueEntry> openResults = dao.getOverlappingQueueEntries(openCriteria);
+		assertThat(openResults, hasSize(1));
+		assertThat(openResults.get(0).getQueueEntryId(), is(4));
+		
+		// Finite new entry whose range overlaps entry 4: new [10:00 → 17:00], entry 4 starts at 16:40 < 17:00
+		QueueEntrySearchCriteria overlapCriteria = QueueEntrySearchCriteria.builder()
+		        .queues(Collections.singletonList(queue3)).patient(patient2).startedOn(date("2022-03-02 10:00:00"))
+		        .endedOn(date("2022-03-02 17:00:00")).build();
+		List<QueueEntry> overlapResults = dao.getOverlappingQueueEntries(overlapCriteria);
+		assertThat(overlapResults, hasSize(1));
+		assertThat(overlapResults.get(0).getQueueEntryId(), is(4));
+		
+		// Finite new entry that ends BEFORE entry 4 starts: new [10:00 → 15:00], entry 4 starts at 16:40 — no overlap
+		QueueEntrySearchCriteria noOverlapCriteria = QueueEntrySearchCriteria.builder()
+		        .queues(Collections.singletonList(queue3)).patient(patient2).startedOn(date("2022-03-02 10:00:00"))
+		        .endedOn(date("2022-03-02 15:00:00")).build();
+		List<QueueEntry> noOverlapResults = dao.getOverlappingQueueEntries(noOverlapCriteria);
+		assertThat(noOverlapResults, hasSize(0));
+	}
+	
 	/**
 	 * Utility method that tests criteria against both DAO methods to getQueueEntries and
 	 * getCountOfQueueEntries
