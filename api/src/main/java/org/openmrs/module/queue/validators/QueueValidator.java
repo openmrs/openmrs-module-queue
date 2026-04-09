@@ -45,7 +45,7 @@ public class QueueValidator implements Validator {
 		
 		QueueServicesWrapper queueServices = Context.getRegisteredComponents(QueueServicesWrapper.class).get(0);
 		if (queue.getService() == null) {
-			errors.rejectValue("service", "QueueEntry.service.null", "The property service should not be null");
+			errors.rejectValue("service", "Queue.service.null", "The property service should not be null");
 		} else {
 			if (!queueServices.getAllowedServices().contains(queue.getService())) {
 				errors.rejectValue("service", "Queue.service.invalid",
