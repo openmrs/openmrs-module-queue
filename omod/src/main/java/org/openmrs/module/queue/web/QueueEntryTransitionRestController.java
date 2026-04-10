@@ -37,26 +37,26 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @Controller
 public class QueueEntryTransitionRestController extends BaseRestController {
-
+	
 	private final QueueServicesWrapper services;
-
+	
 	@Autowired
 	public QueueEntryTransitionRestController(QueueServicesWrapper services) {
 		this.services = services;
 	}
-
+	
 	@RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/queue-entry/transition", method = { RequestMethod.PUT,
-			RequestMethod.POST })
+	        RequestMethod.POST })
 	@ResponseBody
 	public Object transitionQueueEntry(@RequestBody QueueEntryTransitionRequest body) {
 		QueueEntryTransition transition = new QueueEntryTransition();
-
+		
 		// Queue Entry to Transition
 		String queueEntryUuid = body.getQueueEntryToTransition();
 		QueueEntry queueEntry = services.getQueueEntryService().getQueueEntryByUuid(queueEntryUuid)
-				.orElseThrow(() -> new APIException("queueEntryToTransition not specified or found"));
+		        .orElseThrow(() -> new APIException("queueEntryToTransition not specified or found"));
 		transition.setQueueEntryToTransition(queueEntry);
-
+		
 		// Transition Date
 		Date transitionDate = new Date();
 		if (body.getTransitionDate() != null) {
@@ -66,7 +66,7 @@ public class QueueEntryTransitionRestController extends BaseRestController {
 			throw new APIException("Invalid transition date specified: " + body.getTransitionDate());
 		}
 		transition.setTransitionDate(transitionDate);
-
+		
 		// Queue
 		if (body.getNewQueue() != null) {
 			Optional<Queue> queueOptional = services.getQueueService().getQueueByUuid(body.getNewQueue());
@@ -75,7 +75,7 @@ public class QueueEntryTransitionRestController extends BaseRestController {
 			}
 			transition.setNewQueue(queueOptional.get());
 		}
-
+		
 		// Status
 		if (body.getNewStatus() != null) {
 			Concept concept = services.getConcept(body.getNewStatus());
@@ -84,7 +84,7 @@ public class QueueEntryTransitionRestController extends BaseRestController {
 			}
 			transition.setNewStatus(concept);
 		}
-
+		
 		// Priority
 		if (body.getNewPriority() != null) {
 			Concept concept = services.getConcept(body.getNewPriority());
@@ -93,14 +93,14 @@ public class QueueEntryTransitionRestController extends BaseRestController {
 			}
 			transition.setNewPriority(concept);
 		}
-
+		
 		transition.setNewPriorityComment(body.getNewPriorityComment());
-
+		
 		// Execute transition
 		QueueEntry newQueueEntry = services.getQueueEntryService().transitionQueueEntry(transition);
 		return ConversionUtil.convertToRepresentation(newQueueEntry, Representation.REF);
 	}
-
+	
 	@RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/queue-entry/transition", method = RequestMethod.DELETE)
 	@ResponseBody
 	public Object undoTransition(@RequestBody UndoQueueEntryTransitionRequest body) {
