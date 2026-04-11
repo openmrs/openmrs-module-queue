@@ -40,6 +40,7 @@ import org.openmrs.Provider;
 import org.openmrs.User;
 import org.openmrs.Visit;
 import org.openmrs.VisitAttributeType;
+import org.openmrs.api.APIException;
 import org.openmrs.api.VisitService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.context.UserContext;
@@ -469,5 +470,48 @@ public class QueueEntryServiceTest {
 		String queueNumber = queueEntryService.generateVisitQueueNumber(location, queue, visit, visitAttributeType);
 		assertThat(queueNumber, notNullValue());
 		assertThat(queueNumber, equalTo("CON-053"));
+	}
+	
+	@Test(expected = APIException.class)
+	public void shouldThrowWhenTransitionDateIsInTheFuture() {
+		QueueEntry queueEntry = new QueueEntry();
+		queueEntry.setQueueEntryId(1);
+		when(dao.get(1)).thenReturn(Optional.of(queueEntry));
+		
+		QueueEntryTransition transition = new QueueEntryTransition();
+		transition.setQueueEntryToTransition(queueEntry);
+		// Set transition date 2 minutes in the future — well beyond the 1-minute tolerance
+		transition.setTransitionDate(DateUtils.addMinutes(new Date(), 2));
+		
+		queueEntryService.transitionQueueEntry(transition);
+	}
+	
+	@Test
+	public void shouldAllowTransitionDateWithinOneMinuteClockDriftTolerance() {
+		QueueEntry queueEntry = new QueueEntry();
+		queueEntry.setQueueEntryId(1);
+		queueEntry.setQueue(new Queue());
+		queueEntry.setPatient(new Patient());
+		queueEntry.setStatus(new Concept());
+		queueEntry.setPriority(new Concept());
+		queueEntry.setStartedAt(DateUtils.addHours(new Date(), -1));
+		when(dao.get(1)).thenReturn(Optional.of(queueEntry));
+		when(dao.updateIfUnmodified(any(), any())).thenReturn(true);
+		when(dao.createOrUpdate(any())).thenAnswer(invocation -> {
+			QueueEntry entry = invocation.getArgument(0);
+			if (entry.getId() == null) {
+				entry.setQueueEntryId(2);
+			}
+			return entry;
+		});
+		
+		QueueEntryTransition transition = new QueueEntryTransition();
+		transition.setQueueEntryToTransition(queueEntry);
+		// Set transition date 30 seconds in future — within the 1-minute tolerance
+		transition.setTransitionDate(DateUtils.addMinutes(new Date(), 1));
+		
+		// Should NOT throw — 30 seconds is within the allowed clock drift window
+		QueueEntry result = queueEntryService.transitionQueueEntry(transition);
+		assertThat(result, notNullValue());
 	}
 }
