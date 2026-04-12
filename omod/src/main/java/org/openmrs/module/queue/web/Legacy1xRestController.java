@@ -208,9 +208,9 @@ public class Legacy1xRestController extends BaseRestController {
 				return new ResponseEntity<Object>(msg, new HttpHeaders(), HttpStatus.OK);
 			}
 			
-			String servicePointName = actualObj.get("servicePointName").textValue();
-			String ticketNumber = actualObj.get("ticketNumber").textValue();
-			String status = actualObj.get("status").textValue();
+			String servicePointName = actualObj.path("servicePointName").asText("");
+			String ticketNumber = actualObj.path("ticketNumber").asText("");
+			String status = actualObj.path("status").asText("");
 			
 			if (servicePointName.isEmpty() || ticketNumber.isEmpty() || status.isEmpty()) {
 				return new ResponseEntity<Object>("One of the required fields is empty", new HttpHeaders(), BAD_REQUEST);
