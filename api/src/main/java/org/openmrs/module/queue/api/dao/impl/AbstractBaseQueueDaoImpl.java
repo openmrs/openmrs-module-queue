@@ -60,7 +60,6 @@ public class AbstractBaseQueueDaoImpl<Q extends OpenmrsObject & Auditable> imple
 	public Optional<Q> get(@NotNull String uuid) {
 		Criteria criteria = getCurrentSession().createCriteria(getClazz());
 		includeVoidedObjects(criteria, false);
-		criteria.add(eq("uuid", uuid)).uniqueResult();
 		return Optional.ofNullable((Q) criteria.add(eq("uuid", uuid)).uniqueResult());
 	}
 	
