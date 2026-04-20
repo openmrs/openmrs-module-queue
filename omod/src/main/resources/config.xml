@@ -33,6 +33,11 @@
         <aware_of_module>org.openmrs.module.legacyui</aware_of_module>
     </aware_of_modules>
 
+    <advice>
+        <point>org.openmrs.api.VisitService</point>
+        <class>org.openmrs.module.queue.api.VisitWithQueueEntriesDeleteAdvice</class>
+    </advice>
+
     <globalProperty>
         <property>${project.parent.artifactId}.statusConceptSetName</property>
         <defaultValue>Status</defaultValue>
