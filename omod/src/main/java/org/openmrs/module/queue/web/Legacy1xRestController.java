@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -199,27 +200,44 @@ public class Legacy1xRestController extends BaseRestController {
 	@ResponseBody
 	public Object assignTicketToServicePoint(HttpServletRequest request) throws Exception {
 		String requestBody = IOUtils.toString(request.getReader());
-		if (requestBody != null) {
-			ObjectMapper mapper = new ObjectMapper();
-			JsonNode actualObj = mapper.readTree(requestBody);
-			
-			if (!actualObj.has("ticketNumber")) {
-				String msg = "No ticketNumber passed, skipping ticket assignment";
-				return new ResponseEntity<Object>(msg, new HttpHeaders(), HttpStatus.OK);
-			}
-			
-			String servicePointName = actualObj.get("servicePointName").textValue();
-			String ticketNumber = actualObj.get("ticketNumber").textValue();
-			String status = actualObj.get("status").textValue();
-			
-			if (servicePointName.isEmpty() || ticketNumber.isEmpty() || status.isEmpty()) {
-				return new ResponseEntity<Object>("One of the required fields is empty", new HttpHeaders(), BAD_REQUEST);
-			}
-			
-			QueueTicketAssignments.updateTicketAssignment(servicePointName, ticketNumber, status);
-			return new ResponseEntity<Object>("Ticket successfully assigned!", new HttpHeaders(), HttpStatus.OK);
+		if (requestBody == null || requestBody.isBlank()) {
+			return new ResponseEntity<Object>("The request could not be interpreted", new HttpHeaders(), BAD_REQUEST);
 		}
-		return new ResponseEntity<Object>("The request could not be interpreted", new HttpHeaders(), BAD_REQUEST);
+		ObjectMapper mapper = new ObjectMapper();
+		JsonNode actualObj;
+		try {
+			actualObj = mapper.readTree(requestBody);
+		}
+		catch (JsonProcessingException e) {
+			return new ResponseEntity<Object>("The request could not be interpreted", new HttpHeaders(), BAD_REQUEST);
+		}
+		
+		if (!actualObj.has("ticketNumber")) {
+			String msg = "No ticketNumber passed, skipping ticket assignment";
+			return new ResponseEntity<Object>(msg, new HttpHeaders(), HttpStatus.OK);
+		}
+		
+		JsonNode servicePointNameNode = actualObj.path("servicePointName");
+		JsonNode ticketNumberNode = actualObj.path("ticketNumber");
+		JsonNode statusNode = actualObj.path("status");
+		
+		if (servicePointNameNode.isMissingNode() || servicePointNameNode.isNull() || !servicePointNameNode.isTextual()
+		        || ticketNumberNode.isMissingNode() || ticketNumberNode.isNull() || !ticketNumberNode.isTextual()
+		        || statusNode.isMissingNode() || statusNode.isNull() || !statusNode.isTextual()) {
+			return new ResponseEntity<Object>("One of the required fields is missing or is not a string", new HttpHeaders(),
+			        BAD_REQUEST);
+		}
+		
+		String servicePointName = servicePointNameNode.textValue();
+		String ticketNumber = ticketNumberNode.textValue();
+		String status = statusNode.textValue();
+		
+		if (servicePointName.isEmpty() || ticketNumber.isEmpty() || status.isEmpty()) {
+			return new ResponseEntity<Object>("One of the required fields is empty", new HttpHeaders(), BAD_REQUEST);
+		}
+		
+		QueueTicketAssignments.updateTicketAssignment(servicePointName, ticketNumber, status);
+		return new ResponseEntity<Object>("Ticket successfully assigned!", new HttpHeaders(), HttpStatus.OK);
 	}
 	
 	@RequestMapping(method = GET, value = "/rest/" + RestConstants.VERSION_1 + "/queueutil/active-tickets")
