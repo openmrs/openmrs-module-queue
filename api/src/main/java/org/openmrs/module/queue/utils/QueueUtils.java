@@ -70,7 +70,9 @@ public class QueueUtils {
 					numEntries++;
 				}
 			}
-			averageWaitTime = totalWaitTime / numEntries;
+			if (numEntries > 0) {
+				averageWaitTime = totalWaitTime / numEntries;
+			}
 		}
 		return averageWaitTime;
 	}
