@@ -126,7 +126,7 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		queueEntryToStop.setEndedAt(queueEntryTransition.getTransitionDate());
 		boolean updated = dao.updateIfUnmodified(queueEntryToStop, expectedDateChanged);
 		if (!updated) {
-			throw new IllegalStateException("Queue entry was modified by another transaction");
+			throw new APIException("queue.entry.error.concurrentModification", new Object[0]);
 		}
 		
 		dao.flushSession();
@@ -139,8 +139,6 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	 */
 	@Override
 	public QueueEntry undoTransition(@NotNull QueueEntry queueEntry) {
-		// TODO: Exceptions should be translatable and human readable on the frontend.
-		// See: https://openmrs.atlassian.net/browse/O3-2988
 		if (queueEntry.getId() == null) {
 			throw new IllegalArgumentException("Cannot undo transition on a queue entry that has not been saved");
 		}
@@ -167,7 +165,7 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		prevQueueEntry.setEndedAt(null);
 		boolean updated = dao.updateIfUnmodified(prevQueueEntry, expectedDateChanged);
 		if (!updated) {
-			throw new IllegalStateException("Previous queue entry was modified by another transaction");
+			throw new APIException("queue.entry.error.concurrentModification", new Object[0]);
 		}
 		
 		getProxiedQueueEntryService().voidQueueEntry(queueEntry, "Transition undone");
@@ -290,8 +288,6 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		if (prevQueueEntries.size() == 1) {
 			return prevQueueEntries.get(0);
 		} else if (prevQueueEntries.size() > 1) {
-			// TODO: Exceptions should be translatable and human readable on the frontend.
-			// See: https://openmrs.atlassian.net/browse/O3-2988
 			throw new IllegalStateException("Multiple previous queue entries found");
 		} else {
 			return null;
