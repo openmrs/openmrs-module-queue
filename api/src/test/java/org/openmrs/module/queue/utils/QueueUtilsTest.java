@@ -12,9 +12,12 @@ package org.openmrs.module.queue.utils;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.junit.Test;
+import org.openmrs.module.queue.model.QueueEntry;
 
 public class QueueUtilsTest {
 	
@@ -51,5 +54,30 @@ public class QueueUtilsTest {
 		assertThat(QueueUtils.datesOverlap(AUG_2, AUG_4, AUG_1, AUG_3), is(true)); // one starts within two
 		assertThat(QueueUtils.datesOverlap(AUG_3, AUG_4, AUG_1, AUG_2), is(false)); // one after two
 		assertThat(QueueUtils.datesOverlap(AUG_1, AUG_2, AUG_1, AUG_3), is(true)); // one starts when two starts
+	}
+	
+	@Test
+	public void shouldReturnZeroWhenQueueEntriesListIsEmpty() {
+		
+		List<QueueEntry> entries = new ArrayList<>();
+		
+		double result = QueueUtils.computeAverageWaitTimeInMinutes(entries);
+		
+		assertThat(result, is(0.0));
+	}
+	
+	@Test
+	public void shouldReturnZeroWhenAllEntriesHaveNullEndedAt() {
+		
+		QueueEntry entry = new QueueEntry();
+		entry.setStartedAt(new Date());
+		entry.setEndedAt(null);
+		
+		List<QueueEntry> entries = new ArrayList<>();
+		entries.add(entry);
+		
+		double result = QueueUtils.computeAverageWaitTimeInMinutes(entries);
+		
+		assertThat(result, is(0.0));
 	}
 }
