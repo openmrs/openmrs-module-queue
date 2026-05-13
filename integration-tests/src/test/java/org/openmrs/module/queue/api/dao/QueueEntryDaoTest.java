@@ -409,6 +409,21 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		assertResults(criteria, 2, 3);
 	}
 	
+	@Test(expected = IllegalArgumentException.class)
+	public void updateIfUnmodified_shouldRejectEndedAtBeforeStartedAt() {
+		QueueEntry queueEntry = dao.get(QUEUE_ENTRY_UUID).orElseThrow(IllegalStateException::new);
+		Date startedAt = queueEntry.getStartedAt();
+		queueEntry.setEndedAt(new Date(startedAt.getTime() - 1000L));
+		dao.updateIfUnmodified(queueEntry, queueEntry.getDateChanged());
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void updateIfUnmodified_shouldRejectEndedAtEqualToStartedAt() {
+		QueueEntry queueEntry = dao.get(QUEUE_ENTRY_UUID).orElseThrow(IllegalStateException::new);
+		queueEntry.setEndedAt(new Date(queueEntry.getStartedAt().getTime()));
+		dao.updateIfUnmodified(queueEntry, queueEntry.getDateChanged());
+	}
+	
 	@Test
 	public void updateIfUnmodified_shouldClearEndedAtWhenSetToNull() {
 		// Entry 1 has ended_at set; this mirrors what undoTransition does when re-opening a previous entry

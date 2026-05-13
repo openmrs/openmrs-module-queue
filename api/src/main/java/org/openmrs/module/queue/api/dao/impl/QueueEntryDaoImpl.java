@@ -14,7 +14,6 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -107,6 +106,15 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 	public boolean updateIfUnmodified(QueueEntry queueEntry, Date expectedDateChanged) {
 		Session session = getSessionFactory().getCurrentSession();
 		
+		// This path issues a direct JPQL UPDATE and bypasses QueueEntryValidator; enforce the
+		// strict-positive-duration invariant here so the DB never ends up with ended_at <= started_at.
+		Date endedAt = queueEntry.getEndedAt();
+		Date startedAt = queueEntry.getStartedAt();
+		if (endedAt != null && startedAt != null && !endedAt.after(startedAt)) {
+			throw new IllegalArgumentException(
+			        "Queue entry endedAt (" + endedAt + ") must be after startedAt (" + startedAt + ")");
+		}
+		
 		// Evict the entity to prevent Hibernate from auto-flushing changes
 		session.evict(queueEntry);
 		
@@ -123,9 +131,6 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 		}
 		
 		javax.persistence.Query query = session.createQuery(jpql.toString());
-		Date endedAt = queueEntry.getEndedAt() != null
-		        ? Date.from(queueEntry.getEndedAt().toInstant().truncatedTo(ChronoUnit.SECONDS))
-		        : null;
 		query.setParameter("endedAt", endedAt);
 		query.setParameter("id", queueEntry.getQueueEntryId());
 		if (expectedDateChanged != null) {

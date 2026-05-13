@@ -87,17 +87,8 @@ public class VisitWithQueueEntriesValidatorTest extends BaseModuleContextSensiti
 	}
 	
 	@Test
-	public void shouldNotRejectIfQueueEntryStartedAtEqualsVisitEndDate() {
-		queueEntry.setEndedAt(queueEntry.getStartedAt());
-		queueEntryService.saveQueueEntry(queueEntry);
-		visit.setStopDatetime(queueEntry.getStartedAt());
-		validator.validate(visit, errors);
-		assertFalse(errors.hasErrors());
-	}
-	
-	@Test
 	public void shouldNotRejectIfQueueEntryEndedAtAtEqualsVisitEndDate() {
-		queueEntry.setEndedAt(queueEntry.getStartedAt());
+		queueEntry.setEndedAt(DateUtils.addSeconds(queueEntry.getStartedAt(), 1));
 		queueEntryService.saveQueueEntry(queueEntry);
 		visit.setStopDatetime(queueEntry.getEndedAt());
 		validator.validate(visit, errors);

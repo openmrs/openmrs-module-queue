@@ -148,6 +148,18 @@ public class QueueEntryValidatorTest extends BaseModuleContextSensitiveTest {
 	}
 	
 	@Test
+	public void shouldRejectQueueEntryIfEndedAtIsEqualToStartedAtDate() {
+		Date now = new Date();
+		queueEntry.setStartedAt(now);
+		queueEntry.setEndedAt(new Date(now.getTime()));
+		validator.validate(queueEntry, errors);
+		
+		FieldError endedAtFieldError = errors.getFieldError("endedAt");
+		assertThat(endedAtFieldError, is(notNullValue()));
+		assertThat(endedAtFieldError.getCode(), is("queueEntry.endedAt.invalid"));
+	}
+	
+	@Test
 	public void shouldNotRejectIfQueueEntryStartedAndEndedDuringVisit() {
 		queueEntry.setVisit(visit);
 		queueEntry.setStartedAt(visit.getStartDatetime());

@@ -17,6 +17,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -190,9 +191,10 @@ public class QueueEntryServiceTest {
 		double double1 = 5.0;
 		Location location1 = new Location();
 		Provider provider1 = new Provider();
-		Date date1 = DateUtils.addHours(new Date(), -12);
+		// Truncate to seconds so equality assertions hold against the service-layer rounding.
+		Date date1 = DateUtils.addHours(DateUtils.truncate(new Date(), Calendar.SECOND), -12);
 		Date date2 = DateUtils.addHours(date1, 6);
-		Date date3 = DateUtils.addHours(date1, 3);
+		Date date3 = DateUtils.addHours(date1, 9);
 		
 		QueueEntry queueEntry1 = new QueueEntry();
 		queueEntry1.setQueueEntryId(1);
@@ -282,7 +284,8 @@ public class QueueEntryServiceTest {
 		double double1 = 5.0;
 		Location location1 = new Location();
 		Provider provider1 = new Provider();
-		Date date1 = DateUtils.addHours(new Date(), -12);
+		// Truncate to seconds so equality assertions hold against the service-layer rounding.
+		Date date1 = DateUtils.addHours(DateUtils.truncate(new Date(), Calendar.SECOND), -12);
 		Date date2 = DateUtils.addHours(date1, 6);
 		
 		QueueEntry queueEntry1 = new QueueEntry();
@@ -427,7 +430,8 @@ public class QueueEntryServiceTest {
 		Visit visit1 = new Visit();
 		visit1.setPatient(patient1);
 		Concept concept1 = new Concept();
-		Date date1 = DateUtils.addHours(new Date(), -12);
+		// Truncate to seconds so equality assertions hold against the service-layer rounding.
+		Date date1 = DateUtils.addHours(DateUtils.truncate(new Date(), Calendar.SECOND), -12);
 		Date date2 = DateUtils.addHours(date1, 6);
 		
 		QueueEntry prevEntry = new QueueEntry();
@@ -455,6 +459,77 @@ public class QueueEntryServiceTest {
 		when(dao.updateIfUnmodified(any(), any())).thenReturn(false);
 		
 		queueEntryService.undoTransition(currentEntry);
+	}
+	
+	@Test
+	public void transitionShouldRoundTransitionDateToSecondAndUseSameValueForBothEntries() {
+		QueueEntry queueEntry = new QueueEntry();
+		queueEntry.setQueueEntryId(1);
+		queueEntry.setQueue(new Queue());
+		queueEntry.setPatient(new Patient());
+		queueEntry.setStatus(new Concept());
+		queueEntry.setPriority(new Concept());
+		queueEntry.setStartedAt(DateUtils.addHours(DateUtils.truncate(new Date(), Calendar.SECOND), -1));
+		
+		AtomicInteger idCounter = new AtomicInteger(1);
+		when(dao.createOrUpdate(any())).thenAnswer(invocation -> {
+			QueueEntry entry = invocation.getArgument(0);
+			if (entry.getId() == null) {
+				entry.setQueueEntryId(idCounter.incrementAndGet());
+			}
+			return entry;
+		});
+		when(dao.get(1)).thenReturn(Optional.of(queueEntry));
+		when(dao.updateIfUnmodified(any(), any())).thenReturn(true);
+		
+		// Sub-second precision; rounding to nearest second should give .000 ms.
+		Date suppliedTransitionDate = new Date(DateUtils.truncate(new Date(), Calendar.SECOND).getTime() + 499L);
+		Date expectedRounded = DateUtils.truncate(suppliedTransitionDate, Calendar.SECOND);
+		
+		QueueEntryTransition transition = new QueueEntryTransition();
+		transition.setQueueEntryToTransition(queueEntry);
+		transition.setTransitionDate(suppliedTransitionDate);
+		
+		QueueEntry newEntry = queueEntryService.transitionQueueEntry(transition);
+		
+		assertThat(queueEntry.getEndedAt(), equalTo(expectedRounded));
+		assertThat(newEntry.getStartedAt(), equalTo(expectedRounded));
+		assertThat(newEntry.getStartedAt(), equalTo(queueEntry.getEndedAt()));
+	}
+	
+	@Test
+	public void transitionShouldBumpTransitionDateWhenSameSecondAsStartedAt() {
+		Date startedAt = DateUtils.truncate(new Date(), Calendar.SECOND);
+		QueueEntry queueEntry = new QueueEntry();
+		queueEntry.setQueueEntryId(1);
+		queueEntry.setQueue(new Queue());
+		queueEntry.setPatient(new Patient());
+		queueEntry.setStatus(new Concept());
+		queueEntry.setPriority(new Concept());
+		queueEntry.setStartedAt(startedAt);
+		
+		AtomicInteger idCounter = new AtomicInteger(1);
+		when(dao.createOrUpdate(any())).thenAnswer(invocation -> {
+			QueueEntry entry = invocation.getArgument(0);
+			if (entry.getId() == null) {
+				entry.setQueueEntryId(idCounter.incrementAndGet());
+			}
+			return entry;
+		});
+		when(dao.get(1)).thenReturn(Optional.of(queueEntry));
+		when(dao.updateIfUnmodified(any(), any())).thenReturn(true);
+		
+		QueueEntryTransition transition = new QueueEntryTransition();
+		transition.setQueueEntryToTransition(queueEntry);
+		// Same second as startedAt — service should bump by 1s so the ended entry has a positive duration.
+		transition.setTransitionDate(new Date(startedAt.getTime() + 200L));
+		
+		QueueEntry newEntry = queueEntryService.transitionQueueEntry(transition);
+		
+		Date expected = new Date(startedAt.getTime() + 1000L);
+		assertThat(queueEntry.getEndedAt(), equalTo(expected));
+		assertThat(newEntry.getStartedAt(), equalTo(expected));
+		assertThat(queueEntry.getEndedAt().after(queueEntry.getStartedAt()), is(true));
 	}
 	
 	@Test
