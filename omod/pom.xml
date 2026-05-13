@@ -66,5 +66,11 @@
                 <filtering>true</filtering>
             </testResource>
         </testResources>
+        <plugins>
+            <plugin>
+                <groupId>org.openmrs.maven.plugins</groupId>
+                <artifactId>maven-openmrs-plugin</artifactId>
+            </plugin>
+        </plugins>
     </build>
 </project>
