@@ -30,12 +30,9 @@
             <groupId>org.openmrs.module</groupId>
             <artifactId>webservices.rest-omod-common</artifactId>
         </dependency>
-
         <dependency>
-            <groupId>org.openmrs.web</groupId>
-            <artifactId>openmrs-web</artifactId>
-            <scope>provided</scope>
-            <classifier>tests</classifier>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-inline</artifactId>
         </dependency>
     </dependencies>
 
@@ -69,71 +66,5 @@
                 <filtering>true</filtering>
             </testResource>
         </testResources>
-        <plugins>
-            <plugin>
-                <groupId>org.commonjava.maven.plugins</groupId>
-                <artifactId>directory-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>com.mycila</groupId>
-                <artifactId>license-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>net.revelc.code.formatter</groupId>
-                <artifactId>formatter-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>net.revelc.code</groupId>
-                <artifactId>impsort-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.openmrs.maven.plugins</groupId>
-                <artifactId>maven-openmrs-plugin</artifactId>
-                <version>1.0.1</version>
-                <extensions>true</extensions>
-                <executions>
-                    <execution>
-                        <id>init</id>
-                        <phase>initialize</phase>
-                        <goals>
-                            <goal>initialize-module</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>pack</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>package-module</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.2.0</version>
-                <executions>
-                    <execution>
-                        <id>Expand moduleApplicationContext and messages</id>
-                        <goals>
-                            <goal>unpack-dependencies</goal>
-                        </goals>
-                        <phase>generate-resources</phase>
-                        <configuration>
-                            <includeGroupIds>${project.parent.groupId}</includeGroupIds>
-                            <includeArtifactIds>${project.parent.artifactId}-api</includeArtifactIds>
-                            <includeScope>compile</includeScope>
-                            <includes>**\/*.xml,**\/*.properties</includes>
-                            <outputDirectory>${project.build.directory}/classes</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
     </build>
-
-    <properties>
-        <main.basedir>${project.parent.basedir}</main.basedir>
-    </properties>
-
 </project>
