@@ -46,7 +46,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @Controller
 public class QueueEntrySummaryRestController extends BaseRestController {
 	
-	private static final String SUMMARY_REPRESENTATION = "uuid,patient:(uuid,display),queue:(uuid,display),"
+	private static final String SUMMARY_REPRESENTATION = "uuid,patient:(uuid,display,patientIdentifier),queue:(uuid,display),"
 	        + "status:(uuid,display),priority:(uuid,display),priorityComment,startedAt,visit:(uuid,startDatetime)";
 	
 	private final QueueServicesWrapper services;
@@ -74,6 +74,10 @@ public class QueueEntrySummaryRestController extends BaseRestController {
 		List<SimpleObject> results = new ArrayList<>(entries.size());
 		for (QueueEntry entry : entries) {
 			SimpleObject row = (SimpleObject) ConversionUtil.convertToRepresentation(entry, entryRep);
+			SimpleObject patient = (SimpleObject) row.get("patient");
+			if (patient != null) {
+				patient.add("identifier", patient.remove("patientIdentifier"));
+			}
 			SimpleObject visit = (SimpleObject) row.remove("visit");
 			row.add("visitUuid", visit == null ? null : visit.get("uuid"));
 			row.add("visitStartDatetime", visit == null ? null : visit.get("startDatetime"));
