@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.Before;
@@ -484,6 +485,55 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		        .endedOn(date("2022-03-02 15:00:00")).build();
 		List<QueueEntry> noOverlapResults = dao.getOverlappingQueueEntries(noOverlapCriteria);
 		assertThat(noOverlapResults, hasSize(0));
+	}
+	
+	@Test
+	public void getQueueEntries_shouldRespectStartIndexAndLimit() {
+		// Full result set (active only) is 4 entries, sorted by sortWeight DESC then startedAt ASC:
+		// → ids [3 (sw=20), 2 (sw=10), 1 (sw=0, started earlier), 4 (sw=0, started later)]
+		List<QueueEntry> all = dao.getQueueEntries(criteria);
+		assertThat(all, hasSize(4));
+		
+		List<QueueEntry> firstPage = dao.getQueueEntries(criteria, 0, 2);
+		assertThat(firstPage, hasSize(2));
+		assertThat(firstPage.get(0).getQueueEntryId(), is(all.get(0).getQueueEntryId()));
+		assertThat(firstPage.get(1).getQueueEntryId(), is(all.get(1).getQueueEntryId()));
+		
+		List<QueueEntry> secondPage = dao.getQueueEntries(criteria, 2, 2);
+		assertThat(secondPage, hasSize(2));
+		assertThat(secondPage.get(0).getQueueEntryId(), is(all.get(2).getQueueEntryId()));
+		assertThat(secondPage.get(1).getQueueEntryId(), is(all.get(3).getQueueEntryId()));
+		
+		// Past the end → empty
+		assertThat(dao.getQueueEntries(criteria, 10, 5), hasSize(0));
+		
+		// Nulls disable bounds — equivalent to the unpaginated call
+		assertThat(dao.getQueueEntries(criteria, null, null), hasSize(4));
+	}
+	
+	@Test
+	public void getPreviousQueueEntryUuids_shouldReturnEmptyForNullOrEmptyInput() {
+		assertThat(dao.getPreviousQueueEntryUuids(null).isEmpty(), is(true));
+		assertThat(dao.getPreviousQueueEntryUuids(Collections.emptyList()).isEmpty(), is(true));
+	}
+	
+	@Test
+	public void getPreviousQueueEntryUuids_shouldReturnUuidForEntriesWithMatchingPredecessorOnly() {
+		// In the dataset, entry 2 was transitioned from queue 1 — entry 1 is its predecessor
+		// (same patient=100, same visit=101, prev.endedAt = entry2.startedAt).
+		QueueEntry entry1 = dao.get(1).orElseThrow(IllegalStateException::new);
+		QueueEntry entry2 = dao.get(2).orElseThrow(IllegalStateException::new);
+		QueueEntry entry3 = dao.get(3).orElseThrow(IllegalStateException::new);
+		QueueEntry entry4 = dao.get(4).orElseThrow(IllegalStateException::new);
+		
+		Map<QueueEntry, String> result = dao.getPreviousQueueEntryUuids(Arrays.asList(entry1, entry2, entry3, entry4));
+		
+		// Only entry 2 has a queueComingFrom that resolves to a real predecessor.
+		assertThat(result.size(), is(1));
+		assertThat(result.get(entry2), is(entry1.getUuid()));
+		assertThat(result.containsKey(entry1), is(false));
+		assertThat(result.containsKey(entry3), is(false));
+		assertThat(result.containsKey(entry4), is(false));
 	}
 	
 	/**

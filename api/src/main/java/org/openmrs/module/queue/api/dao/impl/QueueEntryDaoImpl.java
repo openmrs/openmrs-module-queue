@@ -16,8 +16,14 @@ import javax.persistence.criteria.Root;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.hibernate.Criteria;
 import org.hibernate.Session;
@@ -26,6 +32,7 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.openmrs.Patient;
+import org.openmrs.Visit;
 import org.openmrs.module.queue.api.dao.QueueEntryDao;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.Queue;
@@ -41,12 +48,85 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 	
 	@Override
 	public List<QueueEntry> getQueueEntries(QueueEntrySearchCriteria searchCriteria) {
+		return getQueueEntries(searchCriteria, null, null);
+	}
+	
+	@Override
+	public List<QueueEntry> getQueueEntries(QueueEntrySearchCriteria searchCriteria, Integer startIndex, Integer limit) {
 		Criteria c = createCriteriaFromSearchCriteria(searchCriteria);
 		c.addOrder(Order.desc("qe.sortWeight"));
 		c.addOrder(Order.asc("qe.startedAt"));
 		c.addOrder(Order.asc("qe.dateCreated"));
 		c.addOrder(Order.asc("qe.queueEntryId"));
+		if (startIndex != null) {
+			c.setFirstResult(startIndex);
+		}
+		if (limit != null) {
+			c.setMaxResults(limit);
+		}
 		return c.list();
+	}
+	
+	@Override
+	public Map<QueueEntry, String> getPreviousQueueEntryUuids(Collection<QueueEntry> entries) {
+		if (entries == null || entries.isEmpty()) {
+			return Collections.emptyMap();
+		}
+		
+		List<QueueEntry> candidates = new ArrayList<>();
+		Set<Queue> queuesComingFrom = new HashSet<>();
+		Set<Patient> patients = new HashSet<>();
+		Set<Visit> visits = new HashSet<>();
+		Set<Date> startedAts = new HashSet<>();
+		for (QueueEntry e : entries) {
+			if (e.getQueueComingFrom() == null || e.getPatient() == null || e.getStartedAt() == null) {
+				continue;
+			}
+			candidates.add(e);
+			queuesComingFrom.add(e.getQueueComingFrom());
+			patients.add(e.getPatient());
+			startedAts.add(e.getStartedAt());
+			if (e.getVisit() != null) {
+				visits.add(e.getVisit());
+			}
+		}
+		if (candidates.isEmpty()) {
+			return Collections.emptyMap();
+		}
+		
+		// Filter via IN clauses; post-match the composite tuple in Java to avoid an OR-AND explosion.
+		StringBuilder hql = new StringBuilder();
+		hql.append("FROM QueueEntry prev WHERE prev.voided = false ");
+		hql.append("AND prev.endedAt IN (:startedAts) ");
+		hql.append("AND prev.patient IN (:patients) ");
+		hql.append("AND prev.queue IN (:queuesComingFrom)");
+		if (!visits.isEmpty()) {
+			hql.append(" AND (prev.visit IS NULL OR prev.visit IN (:visits))");
+		}
+		
+		javax.persistence.Query query = getCurrentSession().createQuery(hql.toString());
+		query.setParameter("startedAts", startedAts);
+		query.setParameter("patients", patients);
+		query.setParameter("queuesComingFrom", queuesComingFrom);
+		if (!visits.isEmpty()) {
+			query.setParameter("visits", visits);
+		}
+		List<QueueEntry> candidatesFromDb = query.getResultList();
+		
+		Map<PrevKey, QueueEntry> index = new HashMap<>();
+		for (QueueEntry prev : candidatesFromDb) {
+			index.put(new PrevKey(prev.getPatient(), prev.getVisit(), prev.getQueue(), prev.getEndedAt()), prev);
+		}
+		
+		Map<QueueEntry, String> result = new LinkedHashMap<>();
+		for (QueueEntry curr : candidates) {
+			QueueEntry prev = index
+			        .get(new PrevKey(curr.getPatient(), curr.getVisit(), curr.getQueueComingFrom(), curr.getStartedAt()));
+			if (prev != null) {
+				result.put(curr, prev.getUuid());
+			}
+		}
+		return result;
 	}
 	
 	@Override
@@ -175,5 +255,41 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 			c.add(Restrictions.isNull("qe.endedAt"));
 		}
 		return c;
+	}
+	
+	private static final class PrevKey {
+		
+		private final Patient patient;
+		
+		private final Visit visit;
+		
+		private final Queue queue;
+		
+		private final Date endedAt;
+		
+		PrevKey(Patient patient, Visit visit, Queue queue, Date endedAt) {
+			this.patient = patient;
+			this.visit = visit;
+			this.queue = queue;
+			this.endedAt = endedAt;
+		}
+		
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof PrevKey)) {
+				return false;
+			}
+			PrevKey k = (PrevKey) o;
+			return java.util.Objects.equals(patient, k.patient) && java.util.Objects.equals(visit, k.visit)
+			        && java.util.Objects.equals(queue, k.queue) && java.util.Objects.equals(endedAt, k.endedAt);
+		}
+		
+		@Override
+		public int hashCode() {
+			return java.util.Objects.hash(patient, visit, queue, endedAt);
+		}
 	}
 }

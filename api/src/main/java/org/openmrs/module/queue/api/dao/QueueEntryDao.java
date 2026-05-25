@@ -11,8 +11,10 @@ package org.openmrs.module.queue.api.dao;
 
 import javax.validation.constraints.NotNull;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.QueueEntry;
@@ -23,6 +25,20 @@ public interface QueueEntryDao extends BaseQueueDao<QueueEntry> {
 	 * @return {@link List} of queue entries that match the given %{@link QueueEntrySearchCriteria}
 	 */
 	List<QueueEntry> getQueueEntries(@NotNull QueueEntrySearchCriteria searchCriteria);
+	
+	/**
+	 * Paginated variant of {@link #getQueueEntries(QueueEntrySearchCriteria)}. Nulls disable the
+	 * corresponding pagination bound.
+	 */
+	List<QueueEntry> getQueueEntries(@NotNull QueueEntrySearchCriteria searchCriteria, Integer startIndex, Integer limit);
+	
+	/**
+	 * Batch-resolves the uuid of the previous queue entry for each of the given entries (i.e. the entry
+	 * the patient was transitioned from, identified by matching patient + visit, queue =
+	 * input.queueComingFrom, endedAt = input.startedAt). Entries with no {@code queueComingFrom} are
+	 * absent from the returned map.
+	 */
+	Map<QueueEntry, String> getPreviousQueueEntryUuids(Collection<QueueEntry> entries);
 	
 	/**
 	 * @return {@link Long} of the number of queue entries that match the given

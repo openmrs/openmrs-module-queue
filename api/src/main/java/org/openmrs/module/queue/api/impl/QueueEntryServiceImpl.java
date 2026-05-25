@@ -17,9 +17,11 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import lombok.Setter;
@@ -213,6 +215,18 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	@Transactional(readOnly = true)
 	public List<QueueEntry> getQueueEntries(QueueEntrySearchCriteria searchCriteria) {
 		return dao.getQueueEntries(searchCriteria);
+	}
+	
+	@Override
+	@Transactional(readOnly = true)
+	public List<QueueEntry> getQueueEntries(QueueEntrySearchCriteria searchCriteria, Integer startIndex, Integer limit) {
+		return dao.getQueueEntries(searchCriteria, startIndex, limit);
+	}
+	
+	@Override
+	@Transactional(readOnly = true)
+	public Map<QueueEntry, String> getPreviousQueueEntryUuids(Collection<QueueEntry> entries) {
+		return dao.getPreviousQueueEntryUuids(entries);
 	}
 	
 	@Override

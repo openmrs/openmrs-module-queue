@@ -11,8 +11,10 @@ package org.openmrs.module.queue.api;
 
 import javax.validation.constraints.NotNull;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.openmrs.Location;
@@ -128,6 +130,20 @@ public interface QueueEntryService {
 	 */
 	@Authorized({ PrivilegeConstants.GET_QUEUE_ENTRIES })
 	List<QueueEntry> getQueueEntries(@NotNull QueueEntrySearchCriteria searchCriteria);
+	
+	/**
+	 * Paginated variant of {@link #getQueueEntries(QueueEntrySearchCriteria)}. Nulls disable the
+	 * corresponding pagination bound.
+	 */
+	@Authorized({ PrivilegeConstants.GET_QUEUE_ENTRIES })
+	List<QueueEntry> getQueueEntries(@NotNull QueueEntrySearchCriteria searchCriteria, Integer startIndex, Integer limit);
+	
+	/**
+	 * Batch-resolves the uuid of the previous queue entry for each input entry that has a non-null
+	 * {@code queueComingFrom}. Entries without a resolvable predecessor are absent from the result.
+	 */
+	@Authorized({ PrivilegeConstants.GET_QUEUE_ENTRIES })
+	Map<QueueEntry, String> getPreviousQueueEntryUuids(Collection<QueueEntry> entries);
 	
 	/**
 	 * @return {@link Long} count of queue entries that match the given
