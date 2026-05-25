@@ -81,7 +81,7 @@ public class QueueEntrySummaryRestController extends BaseRestController {
 			results.add(row);
 		}
 		
-		boolean totalCountRequested = Boolean.valueOf(context.getParameter("totalCount"));
+		boolean totalCountRequested = Boolean.parseBoolean(context.getParameter("totalCount"));
 		boolean hasMore;
 		AlreadyPaged<SimpleObject> paged;
 		if (totalCountRequested) {
