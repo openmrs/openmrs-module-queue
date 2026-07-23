@@ -62,16 +62,24 @@ public class QueueUtils {
 		if (queueEntries != null && !queueEntries.isEmpty()) {
 			double totalWaitTime = 0.0;
 			int numEntries = 0;
+			
 			for (QueueEntry e : queueEntries) {
 				LocalDateTime startedAt = convertToLocalDateTimeInSystemDefaultTimezone(e.getStartedAt());
 				LocalDateTime endedAt = convertToLocalDateTimeInSystemDefaultTimezone(e.getEndedAt());
+				
 				if (startedAt != null && endedAt != null) {
 					totalWaitTime += Duration.between(startedAt, endedAt).toMinutes();
 					numEntries++;
 				}
 			}
-			averageWaitTime = totalWaitTime / numEntries;
+			
+			if (numEntries == 0) {
+				averageWaitTime = 0.0;
+			} else {
+				averageWaitTime = totalWaitTime / numEntries;
+			}
 		}
+		
 		return averageWaitTime;
 	}
 	
