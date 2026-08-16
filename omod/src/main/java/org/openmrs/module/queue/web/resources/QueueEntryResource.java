@@ -25,6 +25,7 @@ import io.swagger.models.properties.RefProperty;
 import io.swagger.models.properties.StringProperty;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.openmrs.Patient;
 import org.openmrs.PersonName;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
@@ -281,8 +282,12 @@ public class QueueEntryResource extends DelegatingCrudResource<QueueEntry> {
 	
 	@PropertyGetter("display")
 	public String getDisplay(QueueEntry queueEntry) {
-		PersonName personName = queueEntry.getPatient().getPersonName();
-		return (personName == null ? queueEntry.getPatient().toString() : personName.getFullName());
+		Patient patient = queueEntry.getPatient();
+		if (patient == null) {
+			return queueEntry.getUuid();
+		}
+		PersonName personName = patient.getPersonName();
+		return (personName == null ? patient.toString() : personName.getFullName());
 	}
 	
 	@PropertyGetter("previousQueueEntry")

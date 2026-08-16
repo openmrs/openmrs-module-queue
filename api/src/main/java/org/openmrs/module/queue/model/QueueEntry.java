@@ -16,7 +16,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import java.util.Date;
@@ -89,7 +88,7 @@ public class QueueEntry extends BaseChangeableOpenmrsData {
 	
 	//The queue the patient is coming from, if any.
 	@ToString.Exclude
-	@OneToOne
+	@ManyToOne
 	@JoinColumn(name = "queue_coming_from", referencedColumnName = "queue_id")
 	private Queue queueComingFrom;
 	

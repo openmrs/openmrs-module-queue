@@ -20,6 +20,8 @@ import io.swagger.models.Model;
 import io.swagger.models.ModelImpl;
 import io.swagger.models.properties.*;
 import lombok.Setter;
+import org.openmrs.Patient;
+import org.openmrs.PersonName;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
@@ -232,10 +234,12 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 	@PropertyGetter("display")
 	public String getDisplay(QueueEntry queueEntry) {
 		//Display patient name
-		if (queueEntry.getPatient().getPerson().getPersonName() == null) {
-			return "";
+		Patient patient = queueEntry.getPatient();
+		if (patient == null) {
+			return queueEntry.getUuid();
 		}
-		return queueEntry.getPatient().getPerson().getPersonName().getFullName();
+		PersonName personName = patient.getPersonName();
+		return (personName == null ? patient.toString() : personName.getFullName());
 	}
 	
 	@Override
