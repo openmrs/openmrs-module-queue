@@ -397,6 +397,27 @@ public class QueueEntryMetricRestControllerTest {
 		List<SimpleObject> queues = (List<SimpleObject>) result.get(QUEUES);
 		assertThat(queues, hasSize(1));
 		assertThat(((Queue) queues.get(0).get(QUEUE)).getName(), equalTo("Triage"));
+		assertThat(queues.get(0).get(COUNT), equalTo(1));
+	}
+	
+	@Test
+	public void shouldSkipABlankWaitStatusRef() {
+		Queue triage = queue("Triage");
+		Concept waiting = concept("waiting-uuid");
+		QueueEntry stillWaiting = entry(triage, minutesAgo(40), null);
+		stillWaiting.setStatus(waiting);
+		String[] refs = new String[] { "" };
+		// The wrapper resolves a blank ref to a null element
+		when(queueServicesWrapper.getConcepts(refs)).thenReturn(Collections.singletonList((Concept) null));
+		when(queueEntryService.getQueueEntries(any())).thenReturn(Collections.singletonList(stillWaiting));
+		parameterMap.put(WAIT_STATUS, refs);
+		parameterMap.put(QueueEntryMetricRestController.METRIC, new String[] { AVERAGE_OPEN_WAIT_TIME, LONGEST_OPEN_WAIT });
+		
+		SimpleObject result = (SimpleObject) controller.handleRequest(request);
+		
+		// Naming no usable status leaves the wait metrics measured over every entry
+		assertThat((Double) result.get(AVERAGE_OPEN_WAIT_TIME), equalTo(40.0));
+		assertThat((Long) ((SimpleObject) result.get(LONGEST_OPEN_WAIT)).get("minutes"), equalTo(40L));
 	}
 	
 	private Queue queue(String name) {

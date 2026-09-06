@@ -108,7 +108,12 @@ public class QueueEntryMetricRestController extends BaseRestController {
 			// One instant for every duration, so the per-queue figures and the totals cannot disagree
 			Date asOf = new Date();
 			String[] waitStatusArray = parameters.get(WAIT_STATUS);
-			List<Concept> waitStatuses = (waitStatusArray == null ? null : services.getConcepts(waitStatusArray));
+			List<Concept> waitStatuses = null;
+			if (waitStatusArray != null) {
+				waitStatuses = new ArrayList<>(services.getConcepts(waitStatusArray));
+				// A blank status ref resolves to a null element
+				waitStatuses.removeIf(c -> c == null);
+			}
 			addMetrics(ret, queueEntries, metrics, asOf, waitStatuses);
 			if (groupByQueue) {
 				ret.add(QUEUES, getMetricsPerQueue(queueEntries, criteria, metrics, asOf, waitStatuses));
