@@ -1,4 +1,4 @@
-[![Build with Maven](https://github.com/openmrs/openmrs-module-queue/actions/workflows/maven.yml/badge.svg)](https://github.com/openmrs/openmrs-module-queue/actions/workflows/maven.yml)
+[![Build with Maven](https://github.com/openmrs/openmrs-module-queue/actions/workflows/build.yml/badge.svg)](https://github.com/openmrs/openmrs-module-queue/actions/workflows/build.yml)
 
 OpenMRS Queue Module (backend)
 ==========================
