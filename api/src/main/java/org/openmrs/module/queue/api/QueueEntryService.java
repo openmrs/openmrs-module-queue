@@ -62,13 +62,16 @@ public interface QueueEntryService {
 	List<QueueEntry> getOverlappingQueueEntries(Patient patient, Queue queue, Date startedAt, Date endedAt);
 	
 	/**
-	 * Given a specified queue entry Q, return its previous queue entry P, where P has same patient and
-	 * visit as Q, and P.endedAt time is same as Q.startedAt time, and P.queue is same as
+	 * Given a specified queue entry Q, return the previous queue entry recorded against it. This is set
+	 * when Q is created, either directly by a transition or, for a queue entry saved with a
+	 * queueComingFrom, by looking up the entry P with the same patient and, when Q has a visit, the
+	 * same visit as Q, whose endedAt time is the same as Q.startedAt time, and whose queue is
 	 * Q.queueComingFrom
 	 *
 	 * @param queueEntry
-	 * @return the previous queue entry, null otherwise.
-	 * @throws IllegalStateException if multiple previous queue entries are identified
+	 * @return the previous queue entry recorded against this entry. Returns null when no predecessor
+	 *         was recorded at creation (no match, or more than one match), or when the recorded
+	 *         predecessor is voided.
 	 */
 	@Authorized(PrivilegeConstants.GET_QUEUE_ENTRIES)
 	QueueEntry getPreviousQueueEntry(@NotNull QueueEntry queueEntry);
@@ -100,7 +103,6 @@ public interface QueueEntryService {
 	 * @param queueEntry the queue entry to undo transition to. Must be active
 	 * @return the previous queue entry, re-activated
 	 * @throws IllegalArgumentException if the previous queue entry does not exist
-	 * @throws IllegalStateException if multiple previous entries are identified
 	 */
 	@Authorized({ PrivilegeConstants.MANAGE_QUEUE_ENTRIES })
 	QueueEntry undoTransition(@NotNull QueueEntry queueEntry);

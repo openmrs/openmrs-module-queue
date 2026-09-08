@@ -798,4 +798,77 @@
         </createIndex>
     </changeSet>
 
+    <changeSet id="add_previous_queue_entry_to_queue_entry_20260613" author="ujjawalprabhat">
+        <preConditions onError="WARN" onFail="MARK_RAN">
+            <tableExists tableName="queue_entry"/>
+            <not><columnExists tableName="queue_entry" columnName="previous_queue_entry"/></not>
+        </preConditions>
+        <comment>
+            Add column previous_queue_entry to queue entry table
+        </comment>
+        <addColumn tableName="queue_entry">
+            <column name="previous_queue_entry" type="int"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="add_previous_queue_entry_fk_20260613" author="ujjawalprabhat">
+        <preConditions onError="WARN" onFail="MARK_RAN">
+            <columnExists tableName="queue_entry" columnName="previous_queue_entry"/>
+            <not><foreignKeyConstraintExists foreignKeyTableName="queue_entry" foreignKeyName="queue_entry_previous_queue_entry_fk"/></not>
+        </preConditions>
+        <comment>
+            Add foreign key from queue_entry.previous_queue_entry to queue_entry.queue_entry_id
+        </comment>
+        <addForeignKeyConstraint baseColumnNames="previous_queue_entry" baseTableName="queue_entry" constraintName="queue_entry_previous_queue_entry_fk" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="queue_entry_id" referencedTableName="queue_entry"/>
+    </changeSet>
+
+    <changeSet id="backfill_previous_queue_entry_20260613" author="ujjawalprabhat" dbms="mysql,mariadb">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="queue_entry" columnName="previous_queue_entry"/>
+        </preConditions>
+        <comment>Backfill previous_queue_entry for existing entries whose predecessor is unambiguous</comment>
+        <sql>
+            update queue_entry curr
+            inner join (
+                select curr2.queue_entry_id as curr_id, min(prev.queue_entry_id) as prev_id, count(*) as n
+                from queue_entry curr2
+                inner join queue_entry prev
+                    on prev.queue_entry_id != curr2.queue_entry_id
+                    and prev.patient_id = curr2.patient_id
+                    and prev.queue_id = curr2.queue_coming_from
+                    and prev.ended_at = curr2.started_at
+                    and prev.voided = 0
+                    and (prev.visit_id = curr2.visit_id or (prev.visit_id is null and curr2.visit_id is null))
+                where curr2.queue_coming_from is not null and curr2.voided = 0
+                group by curr2.queue_entry_id
+            ) m on m.curr_id = curr.queue_entry_id and m.n = 1
+            set curr.previous_queue_entry = m.prev_id;
+        </sql>
+    </changeSet>
+
+    <changeSet id="backfill_previous_queue_entry_20260613_postgres" author="ujjawalprabhat" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="queue_entry" columnName="previous_queue_entry"/>
+        </preConditions>
+        <comment>Backfill previous_queue_entry for existing entries whose predecessor is unambiguous</comment>
+        <sql>
+            UPDATE queue_entry curr
+            SET previous_queue_entry = m.prev_id
+            FROM (
+                SELECT curr2.queue_entry_id AS curr_id, MIN(prev.queue_entry_id) AS prev_id, COUNT(*) AS n
+                FROM queue_entry curr2
+                JOIN queue_entry prev
+                    ON prev.queue_entry_id != curr2.queue_entry_id
+                    AND prev.patient_id = curr2.patient_id
+                    AND prev.queue_id = curr2.queue_coming_from
+                    AND prev.ended_at = curr2.started_at
+                    AND prev.voided = false
+                    AND (prev.visit_id = curr2.visit_id OR (prev.visit_id IS NULL AND curr2.visit_id IS NULL))
+                WHERE curr2.queue_coming_from IS NOT NULL AND curr2.voided = false
+                GROUP BY curr2.queue_entry_id
+            ) m
+            WHERE m.curr_id = curr.queue_entry_id AND m.n = 1;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

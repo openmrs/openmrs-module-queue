@@ -93,6 +93,9 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	public QueueEntry saveQueueEntry(QueueEntry queueEntry) {
 		Double sortWeight = getSortWeightGenerator().generateSortWeight(queueEntry);
 		queueEntry.setSortWeight(sortWeight);
+		if (queueEntry.getId() == null && queueEntry.getPreviousQueueEntry() == null) {
+			queueEntry.setPreviousQueueEntry(resolvePreviousQueueEntry(queueEntry));
+		}
 		return dao.createOrUpdate(queueEntry);
 	}
 	
@@ -183,6 +186,8 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 			throw new IllegalStateException("Previous queue entry was modified by another transaction");
 		}
 		
+		// Cleared before voiding so that voidQueueEntry's own save persists it, rather than a second write
+		queueEntry.setPreviousQueueEntry(null);
 		getProxiedQueueEntryService().voidQueueEntry(queueEntry, "Transition undone");
 		
 		// Reload the previous entry to return the updated state
@@ -295,6 +300,14 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	@Override
 	@Transactional(readOnly = true)
 	public QueueEntry getPreviousQueueEntry(@NotNull QueueEntry queueEntry) {
+		QueueEntry previousQueueEntry = queueEntry.getPreviousQueueEntry();
+		if (previousQueueEntry == null || previousQueueEntry.getVoided()) {
+			return null;
+		}
+		return previousQueueEntry;
+	}
+	
+	private QueueEntry resolvePreviousQueueEntry(QueueEntry queueEntry) {
 		Queue queueComingFrom = queueEntry.getQueueComingFrom();
 		if (queueComingFrom == null) {
 			return null;
@@ -307,15 +320,6 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		criteria.setQueues(Collections.singletonList(queueComingFrom));
 		
 		List<QueueEntry> prevQueueEntries = dao.getQueueEntries(criteria);
-		
-		if (prevQueueEntries.size() == 1) {
-			return prevQueueEntries.get(0);
-		} else if (prevQueueEntries.size() > 1) {
-			// TODO: Exceptions should be translatable and human readable on the frontend.
-			// See: https://openmrs.atlassian.net/browse/O3-2988
-			throw new IllegalStateException("Multiple previous queue entries found");
-		} else {
-			return null;
-		}
+		return prevQueueEntries.size() == 1 ? prevQueueEntries.get(0) : null;
 	}
 }

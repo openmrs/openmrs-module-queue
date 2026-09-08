@@ -26,6 +26,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.BatchSize;
 import org.openmrs.BaseChangeableOpenmrsData;
 import org.openmrs.Concept;
 import org.openmrs.Location;
@@ -38,6 +39,7 @@ import org.openmrs.Visit;
 @Getter
 @ToString
 @Entity
+@BatchSize(size = 100)
 @Table(name = "queue_entry")
 public class QueueEntry extends BaseChangeableOpenmrsData {
 	
@@ -97,6 +99,12 @@ public class QueueEntry extends BaseChangeableOpenmrsData {
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "queue_coming_from", referencedColumnName = "queue_id")
 	private Queue queueComingFrom;
+	
+	//The queue entry the patient was transitioned from, if any.
+	@ToString.Exclude
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "previous_queue_entry", referencedColumnName = "queue_entry_id")
+	private QueueEntry previousQueueEntry;
 	
 	@Column(name = "started_at", nullable = false)
 	private Date startedAt;

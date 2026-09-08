@@ -52,6 +52,7 @@ public class QueueEntryTransition implements Serializable {
 		queueEntry.setLocationWaitingFor(queueEntryToTransition.getLocationWaitingFor());
 		queueEntry.setProviderWaitingFor(queueEntryToTransition.getProviderWaitingFor());
 		queueEntry.setQueueComingFrom(queueEntryToTransition.getQueue());
+		queueEntry.setPreviousQueueEntry(queueEntryToTransition);
 		queueEntry.setStartedAt(transitionDate);
 		return queueEntry;
 	}
