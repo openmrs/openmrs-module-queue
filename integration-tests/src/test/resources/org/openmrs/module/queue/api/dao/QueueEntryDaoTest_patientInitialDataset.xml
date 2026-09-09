@@ -20,7 +20,7 @@
                  creator="1" date_created="2022-02-02 12:34:00.0" voided="false"
                  uuid="7e2acadc-5073-4a39-914a-debcbec8c1c9"/>
     <patient patient_id="100" creator="1" date_created="2022-02-02 12:34:00.0" voided="false"/>
-    <patient_identifier patient_identifier_id="1" patient_id="100" identifier="1234-5" identifier_type="1" preferred="1"
+    <patient_identifier patient_identifier_id="1" patient_id="100" identifier="1234-4" identifier_type="1" preferred="1"
                         location_id="1" creator="1" date_created="2022-02-02 12:34:00.0" voided="false"
                         uuid="e887ac86-4d8a-40f3-bedb-da84d34517b7"/>
 </dataset>

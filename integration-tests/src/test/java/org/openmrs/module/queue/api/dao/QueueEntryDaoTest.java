@@ -264,6 +264,23 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	}
 	
 	@Test
+	public void shouldExcludeQueueEntriesOfVoidedPatientsUnlessVoidedIncluded() {
+		executeDataSet("org/openmrs/module/queue/api/dao/QueueEntryDaoTest_voidedPatientInitialDataset.xml");
+		Patient voidedPatient = services.getPatientService().getPatient(101);
+		assertThat(voidedPatient.getVoided(), is(true));
+		
+		criteria.setIsEnded(false);
+		assertResults(criteria, 2, 3);
+		criteria.setIncludedVoided(true);
+		assertResults(criteria, 2, 3, 10, 11);
+		
+		criteria.setPatient(voidedPatient);
+		assertResults(criteria, 11);
+		criteria.setIncludedVoided(false);
+		assertResults(criteria);
+	}
+	
+	@Test
 	public void shouldSearchAndCountQueueEntriesByVisit() {
 		Visit visit1 = services.getVisitService().getVisit(101);
 		Visit visit2 = services.getVisitService().getVisit(102);

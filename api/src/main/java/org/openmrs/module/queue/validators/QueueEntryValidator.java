@@ -37,6 +37,13 @@ public class QueueEntryValidator implements Validator {
 			throw new IllegalArgumentException("the parameter target must be of type " + QueueEntry.class);
 		}
 		
+		// A voided entry is out of the way by definition: neither the visit/patient consistency checks nor the
+		// duplicate check apply to it. Cascades such as voiding a patient (whose visits may already have been
+		// moved to another patient by a merge) must be able to void entries without tripping validation.
+		if (Boolean.TRUE.equals(((QueueEntry) target).getVoided())) {
+			return;
+		}
+		
 		rejectIfEmptyOrWhitespace(errors, "queue", "queueEntry.queue.null", "The property queue should not be null");
 		rejectIfEmptyOrWhitespace(errors, "patient", "queueEntry.patient.null", "The property patient should not be null");
 		rejectIfEmptyOrWhitespace(errors, "startedAt", "queueEntry.startedAt.null",
@@ -104,8 +111,8 @@ public class QueueEntryValidator implements Validator {
 	private boolean isDuplicate(QueueEntry queueEntry, QueueEntryService queueEntryService) {
 		List<QueueEntry> queueEntries = queueEntryService.getOverlappingQueueEntries(queueEntry.getPatient(),
 		    queueEntry.getQueue(), queueEntry.getStartedAt(), queueEntry.getEndedAt());
-		// cascade voids (e.g. voiding a patient) may not yet be flushed to the DB when this runs,
-		// so voided entries can slip through the DAO-level filter — remove them here as a safety net
+		// a queue entry voided earlier in this session may not be flushed yet, so the DAO's
+		// voided = false filter can still hand it back; drop those here
 		queueEntries.removeIf(QueueEntry::getVoided);
 		
 		// if we aren't checking an existing queue entry, any overlaps are "duplicates"

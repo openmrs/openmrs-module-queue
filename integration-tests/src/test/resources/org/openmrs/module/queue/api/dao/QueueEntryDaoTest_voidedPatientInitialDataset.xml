@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+
+    This Source Code Form is subject to the terms of the Mozilla Public License,
+    v. 2.0. If a copy of the MPL was not distributed with this file, You can
+    obtain one at http://mozilla.org/MPL/2.0/. OpenMRS is also distributed under
+    the terms of the Healthcare Disclaimer located at http://openmrs.org/license.
+
+    Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
+    graphic logo is a trademark of OpenMRS Inc.
+
+-->
+<!--
+    Simulates data created before PatientWithQueueEntriesVoidHandler existed: patient 101 is voided but
+    queue entry 11 was never voided. Depends on queue 3 from QueueDaoTest_initialDataset.xml and the
+    priority/status concepts from QueueEntryDaoTest_conceptsInitialDataset.xml.
+-->
+<dataset>
+    <person person_id="101" gender="F" dead="false" creator="1" date_created="2022-02-02 12:34:00.0" voided="true"
+            voided_by="1" date_voided="2022-02-05 12:34:00.0" void_reason="voided for testing"
+            uuid="1c2e5f9a-8f1b-4b7e-9f0a-2a7c1d3e4f50"/>
+    <patient patient_id="101" creator="1" date_created="2022-02-02 12:34:00.0" voided="true"
+             voided_by="1" date_voided="2022-02-05 12:34:00.0" void_reason="voided for testing"/>
+    <queue_entry queue_entry_id="11"
+                 uuid="2d3f6a0b-9a2c-4c8f-a01b-3b8d2e4f5a61"
+                 queue_id="3"
+                 patient_id="101"
+                 visit_id="[NULL]"
+                 started_at="2022-02-04 16:40:56.0"
+                 ended_at="[NULL]"
+                 priority="1001"
+                 priority_comment="[NULL]"
+                 status="3002"
+                 sort_weight="0"
+                 location_waiting_for="[NULL]"
+                 provider_waiting_for="[NULL]"
+                 queue_coming_from="[NULL]"
+                 voided="false"
+                 voided_by="[NULL]"
+                 date_voided="[NULL]"
+                 creator="1"
+                 date_created="2022-02-04 16:38:56.0"
+    />
+</dataset>

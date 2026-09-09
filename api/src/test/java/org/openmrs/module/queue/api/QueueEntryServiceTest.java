@@ -153,6 +153,22 @@ public class QueueEntryServiceTest {
 	}
 	
 	@Test
+	public void shouldUnvoidQueueEntry() {
+		QueueEntry queueEntry = new QueueEntry();
+		queueEntry.setVoided(true);
+		queueEntry.setVoidReason("voidReason");
+		queueEntry.setDateVoided(new Date());
+		queueEntry.setVoidedBy(new User(1));
+		when(dao.createOrUpdate(queueEntry)).thenReturn(queueEntry);
+		queueEntryService.unvoidQueueEntry(queueEntry);
+		assertThat(queueEntry.getVoided(), equalTo(false));
+		assertThat(queueEntry.getVoidReason(), nullValue());
+		assertThat(queueEntry.getDateVoided(), nullValue());
+		assertThat(queueEntry.getVoidedBy(), nullValue());
+		verify(dao).createOrUpdate(queueEntry);
+	}
+	
+	@Test
 	public void shouldPurgeQueueEntry() {
 		QueueEntry queueEntry = mock(QueueEntry.class);
 		when(dao.get(QUEUE_ENTRY_UUID)).thenReturn(Optional.empty());

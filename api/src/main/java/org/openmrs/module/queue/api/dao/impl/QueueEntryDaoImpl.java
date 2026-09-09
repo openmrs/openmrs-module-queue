@@ -142,12 +142,17 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 	}
 	
 	/**
-	 * Convert the given {@link QueueEntrySearchCriteria} into ORM criteria
+	 * Convert the given {@link QueueEntrySearchCriteria} into ORM criteria. Unless includedVoided is
+	 * set, voided entries and entries whose patient is voided are excluded.
 	 */
 	private Criteria createCriteriaFromSearchCriteria(QueueEntrySearchCriteria searchCriteria) {
 		Criteria c = getCurrentSession().createCriteria(QueueEntry.class, "qe");
 		c.createAlias("queue", "q");
 		includeVoidedObjects(c, searchCriteria.isIncludedVoided());
+		if (!searchCriteria.isIncludedVoided()) {
+			c.createAlias("patient", "p");
+			c.add(Restrictions.eq("p.voided", false));
+		}
 		limitByCollectionProperty(c, "queue", searchCriteria.getQueues());
 		limitByCollectionProperty(c, "q.location", searchCriteria.getLocations());
 		limitByCollectionProperty(c, "q.service", searchCriteria.getServices());

@@ -115,6 +115,15 @@ public interface QueueEntryService {
 	void voidQueueEntry(@NotNull QueueEntry queueEntry, String voidReason);
 	
 	/**
+	 * Unvoids a queue entry, clearing its void reason, date and user. Like voiding, this does not run
+	 * the queue entry validator, so entries that would no longer validate can still be restored.
+	 *
+	 * @param queueEntry the queue entry to be unvoided
+	 */
+	@Authorized({ PrivilegeConstants.MANAGE_QUEUE_ENTRIES })
+	void unvoidQueueEntry(@NotNull QueueEntry queueEntry);
+	
+	/**
 	 * Completely remove a queue entry from the database
 	 *
 	 * @param queueEntry queue entry to be deleted
