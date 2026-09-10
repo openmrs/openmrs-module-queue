@@ -154,7 +154,7 @@ public class QueueEntrySubResource extends DelegatingSubResource<QueueEntry, Que
 			this.addSharedResourceDescriptionProperties(resourceDescription);
 			resourceDescription.addProperty("status", Representation.REF);
 			resourceDescription.addProperty("patient", Representation.REF);
-			resourceDescription.addProperty("patient", Representation.REF);
+			resourceDescription.addProperty("visit", Representation.REF);
 			resourceDescription.addProperty("priority", Representation.REF);
 			resourceDescription.addProperty("locationWaitingFor", Representation.REF);
 			resourceDescription.addProperty("queueComingFrom", Representation.REF);
