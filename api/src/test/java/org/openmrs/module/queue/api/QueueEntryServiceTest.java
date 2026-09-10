@@ -41,6 +41,7 @@ import org.openmrs.Provider;
 import org.openmrs.User;
 import org.openmrs.Visit;
 import org.openmrs.VisitAttributeType;
+import org.openmrs.api.APIException;
 import org.openmrs.api.VisitService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.context.UserContext;
@@ -421,7 +422,7 @@ public class QueueEntryServiceTest {
 		queueEntryService.undoTransition(endedEntry);
 	}
 	
-	@Test(expected = IllegalStateException.class)
+	@Test(expected = APIException.class)
 	public void shouldThrowWhenTransitioningConcurrentlyModifiedEntry() {
 		QueueEntry queueEntry = new QueueEntry();
 		queueEntry.setQueueEntryId(1);
@@ -439,7 +440,7 @@ public class QueueEntryServiceTest {
 		queueEntryService.transitionQueueEntry(transition);
 	}
 	
-	@Test(expected = IllegalStateException.class)
+	@Test(expected = APIException.class)
 	public void shouldThrowWhenUndoingTransitionOnConcurrentlyModifiedPreviousEntry() {
 		Queue queue1 = new Queue();
 		Patient patient1 = new Patient();
