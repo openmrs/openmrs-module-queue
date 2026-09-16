@@ -27,10 +27,13 @@ import org.springframework.aop.MethodBeforeAdvice;
  * fails on the queue_entry foreign key to visit.
  * <p>
  * Purging cannot be done from a handler: core runs save/void handlers through RequiredDataAdvice,
- * which is not consulted on a purge, so advice on the service is the only hook. Voiding needs no
- * advice - {@link VisitWithQueueEntriesSaveHandler} already voids the entries on both the
- * {@code saveVisit} and {@code voidVisit} paths, and stamps them with the visit's own void date and
- * user so an unvoid can tell them apart from entries voided on their own.
+ * which is not consulted on a purge, so advice on the service is the only hook. Voiding is left to
+ * {@link VisitWithQueueEntriesSaveHandler}, which voids the entries on the {@code saveVisit} path,
+ * and on the {@code voidVisit} path whenever it runs after core's {@code BaseVoidHandler}. Nothing
+ * pins that order: both handlers carry the default {@code @Handler} order, and the tie is broken by
+ * the iteration order of the map {@code ServiceContext.getRegisteredComponents} builds. The handler
+ * stamps the entries with the visit's own void date and user so an unvoid can tell them apart from
+ * entries voided on their own.
  */
 public class VisitWithQueueEntriesDeleteAdvice implements MethodBeforeAdvice {
 	
@@ -49,7 +52,7 @@ public class VisitWithQueueEntriesDeleteAdvice implements MethodBeforeAdvice {
 		// Purging a visit is driven by a core service whose callers need not hold queue privileges,
 		// so grant them for the duration of this cascade, as the queue handlers do
 		Context.addProxyPrivilege(PrivilegeConstants.GET_QUEUE_ENTRIES);
-		Context.addProxyPrivilege(PrivilegeConstants.MANAGE_QUEUE_ENTRIES);
+		Context.addProxyPrivilege(PrivilegeConstants.PURGE_QUEUE_ENTRIES);
 		try {
 			QueueEntryService queueEntryService = Context.getService(QueueEntryService.class);
 			QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
@@ -67,7 +70,7 @@ public class VisitWithQueueEntriesDeleteAdvice implements MethodBeforeAdvice {
 		}
 		finally {
 			Context.removeProxyPrivilege(PrivilegeConstants.GET_QUEUE_ENTRIES);
-			Context.removeProxyPrivilege(PrivilegeConstants.MANAGE_QUEUE_ENTRIES);
+			Context.removeProxyPrivilege(PrivilegeConstants.PURGE_QUEUE_ENTRIES);
 		}
 	}
 }

@@ -23,7 +23,6 @@ import org.openmrs.Visit;
 import org.openmrs.api.VisitService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.SpringTestConfiguration;
-import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -74,6 +73,27 @@ public class VisitWithQueueEntriesDeleteAdviceTest extends BaseModuleContextSens
 		
 		visitService.purgeVisit(visit);
 		
+		assertNull(visitService.getVisit(visitId));
+		assertFalse(queueEntryService.getQueueEntryById(3).isPresent());
+	}
+	
+	@Test
+	public void shouldPurgeQueueEntriesForUserWithoutQueuePrivileges() {
+		// "butch" from the standard test dataset has the Provider role and no privileges; proxy only the
+		// core visit privileges so the advice has to obtain the queue privileges itself
+		Integer visitId = visit.getVisitId();
+		Context.becomeUser("3-4");
+		Context.addProxyPrivilege(org.openmrs.util.PrivilegeConstants.PURGE_VISITS);
+		Context.addProxyPrivilege(org.openmrs.util.PrivilegeConstants.GET_ENCOUNTERS);
+		try {
+			assertFalse(Context.hasPrivilege(org.openmrs.module.queue.utils.PrivilegeConstants.PURGE_QUEUE_ENTRIES));
+			visitService.purgeVisit(visit);
+		}
+		finally {
+			Context.removeProxyPrivilege(org.openmrs.util.PrivilegeConstants.PURGE_VISITS);
+			Context.removeProxyPrivilege(org.openmrs.util.PrivilegeConstants.GET_ENCOUNTERS);
+			authenticate();
+		}
 		assertNull(visitService.getVisit(visitId));
 		assertFalse(queueEntryService.getQueueEntryById(3).isPresent());
 	}
