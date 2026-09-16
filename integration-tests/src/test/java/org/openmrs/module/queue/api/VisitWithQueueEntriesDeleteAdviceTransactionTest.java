@@ -40,9 +40,10 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Covers what {@link VisitWithQueueEntriesDeleteAdviceTest} structurally cannot: that the queue
  * entries the advice purges go only if the visit goes too. This needs its own class because the
- * test has to run outside the transaction the other tests rely on. Inside one, the purged entries
- * read as deleted whether or not the failed delete would have rolled them back, so a transactional
- * test passes either way.
+ * test has to run outside the transaction the other tests rely on. Inside one the cascade's deletes
+ * are still unflushed when the delete is refused and {@code Context.clearSession()} discards them,
+ * so the entry reads as present again whether or not anything was rolled back, and the assertion
+ * holds either way.
  */
 @ContextConfiguration(classes = SpringTestConfiguration.class, inheritLocations = false)
 public class VisitWithQueueEntriesDeleteAdviceTransactionTest extends BaseModuleContextSensitiveTest {
@@ -85,7 +86,9 @@ public class VisitWithQueueEntriesDeleteAdviceTransactionTest extends BaseModule
 	@After
 	public void tearDown() {
 		Context.removeAdvice(VisitService.class, advice);
-		// nothing this test wrote was rolled back, so wipe it and let the next class re-seed
+		// Nothing this test wrote was rolled back. Core wipes after the last method of a class anyway,
+		// so this is here for the second test method: without it that method's executeDataSet would
+		// meet the rows this one committed.
 		deleteAllData();
 	}
 	
@@ -106,7 +109,8 @@ public class VisitWithQueueEntriesDeleteAdviceTransactionTest extends BaseModule
 		Context.clearSession();
 		
 		assertNotNull("the visit survived, so its queue entries must too", visitService.getVisit(visitId));
-		assertTrue(queueEntryService.getQueueEntryById(QUEUE_ENTRY_ID).isPresent());
+		assertTrue("the refused purge must not have taken the queue entry down with it",
+		    queueEntryService.getQueueEntryById(QUEUE_ENTRY_ID).isPresent());
 	}
 	
 	private void giveTheVisitAnEncounter(Visit visit) {

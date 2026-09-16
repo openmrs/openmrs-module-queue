@@ -117,9 +117,10 @@ public class VisitWithQueueEntriesDeleteAdviceTest extends BaseModuleContextSens
 	
 	@Test
 	public void shouldLeaveOtherVisitServiceCallsAlone() {
-		// This is an around interceptor, so every VisitService call in a server with the module
-		// installed passes through it, not just the purges. A no-arg method covers the empty argument
-		// array it has to tolerate on the way past.
+		// Context.addAdvice registers against the whole point, so every VisitService call in a server
+		// with the module installed reaches this advice and not just the purges. What is new is that an
+		// around interceptor has to proceed and hand back the result itself, where a before-advice did
+		// not. A no-arg method also covers the empty argument array it tolerates on the way past.
 		assertFalse(visitService.getAllVisitTypes().isEmpty());
 		assertNotNull(visitService.getVisit(visit.getVisitId()));
 		assertTrue(queueEntryService.getQueueEntryById(3).isPresent());

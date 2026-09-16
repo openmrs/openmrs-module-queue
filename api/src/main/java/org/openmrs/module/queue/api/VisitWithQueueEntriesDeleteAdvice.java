@@ -34,17 +34,22 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * and the module hooks the service instead. Voiding is owned by
  * {@link VisitWithQueueEntriesVoidHandler}, which core does reach on the {@code voidVisit} path.
  * <p>
- * The cascade and core's own delete are run inside one transaction opened here, because the entries
+ * The cascade and core's own delete run in one transaction, taken out here, because the entries
  * must not go without the visit. {@code purgeVisit} refuses a visit that still has encounters, and
- * it does so after this advice has run, so the two have to stand or fall together.
+ * it does so after this advice has run, so the two have to stand or fall together. Propagation is
+ * the default, so this joins a caller's transaction where there is one and starts its own where
+ * there is not.
  * <p>
- * The transaction is opened explicitly rather than inherited from the service. Advice registered
- * through {@code Context.addAdvice} is appended to the proxy {@code ServiceContext} holds for
- * {@code VisitService}, and core's {@code applicationContext-service.xml} declares a
- * {@code DefaultAdvisorAutoProxyCreator} beside a {@code TransactionAttributeSourceAdvisor}, which
- * leaves {@code visitServiceTarget} transaction-proxied before the proxy this advice is appended to
- * wraps it. The transaction therefore begins a layer below anything registered here, and without
- * this one nothing the cascade did would be rolled back with the refused delete.
+ * It has to be taken out here rather than inherited from the service, and the reason is easy to get
+ * backwards. {@code applicationContext-service.xml} does declare {@code visitService} as a
+ * {@code TransactionProxyFactoryBean} (line 515), but that proxy's own transaction advisor is inert
+ * for {@code purgeVisit}: its target is the proxy that the {@code DefaultAdvisorAutoProxyCreator}
+ * and {@code TransactionAttributeSourceAdvisor} pair (lines 46 and 52) has already wrapped around
+ * {@code visitServiceTarget}, and that target is a JDK proxy of the {@code VisitService} interface,
+ * which carries no {@code @Transactional} for the attribute source to find. The transaction
+ * therefore begins in the inner proxy, a layer below where {@code Context.addAdvice} appends this
+ * advice, and without the one taken out here nothing the cascade did would be rolled back with the
+ * refused delete.
  */
 public class VisitWithQueueEntriesDeleteAdvice implements MethodInterceptor {
 	
@@ -73,7 +78,15 @@ public class VisitWithQueueEntriesDeleteAdvice implements MethodInterceptor {
 			result = invocation.proceed();
 		}
 		catch (Throwable t) {
-			transactionManager.rollback(transaction);
+			try {
+				transactionManager.rollback(transaction);
+			}
+			catch (RuntimeException | Error rollbackFailure) {
+				// keep hold of t: it is the only thing that says why the purge was refused, and the
+				// rollback failure is what the caller is about to see instead
+				rollbackFailure.addSuppressed(t);
+				throw rollbackFailure;
+			}
 			throw t;
 		}
 		transactionManager.commit(transaction);

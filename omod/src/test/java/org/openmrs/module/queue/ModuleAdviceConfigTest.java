@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.aopalliance.aop.Advice;
 import org.junit.Test;
+import org.springframework.aop.Advisor;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -52,10 +53,10 @@ public class ModuleAdviceConfigTest {
 			assertNotNull("advice needs a point", point);
 			assertNotNull("advice needs a class", adviceClassName);
 			
-			// this mirrors what ModuleFactory.loadAdvice and AdvicePoint.getClassInstance do with them:
-			// load the point, load the advice class, reach for its public no-arg constructor, and cast
-			// the instance to Advice. The constructor is looked up rather than called, so an advice that
-			// legitimately touches Context on construction is not failed for it here.
+			// AdvicePoint.getClassInstance loads the class and calls its public no-arg constructor, and
+			// ModuleFactory.loadAdvice then registers the instance as an Advisor if it is one and as an
+			// Advice otherwise, so either type is legal here. The constructor is looked up rather than
+			// called, so an advice that legitimately touches Context on construction is not failed for it.
 			Class.forName(point);
 			Class<?> adviceClass = Class.forName(adviceClassName);
 			try {
@@ -65,8 +66,10 @@ public class ModuleAdviceConfigTest {
 				throw new AssertionError(
 				        adviceClassName + " needs a public no-arg constructor for AdvicePoint to" + " instantiate it", e);
 			}
-			assertTrue(adviceClassName + " must implement " + Advice.class.getName() + " to be registered on " + point,
-			    Advice.class.isAssignableFrom(adviceClass));
+			assertTrue(
+			    adviceClassName + " must implement " + Advice.class.getName() + " or " + Advisor.class.getName()
+			            + " to be registered on " + point,
+			    Advice.class.isAssignableFrom(adviceClass) || Advisor.class.isAssignableFrom(adviceClass));
 		}
 	}
 	
