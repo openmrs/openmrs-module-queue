@@ -27,13 +27,8 @@ import org.springframework.aop.MethodBeforeAdvice;
  * fails on the queue_entry foreign key to visit.
  * <p>
  * Purging cannot be done from a handler: core runs save/void handlers through RequiredDataAdvice,
- * which is not consulted on a purge, so advice on the service is the only hook. Voiding is left to
- * {@link VisitWithQueueEntriesSaveHandler}, which voids the entries on the {@code saveVisit} path,
- * and on the {@code voidVisit} path whenever it runs after core's {@code BaseVoidHandler}. Nothing
- * pins that order: both handlers carry the default {@code @Handler} order, and the tie is broken by
- * the iteration order of the map {@code ServiceContext.getRegisteredComponents} builds. The handler
- * stamps the entries with the visit's own void date and user so an unvoid can tell them apart from
- * entries voided on their own.
+ * which is not consulted on a purge, so advice on the service is the only hook. Voiding is owned by
+ * {@link VisitWithQueueEntriesVoidHandler}, which core does reach on the {@code voidVisit} path.
  */
 public class VisitWithQueueEntriesDeleteAdvice implements MethodBeforeAdvice {
 	

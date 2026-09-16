@@ -10,11 +10,8 @@
 package org.openmrs.module.queue.api;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -25,7 +22,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Visit;
 import org.openmrs.api.VisitService;
-import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.SpringTestConfiguration;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
@@ -85,79 +81,5 @@ public class VisitWithQueueEntriesSaveHandlerTest extends BaseModuleContextSensi
 		queueEntry = queueEntryService.getQueueEntryById(queueEntry.getId()).get();
 		assertThat(visit.getStopDatetime(), equalTo(stopDate));
 		assertThat(queueEntry.getEndedAt(), equalTo(stopDate));
-	}
-	
-	@Test
-	public void shouldNotVoidQueueEntriesIfVisitIsNotVoided() {
-		assertFalse(visit.getVoided());
-		assertFalse(queueEntry.getVoided());
-		visit = visitService.saveVisit(visit);
-		queueEntry = queueEntryService.getQueueEntryById(queueEntry.getId()).get();
-		assertFalse(visit.getVoided());
-		assertFalse(queueEntry.getVoided());
-	}
-	
-	@Test
-	public void shouldVoidQueueEntriesIfVisitIsVoided() {
-		assertFalse(visit.getVoided());
-		assertFalse(queueEntry.getVoided());
-		visit.setVoided(true);
-		String voidReason = "for testing";
-		visit.setVoidReason(voidReason);
-		visit = visitService.saveVisit(visit);
-		queueEntry = queueEntryService.getQueueEntryById(queueEntry.getId()).get();
-		assertTrue(visit.getVoided());
-		assertThat(visit.getVoidReason(), equalTo(voidReason));
-		assertNotNull(visit.getDateVoided());
-		assertNotNull(visit.getVoidedBy());
-		assertTrue(queueEntry.getVoided());
-		assertThat(queueEntry.getVoidReason(), equalTo(voidReason));
-		assertThat(queueEntry.getDateVoided(), equalTo(visit.getDateVoided()));
-		assertThat(queueEntry.getVoidedBy(), equalTo(visit.getVoidedBy()));
-	}
-	
-	@Test
-	public void shouldVoidQueueEntriesWhenVisitIsVoidedThroughVoidVisit() {
-		// voidVisit is the path REST and patient deletion use. Whether this handler sees the visit as
-		// voided there depends on it running after core's BaseVoidHandler, so pin the outcome.
-		assertFalse(queueEntry.getVoided());
-		String voidReason = "for testing";
-		visit = visitService.voidVisit(visit, voidReason);
-		queueEntry = queueEntryService.getQueueEntryById(queueEntry.getId()).get();
-		assertTrue(visit.getVoided());
-		assertTrue(queueEntry.getVoided());
-		assertThat(queueEntry.getVoidReason(), equalTo(voidReason));
-		assertThat(queueEntry.getDateVoided(), equalTo(visit.getDateVoided()));
-		assertThat(queueEntry.getVoidedBy(), equalTo(visit.getVoidedBy()));
-	}
-	
-	@Test
-	public void shouldVoidQueueEntriesForUserWithoutQueuePrivileges() {
-		// "butch" from the standard test dataset has the Provider role and no privileges; proxy only the
-		// core visit privileges so the handler has to obtain the queue privileges itself
-		Context.becomeUser("3-4");
-		Context.addProxyPrivilege(org.openmrs.util.PrivilegeConstants.DELETE_VISITS);
-		Context.addProxyPrivilege(org.openmrs.util.PrivilegeConstants.GET_ENCOUNTERS);
-		try {
-			assertFalse(Context.hasPrivilege(org.openmrs.module.queue.utils.PrivilegeConstants.GET_QUEUE_ENTRIES));
-			visit = visitService.voidVisit(visit, "for testing");
-		}
-		finally {
-			Context.removeProxyPrivilege(org.openmrs.util.PrivilegeConstants.DELETE_VISITS);
-			Context.removeProxyPrivilege(org.openmrs.util.PrivilegeConstants.GET_ENCOUNTERS);
-			authenticate();
-		}
-		assertTrue(visit.getVoided());
-		assertTrue(queueEntryService.getQueueEntryById(queueEntry.getId()).get().getVoided());
-	}
-	
-	@Test
-	public void shouldVoidOverlappingQueueEntriesInTheSameQueueIfVisitIsVoided() {
-		executeDataSet("org/openmrs/module/queue/api/dao/QueueEntryDaoTest_overlappingEntriesInitialDataset.xml");
-		visit.setVoided(true);
-		visit.setVoidReason("for testing");
-		visitService.saveVisit(visit);
-		assertTrue(queueEntryService.getQueueEntryById(3).get().getVoided());
-		assertTrue(queueEntryService.getQueueEntryById(12).get().getVoided());
 	}
 }
