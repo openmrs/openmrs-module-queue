@@ -72,6 +72,7 @@ public class VisitWithQueueEntriesDeleteAdviceTest extends BaseModuleContextSens
 		assertTrue(queueEntryService.getQueueEntryById(3).isPresent());
 		
 		visitService.purgeVisit(visit);
+		Context.flushSession();
 		
 		assertNull(visitService.getVisit(visitId));
 		assertFalse(queueEntryService.getQueueEntryById(3).isPresent());
@@ -88,6 +89,7 @@ public class VisitWithQueueEntriesDeleteAdviceTest extends BaseModuleContextSens
 		try {
 			assertFalse(Context.hasPrivilege(org.openmrs.module.queue.utils.PrivilegeConstants.PURGE_QUEUE_ENTRIES));
 			visitService.purgeVisit(visit);
+			Context.flushSession();
 		}
 		finally {
 			Context.removeProxyPrivilege(org.openmrs.util.PrivilegeConstants.PURGE_VISITS);
@@ -105,6 +107,7 @@ public class VisitWithQueueEntriesDeleteAdviceTest extends BaseModuleContextSens
 		assertTrue(queueEntryService.getQueueEntryById(10).isPresent());
 		
 		visitService.purgeVisit(visitWithVoidedEntry);
+		Context.flushSession();
 		
 		assertNull(visitService.getVisit(101));
 		assertFalse(queueEntryService.getQueueEntryById(10).isPresent());

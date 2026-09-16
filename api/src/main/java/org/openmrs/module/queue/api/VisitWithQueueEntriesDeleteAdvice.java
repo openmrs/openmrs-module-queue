@@ -57,7 +57,7 @@ public class VisitWithQueueEntriesDeleteAdvice implements MethodBeforeAdvice {
 			QueueEntryService queueEntryService = Context.getService(QueueEntryService.class);
 			QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
 			criteria.setVisit(visit);
-			// the visit or its patient may already be voided, which would hide the entries from the default search
+			// voided entries hold the same foreign key, and a voided patient hides them from the default search
 			criteria.setIncludedVoided(true);
 			List<QueueEntry> queueEntries = queueEntryService.getQueueEntries(criteria);
 			if (!queueEntries.isEmpty()) {
