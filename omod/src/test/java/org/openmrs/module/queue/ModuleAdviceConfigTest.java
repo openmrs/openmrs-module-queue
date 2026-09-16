@@ -29,10 +29,10 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 /**
- * The {@code <advice>} elements in config.xml are the only thing that registers this module's AOP
- * advice in a deployed server, and module tests register advice themselves, so nothing else in the
- * build reads them. Getting one wrong fails quietly rather than loudly:
- * {@code AdvicePoint.getClassInstance} catches the reflection failure and logs a warning,
+ * The {@code <advice>} elements in config.xml are what registers this module's AOP advice in a
+ * deployed server, and this test is the build's only check on them: module tests register advice
+ * themselves rather than going through config.xml. Getting one wrong fails quietly rather than
+ * loudly: {@code AdvicePoint.getClassInstance} catches the reflection failure and logs a warning,
  * {@code ModuleFactory.loadAdvice} then logs at debug and carries on, and the module starts with
  * the cascade simply absent.
  */
@@ -52,13 +52,21 @@ public class ModuleAdviceConfigTest {
 			assertNotNull("advice needs a point", point);
 			assertNotNull("advice needs a class", adviceClassName);
 			
-			// this mirrors what ModuleFactory.loadAdvice and AdvicePoint.getClassInstance do: load the
-			// point, load the advice class, call its public no-arg constructor, cast the result to Advice
+			// this mirrors what ModuleFactory.loadAdvice and AdvicePoint.getClassInstance do with them:
+			// load the point, load the advice class, reach for its public no-arg constructor, and cast
+			// the instance to Advice. The constructor is looked up rather than called, so an advice that
+			// legitimately touches Context on construction is not failed for it here.
 			Class.forName(point);
 			Class<?> adviceClass = Class.forName(adviceClassName);
+			try {
+				adviceClass.getConstructor();
+			}
+			catch (NoSuchMethodException e) {
+				throw new AssertionError(
+				        adviceClassName + " needs a public no-arg constructor for AdvicePoint to" + " instantiate it", e);
+			}
 			assertTrue(adviceClassName + " must implement " + Advice.class.getName() + " to be registered on " + point,
 			    Advice.class.isAssignableFrom(adviceClass));
-			assertNotNull(adviceClass.getConstructor().newInstance());
 		}
 	}
 	

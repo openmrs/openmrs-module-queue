@@ -10,6 +10,7 @@
 package org.openmrs.module.queue.api;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -55,8 +56,9 @@ public class VisitWithQueueEntriesDeleteAdviceTest extends BaseModuleContextSens
 	public void setup() {
 		INITIAL_DATASET_XML.forEach(this::executeDataSet);
 		visit = queueEntryService.getQueueEntryById(3).get().getVisit();
-		// config.xml <advice> is not read by module tests, so register it here to exercise the same
-		// interceptor chain that production purges go through
+		// the module test harness does not register advice from config.xml, so register it here to
+		// exercise the same interceptor chain that production purges go through (ModuleAdviceConfigTest
+		// covers the config.xml declaration itself)
 		Context.addAdvice(VisitService.class, advice);
 	}
 	
@@ -111,5 +113,15 @@ public class VisitWithQueueEntriesDeleteAdviceTest extends BaseModuleContextSens
 		
 		assertNull(visitService.getVisit(101));
 		assertFalse(queueEntryService.getQueueEntryById(10).isPresent());
+	}
+	
+	@Test
+	public void shouldLeaveOtherVisitServiceCallsAlone() {
+		// This is an around interceptor, so every VisitService call in a server with the module
+		// installed passes through it, not just the purges. A no-arg method covers the empty argument
+		// array it has to tolerate on the way past.
+		assertFalse(visitService.getAllVisitTypes().isEmpty());
+		assertNotNull(visitService.getVisit(visit.getVisitId()));
+		assertTrue(queueEntryService.getQueueEntryById(3).isPresent());
 	}
 }

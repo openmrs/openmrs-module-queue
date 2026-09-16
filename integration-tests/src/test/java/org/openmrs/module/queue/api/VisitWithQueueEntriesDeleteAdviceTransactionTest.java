@@ -9,8 +9,10 @@
  */
 package org.openmrs.module.queue.api;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
@@ -36,11 +38,11 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Covers the one thing {@link VisitWithQueueEntriesDeleteAdviceTest} structurally cannot: that the
- * queue entries the advice purges go only if the visit goes too. This needs its own class because
- * the test has to run outside the transaction the other tests rely on. Inside one, the purged
- * entries read as deleted whether or not the failed delete would have rolled them back, so a
- * transactional test passes either way.
+ * Covers what {@link VisitWithQueueEntriesDeleteAdviceTest} structurally cannot: that the queue
+ * entries the advice purges go only if the visit goes too. This needs its own class because the
+ * test has to run outside the transaction the other tests rely on. Inside one, the purged entries
+ * read as deleted whether or not the failed delete would have rolled them back, so a transactional
+ * test passes either way.
  */
 @ContextConfiguration(classes = SpringTestConfiguration.class, inheritLocations = false)
 public class VisitWithQueueEntriesDeleteAdviceTransactionTest extends BaseModuleContextSensitiveTest {
@@ -74,8 +76,9 @@ public class VisitWithQueueEntriesDeleteAdviceTransactionTest extends BaseModule
 	@Before
 	public void setup() {
 		INITIAL_DATASET_XML.forEach(this::executeDataSet);
-		// config.xml <advice> is not read by module tests, so register it here to exercise the same
-		// interceptor chain that production purges go through
+		// the module test harness does not register advice from config.xml, so register it here to
+		// exercise the same interceptor chain that production purges go through (ModuleAdviceConfigTest
+		// covers the config.xml declaration itself)
 		Context.addAdvice(VisitService.class, advice);
 	}
 	
@@ -96,7 +99,10 @@ public class VisitWithQueueEntriesDeleteAdviceTransactionTest extends BaseModule
 		    encounterService.getEncountersByVisit(visit, true).isEmpty());
 		
 		// core checks for encounters only once this advice has already run
-		assertThrows(APIException.class, () -> visitService.purgeVisit(visit));
+		APIException refused = assertThrows(APIException.class, () -> visitService.purgeVisit(visit));
+		// pin what refused it, so this cannot pass on an exception raised before the cascade ran at all
+		// (the wording is core's Visit.purge.inUse)
+		assertThat(refused.getMessage(), containsString("encounters"));
 		Context.clearSession();
 		
 		assertNotNull("the visit survived, so its queue entries must too", visitService.getVisit(visitId));
