@@ -57,8 +57,7 @@ public class VisitWithQueueEntriesDeleteAdviceTest extends BaseModuleContextSens
 		INITIAL_DATASET_XML.forEach(this::executeDataSet);
 		visit = queueEntryService.getQueueEntryById(3).get().getVisit();
 		// the module test harness does not register advice from config.xml, so register it here to
-		// exercise the same interceptor chain that production purges go through (ModuleAdviceConfigTest
-		// covers the config.xml declaration itself)
+		// exercise the same interceptor chain that production purges go through
 		Context.addAdvice(VisitService.class, advice);
 	}
 	

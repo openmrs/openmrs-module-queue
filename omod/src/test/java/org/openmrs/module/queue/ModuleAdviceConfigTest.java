@@ -9,18 +9,13 @@
  */
 package org.openmrs.module.queue;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import java.io.InputStream;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.io.File;
 
 import org.aopalliance.aop.Advice;
 import org.junit.Test;
@@ -32,14 +27,18 @@ import org.w3c.dom.NodeList;
 /**
  * The {@code <advice>} elements in config.xml are what registers this module's AOP advice in a
  * deployed server, and this test is the build's only check on them: module tests register advice
- * themselves rather than going through config.xml. Getting one wrong fails quietly rather than
- * loudly: {@code AdvicePoint.getClassInstance} catches the reflection failure and logs a warning,
- * {@code ModuleFactory.loadAdvice} then logs at debug and carries on, and the module starts with
- * the cascade simply absent.
+ * themselves rather than going through config.xml.
+ * <p>
+ * Two of the three things checked here fail quietly in a server. A {@code <class>} that will not
+ * load leaves {@code ModuleFactory.loadAdvice} logging a warning, and one that will not instantiate
+ * leaves {@code AdvicePoint.getClassInstance} returning null and {@code loadAdvice} logging at
+ * debug; either way the module starts with the cascade simply absent. The type check is the
+ * opposite: {@code loadAdvice} casts to {@code Advice} without testing, catching only
+ * {@code ClassNotFoundException} and {@code NoClassDefFoundError}, and its caller in
+ * {@code ModuleUtil.refreshApplicationContext} has no catch at all, so a wrong type aborts the
+ * post-refresh loop for every started module rather than just this one.
  */
 public class ModuleAdviceConfigTest {
-	
-	private static final String MODULE_PACKAGE = "org.openmrs.module.queue";
 	
 	@Test
 	public void everyAdvicePointAndClassInConfigXmlShouldBeUsable() throws Exception {
@@ -64,7 +63,7 @@ public class ModuleAdviceConfigTest {
 			}
 			catch (NoSuchMethodException e) {
 				throw new AssertionError(
-				        adviceClassName + " needs a public no-arg constructor for AdvicePoint to" + " instantiate it", e);
+				        adviceClassName + " needs a public no-arg constructor for AdvicePoint to instantiate it", e);
 			}
 			assertTrue(
 			    adviceClassName + " must implement " + Advice.class.getName() + " or " + Advisor.class.getName()
@@ -74,25 +73,23 @@ public class ModuleAdviceConfigTest {
 	}
 	
 	/**
-	 * Reads this module's packaged config.xml, picked out by its {@code <package>} rather than by
-	 * taking the first {@code config.xml} on the classpath, because required modules ship one too.
+	 * Reads this module's own config.xml from the source tree. Reading it off the classpath instead
+	 * would mean parsing every {@code config.xml} there to find this one, and a required module ships
+	 * one: a malformed or entity-bearing document of somebody else's then decides whether this test
+	 * passes. Nothing in the {@code <advice>} elements is Maven-filtered, so the source copy and the
+	 * packaged copy say the same thing.
 	 */
 	private Document queueConfigXml() throws Exception {
+		// surefire runs with the module directory as its working directory
+		File configXml = new File("src/main/resources/config.xml");
+		assertTrue("expected to find " + configXml.getAbsolutePath(), configXml.isFile());
+		
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+		factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+		factory.setExpandEntityReferences(false);
 		DocumentBuilder builder = factory.newDocumentBuilder();
-		
-		List<Document> ours = new ArrayList<>();
-		for (URL url : Collections.list(getClass().getClassLoader().getResources("config.xml"))) {
-			try (InputStream in = url.openStream()) {
-				Document document = builder.parse(in);
-				if (MODULE_PACKAGE.equals(childText(document.getDocumentElement(), "package"))) {
-					ours.add(document);
-				}
-			}
-		}
-		assertEquals("expected exactly one config.xml declaring package " + MODULE_PACKAGE, 1, ours.size());
-		return ours.get(0);
+		return builder.parse(configXml);
 	}
 	
 	private static String childText(Element parent, String tagName) {

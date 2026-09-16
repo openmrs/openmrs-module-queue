@@ -78,17 +78,15 @@ public class VisitWithQueueEntriesDeleteAdviceTransactionTest extends BaseModule
 	public void setup() {
 		INITIAL_DATASET_XML.forEach(this::executeDataSet);
 		// the module test harness does not register advice from config.xml, so register it here to
-		// exercise the same interceptor chain that production purges go through (ModuleAdviceConfigTest
-		// covers the config.xml declaration itself)
+		// exercise the same interceptor chain that production purges go through
 		Context.addAdvice(VisitService.class, advice);
 	}
 	
 	@After
 	public void tearDown() {
 		Context.removeAdvice(VisitService.class, advice);
-		// Nothing this test wrote was rolled back. Core wipes after the last method of a class anyway,
-		// so this is here for the second test method: without it that method's executeDataSet would
-		// meet the rows this one committed.
+		// This test runs outside a transaction, so everything it wrote is committed, including an
+		// encounter that no dataset would replace. Wipe it rather than leave it to whatever runs next.
 		deleteAllData();
 	}
 	

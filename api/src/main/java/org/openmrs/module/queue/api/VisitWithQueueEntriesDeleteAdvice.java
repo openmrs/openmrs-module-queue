@@ -21,8 +21,8 @@ import org.openmrs.module.queue.utils.PrivilegeConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 /**
  * Purges the queue entries of a visit before {@link org.openmrs.api.VisitService#purgeVisit}
@@ -36,20 +36,15 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * <p>
  * The cascade and core's own delete run in one transaction, taken out here, because the entries
  * must not go without the visit. {@code purgeVisit} refuses a visit that still has encounters, and
- * it does so after this advice has run, so the two have to stand or fall together. Propagation is
- * the default, so this joins a caller's transaction where there is one and starts its own where
- * there is not.
+ * it does so after this advice has run, so the two have to stand or fall together.
  * <p>
- * It has to be taken out here rather than inherited from the service, and the reason is easy to get
- * backwards. {@code applicationContext-service.xml} does declare {@code visitService} as a
- * {@code TransactionProxyFactoryBean} (line 515), but that proxy's own transaction advisor is inert
- * for {@code purgeVisit}: its target is the proxy that the {@code DefaultAdvisorAutoProxyCreator}
- * and {@code TransactionAttributeSourceAdvisor} pair (lines 46 and 52) has already wrapped around
- * {@code visitServiceTarget}, and that target is a JDK proxy of the {@code VisitService} interface,
- * which carries no {@code @Transactional} for the attribute source to find. The transaction
- * therefore begins in the inner proxy, a layer below where {@code Context.addAdvice} appends this
- * advice, and without the one taken out here nothing the cascade did would be rolled back with the
- * refused delete.
+ * The transaction is taken out here rather than relied upon, because {@code Context.addAdvice}
+ * gives no guarantee that one is open by the time the advice runs. Whether one is depends on how
+ * the platform wraps {@code visitService}, which is not this module's to depend on and has already
+ * changed between supported versions. Propagation is the default, so this joins a transaction where
+ * the platform provides one and opens its own where it does not. Do not remove it on the strength
+ * of a platform that provides one: {@code VisitWithQueueEntriesDeleteAdviceTransactionTest} is what
+ * says whether the entries survive a refused delete, and it is green either way on such a platform.
  */
 public class VisitWithQueueEntriesDeleteAdvice implements MethodInterceptor {
 	
@@ -71,7 +66,7 @@ public class VisitWithQueueEntriesDeleteAdvice implements MethodInterceptor {
 		// instance, so a field would outlive the context the bean came from
 		PlatformTransactionManager transactionManager = Context.getRegisteredComponent("transactionManager",
 		    PlatformTransactionManager.class);
-		TransactionStatus transaction = transactionManager.getTransaction(new DefaultTransactionDefinition());
+		TransactionStatus transaction = transactionManager.getTransaction(TransactionDefinition.withDefaults());
 		Object result;
 		try {
 			purgeQueueEntries(visit);
@@ -82,8 +77,9 @@ public class VisitWithQueueEntriesDeleteAdvice implements MethodInterceptor {
 				transactionManager.rollback(transaction);
 			}
 			catch (RuntimeException | Error rollbackFailure) {
-				// keep hold of t: it is the only thing that says why the purge was refused, and the
-				// rollback failure is what the caller is about to see instead
+				// t is the only thing that says why the purge was refused, and the rollback failure is
+				// what propagates in its place. Suppressing it keeps it in the printed stack trace, so
+				// it reaches the server log; error responses built from getCause() will not show it.
 				rollbackFailure.addSuppressed(t);
 				throw rollbackFailure;
 			}
