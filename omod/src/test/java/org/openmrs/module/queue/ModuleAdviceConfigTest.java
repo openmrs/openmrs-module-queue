@@ -29,14 +29,13 @@ import org.w3c.dom.NodeList;
  * deployed server, and this test is the build's only check on them: module tests register advice
  * themselves rather than going through config.xml.
  * <p>
- * Two of the three things checked here fail quietly in a server. A {@code <class>} that will not
- * load leaves {@code ModuleFactory.loadAdvice} logging a warning, and one that will not instantiate
- * leaves {@code AdvicePoint.getClassInstance} returning null and {@code loadAdvice} logging at
- * debug; either way the module starts with the cascade simply absent. The type check is the
- * opposite: {@code loadAdvice} casts to {@code Advice} without testing, catching only
- * {@code ClassNotFoundException} and {@code NoClassDefFoundError}, and its caller in
- * {@code ModuleUtil.refreshApplicationContext} has no catch at all, so a wrong type aborts the
- * post-refresh loop for every started module rather than just this one.
+ * The checks below mirror what {@code ModuleFactory.loadAdvice} and
+ * {@code AdvicePoint.getClassInstance} do with the two values, so that a config.xml this build
+ * accepts is one a server can load. The type check earns its place twice over: {@code loadAdvice}
+ * casts to {@code Advice} without testing, catching only {@code ClassNotFoundException} and
+ * {@code NoClassDefFoundError}, and its caller in {@code ModuleUtil.refreshApplicationContext} has
+ * no catch at all, so a wrong type propagates out of the post-refresh loop and the started modules
+ * behind this one never get their advice loaded.
  */
 public class ModuleAdviceConfigTest {
 	
@@ -76,8 +75,9 @@ public class ModuleAdviceConfigTest {
 	 * Reads this module's own config.xml from the source tree. Reading it off the classpath instead
 	 * would mean parsing every {@code config.xml} there to find this one, and a required module ships
 	 * one: a malformed or entity-bearing document of somebody else's then decides whether this test
-	 * passes. Nothing in the {@code <advice>} elements is Maven-filtered, so the source copy and the
-	 * packaged copy say the same thing.
+	 * passes. The source copy is the one a typo lands in, and reading it requires the {@code <advice>}
+	 * elements to stay free of the {@code ${...}} tokens the rest of the file uses, since Maven would
+	 * resolve those in the packaged copy and this test would not.
 	 */
 	private Document queueConfigXml() throws Exception {
 		// surefire runs with the module directory as its working directory
