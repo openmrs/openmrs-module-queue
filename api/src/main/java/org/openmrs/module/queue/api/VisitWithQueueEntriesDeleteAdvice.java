@@ -9,9 +9,10 @@
  */
 package org.openmrs.module.queue.api;
 
-import java.lang.reflect.Method;
 import java.util.List;
 
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
 import org.openmrs.Visit;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
@@ -19,7 +20,9 @@ import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.utils.PrivilegeConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.aop.MethodBeforeAdvice;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 /**
  * Purges the queue entries of a visit before {@link org.openmrs.api.VisitService#purgeVisit}
@@ -29,21 +32,48 @@ import org.springframework.aop.MethodBeforeAdvice;
  * Purging cannot be done from a handler: core runs save/void handlers through RequiredDataAdvice,
  * which is not consulted on a purge, so advice on the service is the only hook. Voiding is owned by
  * {@link VisitWithQueueEntriesVoidHandler}, which core does reach on the {@code voidVisit} path.
+ * <p>
+ * The cascade and core's own delete are run inside one transaction opened here, because the entries
+ * must not go without the visit. {@code purgeVisit} refuses a visit that still has encounters, and
+ * it does so after this advice has run, so the two have to stand or fall together. A transaction is
+ * opened explicitly rather than relied upon: advice registered through {@code Context.addAdvice} is
+ * appended to the proxy that {@code ServiceContext} holds, and core's
+ * {@code applicationContext-service.xml} already auto-proxies every {@code @Transactional} service
+ * implementation, so that outer proxy sits one layer outside the one which begins the transaction
+ * and nothing here would otherwise be rolled back with the failed delete.
  */
-public class VisitWithQueueEntriesDeleteAdvice implements MethodBeforeAdvice {
+public class VisitWithQueueEntriesDeleteAdvice implements MethodInterceptor {
 	
 	private static final Logger log = LoggerFactory.getLogger(VisitWithQueueEntriesDeleteAdvice.class);
 	
 	@Override
-	public void before(Method method, Object[] args, Object target) {
-		if (!"purgeVisit".equals(method.getName()) || args.length == 0 || !(args[0] instanceof Visit)) {
-			return;
+	public Object invoke(MethodInvocation invocation) throws Throwable {
+		Object[] args = invocation.getArguments();
+		if (!"purgeVisit".equals(invocation.getMethod().getName()) || args.length == 0 || !(args[0] instanceof Visit)) {
+			return invocation.proceed();
 		}
 		Visit visit = (Visit) args[0];
 		if (visit.getVisitId() == null) {
-			return;
+			return invocation.proceed();
 		}
 		
+		PlatformTransactionManager transactionManager = Context.getRegisteredComponent("transactionManager",
+		    PlatformTransactionManager.class);
+		TransactionStatus transaction = transactionManager.getTransaction(new DefaultTransactionDefinition());
+		Object result;
+		try {
+			purgeQueueEntries(visit);
+			result = invocation.proceed();
+		}
+		catch (Throwable t) {
+			transactionManager.rollback(transaction);
+			throw t;
+		}
+		transactionManager.commit(transaction);
+		return result;
+	}
+	
+	private void purgeQueueEntries(Visit visit) {
 		// Purging a visit is driven by a core service whose callers need not hold queue privileges,
 		// so grant them for the duration of this cascade, as the queue handlers do
 		Context.addProxyPrivilege(PrivilegeConstants.GET_QUEUE_ENTRIES);

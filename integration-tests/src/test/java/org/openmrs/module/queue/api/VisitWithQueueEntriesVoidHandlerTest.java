@@ -173,4 +173,24 @@ public class VisitWithQueueEntriesVoidHandlerTest extends BaseModuleContextSensi
 		assertTrue(cascaded.getVoided());
 		assertThat(cascaded.getDateVoided().getTime(), equalTo(voidedVisit.getDateVoided().getTime()));
 	}
+	
+	@Test
+	public void shouldVoidQueueEntriesThatHadAlreadyEnded() {
+		// An entry is ended rather than removed when the patient is served or moved on to another queue,
+		// so a visit deleted after that has ended entries on it and they belong to a visit that now never
+		// happened. Nothing else pins this: the cascade covers them only because
+		// QueueEntrySearchCriteria.isEnded defaults to null, and the sibling save handler sets it to false.
+		QueueEntry ended = queueEntryService.getQueueEntryById(1).get();
+		assertNotNull(ended.getEndedAt());
+		assertFalse(ended.getVoided());
+		
+		visitService.voidVisit(visitService.getVisit(VISIT_WITH_VOIDED_ENTRY_ID), "for testing");
+		Context.flushSession();
+		Context.clearSession();
+		
+		Visit voidedVisit = visitService.getVisit(VISIT_WITH_VOIDED_ENTRY_ID);
+		ended = queueEntryService.getQueueEntryById(1).get();
+		assertTrue(ended.getVoided());
+		assertThat(ended.getDateVoided().getTime(), equalTo(voidedVisit.getDateVoided().getTime()));
+	}
 }
