@@ -9,6 +9,7 @@
  */
 package org.openmrs.module.queue;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -16,6 +17,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import java.io.File;
+import java.lang.reflect.Modifier;
 
 import org.aopalliance.aop.Advice;
 import org.junit.Test;
@@ -51,12 +53,21 @@ public class ModuleAdviceConfigTest {
 			assertNotNull("advice needs a point", point);
 			assertNotNull("advice needs a class", adviceClassName);
 			
+			// The point is the service interface ServiceContext keys its map by. Context.addAdvice does
+			// services.get(cls) with no null check, so naming an implementation here throws out of the
+			// same post-refresh loop a wrong advice type does. Being an interface is necessary and not
+			// sufficient; only a running Context could say whether it is a registered service.
+			Class<?> pointClass = Class.forName(point);
+			assertTrue(point + " must be the service interface, not an implementation class", pointClass.isInterface());
+			
 			// AdvicePoint.getClassInstance loads the class and calls its public no-arg constructor, and
 			// ModuleFactory.loadAdvice then registers the instance as an Advisor if it is one and as an
 			// Advice otherwise, so either type is legal here. The constructor is looked up rather than
-			// called, so an advice that legitimately touches Context on construction is not failed for it.
-			Class.forName(point);
+			// called, so an advice that legitimately touches Context on construction is not failed for it,
+			// which is why abstractness is checked separately instead of by trying to instantiate.
 			Class<?> adviceClass = Class.forName(adviceClassName);
+			assertFalse(adviceClassName + " must not be abstract for AdvicePoint to instantiate it",
+			    Modifier.isAbstract(adviceClass.getModifiers()));
 			try {
 				adviceClass.getConstructor();
 			}
