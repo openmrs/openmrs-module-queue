@@ -91,8 +91,13 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	 */
 	@Override
 	public QueueEntry saveQueueEntry(QueueEntry queueEntry) {
-		Double sortWeight = getSortWeightGenerator().generateSortWeight(queueEntry);
-		queueEntry.setSortWeight(sortWeight);
+		// A voided entry takes no part in queue ordering, so leave its sort weight alone. This also keeps
+		// void cascades (patient or visit voided) from reading module configuration the acting user may
+		// not be privileged to see, since generators may resolve global properties and concept sets.
+		if (!Boolean.TRUE.equals(queueEntry.getVoided()) || queueEntry.getSortWeight() == null) {
+			Double sortWeight = getSortWeightGenerator().generateSortWeight(queueEntry);
+			queueEntry.setSortWeight(sortWeight);
+		}
 		return dao.createOrUpdate(queueEntry);
 	}
 	
@@ -120,10 +125,23 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		// Capture the dateChanged for optimistic locking
 		Date expectedDateChanged = currentState.getDateChanged();
 		
+		// Round the transition date to whole seconds so the value persisted as the old entry's
+		// ended_at is byte-for-byte identical to the new entry's started_at; the underlying
+		// DATETIME column stores second precision and mismatched rounding would otherwise put the
+		// two timestamps in adjacent seconds and leave gaps in the queue history.
+		Date transitionDate = roundToSecond(queueEntryTransition.getTransitionDate());
+		// Guarantee the entry being ended has a strictly positive duration. When a transition lands
+		// in the same second the entry was created, advance by one second so endedAt > startedAt.
+		Date currentStartedAt = currentState.getStartedAt();
+		if (currentStartedAt != null && !transitionDate.after(currentStartedAt)) {
+			transitionDate = new Date(currentStartedAt.getTime() + 1000L);
+		}
+		queueEntryTransition.setTransitionDate(transitionDate);
+		
 		QueueEntry queueEntryToStart = queueEntryTransition.constructNewQueueEntry();
 		
 		// Use optimistic locking to end the current entry
-		queueEntryToStop.setEndedAt(queueEntryTransition.getTransitionDate());
+		queueEntryToStop.setEndedAt(transitionDate);
 		boolean updated = dao.updateIfUnmodified(queueEntryToStop, expectedDateChanged);
 		if (!updated) {
 			throw new IllegalStateException("Queue entry was modified by another transaction");
@@ -185,6 +203,18 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		queueEntry.setVoidReason(voidReason);
 		queueEntry.setDateVoided(new Date());
 		queueEntry.setVoidedBy(Context.getAuthenticatedUser());
+		dao.createOrUpdate(queueEntry);
+	}
+	
+	/**
+	 * @see QueueEntryService#unvoidQueueEntry(QueueEntry)
+	 */
+	@Override
+	public void unvoidQueueEntry(QueueEntry queueEntry) {
+		queueEntry.setVoided(false);
+		queueEntry.setVoidReason(null);
+		queueEntry.setDateVoided(null);
+		queueEntry.setVoidedBy(null);
 		dao.createOrUpdate(queueEntry);
 	}
 	
@@ -269,6 +299,14 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	private void endQueueEntry(@NotNull QueueEntry queueEntry) {
 		queueEntry.setEndedAt(new Date());
 		dao.createOrUpdate(queueEntry);
+	}
+	
+	private static Date roundToSecond(Date date) {
+		if (date == null) {
+			return null;
+		}
+		long ms = date.getTime();
+		return new Date(Math.floorDiv(ms + 500L, 1000L) * 1000L);
 	}
 	
 	@Override

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+
+    This Source Code Form is subject to the terms of the Mozilla Public License,
+    v. 2.0. If a copy of the MPL was not distributed with this file, You can
+    obtain one at http://mozilla.org/MPL/2.0/. OpenMRS is also distributed under
+    the terms of the Healthcare Disclaimer located at http://openmrs.org/license.
+
+    Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
+    graphic logo is a trademark of OpenMRS Inc.
+
+-->
+<!--
+    Simulates data created before the duplicate-entry validator existed: a second active entry for
+    patient 100 in queue 3 that overlaps entry 3 from QueueEntryDaoTest_initialDataset.xml.
+-->
+<dataset>
+    <queue_entry queue_entry_id="12"
+                 uuid="3e4a7b1c-0b3d-4d9a-b12c-4c9e3f5a6b72"
+                 queue_id="3"
+                 patient_id="100"
+                 visit_id="102"
+                 started_at="2022-02-03 17:40:56.0"
+                 ended_at="[NULL]"
+                 priority="1001"
+                 priority_comment="[NULL]"
+                 status="3002"
+                 sort_weight="0"
+                 location_waiting_for="[NULL]"
+                 provider_waiting_for="[NULL]"
+                 queue_coming_from="[NULL]"
+                 voided="false"
+                 voided_by="[NULL]"
+                 date_voided="[NULL]"
+                 creator="1"
+                 date_created="2022-02-03 17:38:56.0"
+    />
+</dataset>

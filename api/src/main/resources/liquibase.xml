@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
+
     This Source Code Form is subject to the terms of the Mozilla Public License,
     v. 2.0. If a copy of the MPL was not distributed with this file, You can
     obtain one at http://mozilla.org/MPL/2.0/. OpenMRS is also distributed under
@@ -7,6 +8,7 @@
 
     Copyright (C) OpenMRS Inc. OpenMRS is a registered trademark and the OpenMRS
     graphic logo is a trademark of OpenMRS Inc.
+
 -->
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -745,6 +747,55 @@
             SELECT role, 'Purge Queues' from role_privilege rp
             WHERE rp.privilege = 'Manage Visit Types';
         </sql>
+    </changeSet>
+
+    <changeSet id="add_queue_entry_queue_ended_index_20260605" author="ujjawalprabhat">
+        <preConditions onFail="MARK_RAN" onError="WARN">
+            <not>
+                <indexExists tableName="queue_entry" indexName="queue_entry_queue_ended_idx"/>
+            </not>
+        </preConditions>
+        <comment>Add index to queue_entry on (queue_id, ended_at)</comment>
+        <createIndex tableName="queue_entry" indexName="queue_entry_queue_ended_idx">
+            <column name="queue_id"/>
+            <column name="ended_at"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="add_queue_entry_ended_at_index_20260605" author="ujjawalprabhat">
+        <preConditions onFail="MARK_RAN" onError="WARN">
+            <not>
+                <indexExists tableName="queue_entry" indexName="queue_entry_ended_at_idx"/>
+            </not>
+        </preConditions>
+        <comment>Add index to queue_entry on ended_at</comment>
+        <createIndex tableName="queue_entry" indexName="queue_entry_ended_at_idx">
+            <column name="ended_at"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="add_queue_entry_started_at_index_20260605" author="ujjawalprabhat">
+        <preConditions onFail="MARK_RAN" onError="WARN">
+            <not>
+                <indexExists tableName="queue_entry" indexName="queue_entry_started_at_idx"/>
+            </not>
+        </preConditions>
+        <comment>Add index to queue_entry on started_at</comment>
+        <createIndex tableName="queue_entry" indexName="queue_entry_started_at_idx">
+            <column name="started_at"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="add_queue_entry_patient_id_index_20260605" author="ujjawalprabhat">
+        <preConditions onFail="MARK_RAN" onError="WARN">
+            <not>
+                <indexExists tableName="queue_entry" columnNames="patient_id"/>
+            </not>
+        </preConditions>
+        <comment>Add index to queue_entry on patient_id</comment>
+        <createIndex tableName="queue_entry" indexName="queue_entry_patient_id_idx">
+            <column name="patient_id"/>
+        </createIndex>
     </changeSet>
 
 </databaseChangeLog>

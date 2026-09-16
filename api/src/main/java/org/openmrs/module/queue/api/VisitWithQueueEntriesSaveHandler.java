@@ -17,10 +17,12 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.User;
 import org.openmrs.Visit;
 import org.openmrs.annotation.Handler;
+import org.openmrs.api.context.Context;
 import org.openmrs.api.handler.SaveHandler;
 import org.openmrs.api.handler.VoidHandler;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.QueueEntry;
+import org.openmrs.module.queue.utils.PrivilegeConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -38,34 +40,46 @@ public class VisitWithQueueEntriesSaveHandler implements SaveHandler<Visit>, Voi
 	
 	@Override
 	public void handle(Visit visit, User user, Date date, String s) {
-		if (visit.getVisitId() != null && visit.getStopDatetime() != null) {
-			QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
-			criteria.setVisit(visit);
-			criteria.setIsEnded(false);
-			List<QueueEntry> queueEntries = queueEntryService.getQueueEntries(criteria);
-			if (!queueEntries.isEmpty()) {
-				log.debug("Closing " + +queueEntries.size() + " queue entries associated with stopped visit");
+		// Voiding or unvoiding is driven by core services whose callers need not hold queue privileges,
+		// so grant them for the duration of this cascade, as core's PatientDataVoidHandler does
+		Context.addProxyPrivilege(PrivilegeConstants.GET_QUEUE_ENTRIES);
+		Context.addProxyPrivilege(PrivilegeConstants.MANAGE_QUEUE_ENTRIES);
+		try {
+			if (visit.getVisitId() != null && visit.getStopDatetime() != null) {
+				QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
+				criteria.setVisit(visit);
+				criteria.setIsEnded(false);
+				List<QueueEntry> queueEntries = queueEntryService.getQueueEntries(criteria);
+				if (!queueEntries.isEmpty()) {
+					log.debug("Closing " + +queueEntries.size() + " queue entries associated with stopped visit");
+				}
+				for (QueueEntry qe : queueEntries) {
+					qe.setEndedAt(visit.getStopDatetime());
+					queueEntryService.saveQueueEntry(qe);
+					log.trace("Closed queue entry " + qe + " on " + visit.getStopDatetime());
+				}
 			}
-			for (QueueEntry qe : queueEntries) {
-				qe.setEndedAt(visit.getStopDatetime());
-				queueEntryService.saveQueueEntry(qe);
-				log.trace("Closed queue entry " + qe + " on " + visit.getStopDatetime());
+			if (visit.getVisitId() != null && visit.getVoided()) {
+				QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
+				criteria.setVisit(visit);
+				// The visit's patient may itself be voided, which would hide its entries from the default search
+				criteria.setIncludedVoided(true);
+				List<QueueEntry> queueEntries = queueEntryService.getQueueEntries(criteria);
+				for (QueueEntry qe : queueEntries) {
+					if (!qe.getVoided()) {
+						qe.setVoided(true);
+						qe.setVoidReason(visit.getVoidReason());
+						qe.setVoidedBy(visit.getVoidedBy());
+						qe.setDateVoided(visit.getDateVoided());
+						queueEntryService.saveQueueEntry(qe);
+					}
+					log.trace("Voided queue entry " + qe + " on " + date);
+				}
 			}
 		}
-		if (visit.getVisitId() != null && visit.getVoided()) {
-			QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
-			criteria.setVisit(visit);
-			List<QueueEntry> queueEntries = queueEntryService.getQueueEntries(criteria);
-			for (QueueEntry qe : queueEntries) {
-				if (!qe.getVoided()) {
-					qe.setVoided(true);
-					qe.setVoidReason(visit.getVoidReason());
-					qe.setVoidedBy(visit.getVoidedBy());
-					qe.setDateVoided(visit.getDateVoided());
-					queueEntryService.saveQueueEntry(qe);
-				}
-				log.trace("Voided queue entry " + qe + " on " + date);
-			}
+		finally {
+			Context.removeProxyPrivilege(PrivilegeConstants.GET_QUEUE_ENTRIES);
+			Context.removeProxyPrivilege(PrivilegeConstants.MANAGE_QUEUE_ENTRIES);
 		}
 	}
 }

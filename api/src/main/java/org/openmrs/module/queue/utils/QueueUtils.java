@@ -26,12 +26,14 @@ import org.openmrs.module.queue.model.QueueEntry;
 public class QueueUtils {
 	
 	/**
-	 * Utility method for parsing a date from a string into a Date. TODO: This will need review and
-	 * testing related to handling of timezones and other date formats
+	 * Utility method for parsing a date from a string into a Date
 	 *
 	 * @param dateVal the date value ot parse
 	 * @return the resulting date object
+	 * @deprecated as of 3.1.0, as this only accepts yyyy-MM-dd HH:mm:ss in the server's default
+	 *             timezone. REST date parameters now use ConversionUtil.convert(String, Date.class).
 	 */
+	@Deprecated
 	public static Date parseDate(String dateVal) {
 		try {
 			return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(dateVal);
@@ -55,10 +57,9 @@ public class QueueUtils {
 	/**
 	 * @param queueEntries the QueueEntries to check
 	 * @return the average duration for the entries, in minutes, between startedAt and endedAt, where
-	 *         both are non-null
+	 *         both are non-null, or null if no entry has both a startedAt and an endedAt
 	 */
-	public static double computeAverageWaitTimeInMinutes(List<QueueEntry> queueEntries) {
-		double averageWaitTime = 0.0;
+	public static Double computeAverageWaitTimeInMinutes(List<QueueEntry> queueEntries) {
 		if (queueEntries != null && !queueEntries.isEmpty()) {
 			double totalWaitTime = 0.0;
 			int numEntries = 0;
@@ -70,9 +71,74 @@ public class QueueUtils {
 					numEntries++;
 				}
 			}
-			averageWaitTime = totalWaitTime / numEntries;
+			// Returning 0.0 here would be indistinguishable from a genuine zero-minute wait
+			if (numEntries > 0) {
+				return totalWaitTime / numEntries;
+			}
 		}
-		return averageWaitTime;
+		return null;
+	}
+	
+	/**
+	 * Measures those still waiting, unlike {@link #computeAverageWaitTimeInMinutes(List)}, which
+	 * averages waits that have already finished
+	 *
+	 * @param queueEntries the QueueEntries to check
+	 * @param asOf the point in time to measure the open durations against
+	 * @return the average duration, in minutes, between startedAt and asOf for entries that have a
+	 *         startedAt and no endedAt, or null if there are no such entries
+	 */
+	public static Double computeAverageOpenWaitTimeInMinutes(List<QueueEntry> queueEntries, Date asOf) {
+		if (queueEntries != null) {
+			double totalWaitTime = 0.0;
+			int numEntries = 0;
+			for (QueueEntry e : queueEntries) {
+				Long waitTime = computeOpenWaitTimeInMinutes(e, asOf);
+				if (waitTime != null) {
+					totalWaitTime += waitTime;
+					numEntries++;
+				}
+			}
+			// Returning 0.0 here would be indistinguishable from a genuine zero-minute wait
+			if (numEntries > 0) {
+				return totalWaitTime / numEntries;
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * @param queueEntry the QueueEntry to measure
+	 * @param asOf the point in time to measure the open duration against
+	 * @return how long the entry has been waiting, in minutes, never negative, or null if it has no
+	 *         startedAt or has already ended
+	 */
+	public static Long computeOpenWaitTimeInMinutes(QueueEntry queueEntry, Date asOf) {
+		if (queueEntry == null || asOf == null || queueEntry.getStartedAt() == null || queueEntry.getEndedAt() != null) {
+			return null;
+		}
+		// Measured between instants rather than between local date times, so that a wait spanning a
+		// daylight saving change reports the time that actually elapsed. Floored at zero, so that an
+		// entry with a startedAt in the future reports as not yet waiting rather than as negative
+		return Math.max(0, Duration.between(queueEntry.getStartedAt().toInstant(), asOf.toInstant()).toMinutes());
+	}
+	
+	/**
+	 * @param queueEntries the QueueEntries to check
+	 * @return the entry that has a startedAt, has no endedAt, and started earliest, or null if there is
+	 *         no such entry
+	 */
+	public static QueueEntry findLongestOpenWait(List<QueueEntry> queueEntries) {
+		QueueEntry longestWaiting = null;
+		if (queueEntries != null) {
+			for (QueueEntry e : queueEntries) {
+				if (e.getStartedAt() != null && e.getEndedAt() == null
+				        && (longestWaiting == null || e.getStartedAt().before(longestWaiting.getStartedAt()))) {
+					longestWaiting = e;
+				}
+			}
+		}
+		return longestWaiting;
 	}
 	
 	/**

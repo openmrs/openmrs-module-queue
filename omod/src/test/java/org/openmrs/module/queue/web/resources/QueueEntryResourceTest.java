@@ -11,16 +11,19 @@ package org.openmrs.module.queue.web.resources;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_ENDED_ON;
 import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_ENDED_ON_OR_AFTER;
 import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_ENDED_ON_OR_BEFORE;
 import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_HAS_VISIT;
@@ -34,6 +37,7 @@ import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCrit
 import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_QUEUE;
 import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_QUEUE_COMING_FROM;
 import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_SERVICE;
+import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_STARTED_ON;
 import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_STARTED_ON_OR_AFTER;
 import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_STARTED_ON_OR_BEFORE;
 import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_STATUS;
@@ -41,8 +45,12 @@ import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCrit
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.time.Instant;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +71,7 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.api.LocationService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.context.Context;
+import org.openmrs.messagesource.MessageSourceService;
 import org.openmrs.module.queue.api.QueueEntryService;
 import org.openmrs.module.queue.api.QueueRoomService;
 import org.openmrs.module.queue.api.QueueService;
@@ -71,19 +80,25 @@ import org.openmrs.module.queue.api.RoomProviderMapService;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
-import org.openmrs.module.queue.utils.QueueUtils;
 import org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestUtil;
+import org.openmrs.module.webservices.rest.web.api.RestService;
 import org.openmrs.module.webservices.rest.web.representation.CustomRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.DefaultRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.FullRepresentation;
 import org.openmrs.module.webservices.rest.web.representation.RefRepresentation;
+import org.openmrs.module.webservices.rest.web.response.ConversionException;
 
 @ExtendWith(MockitoExtension.class)
 public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, QueueEntryResource> {
 	
 	private static final String QUEUE_ENTRY_UUID = "6hje567a-fca0-11e5-9e59-08002719a7";
+	
+	// An instant expressed with an offset, so the expectation holds whatever timezone the tests run in
+	private static final String DATE_WITH_OFFSET = "2023-09-10T16:42:13.000+05:30";
+	
+	private static final Date EXPECTED_DATE = Date.from(Instant.parse("2023-09-10T11:12:13Z"));
 	
 	private QueueEntryResource resource;
 	
@@ -135,6 +150,11 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 		
 		//By pass authentication
 		getContext().when(Context::isAuthenticated).thenReturn(true);
+		
+		// ConversionUtil looks for a Date converter before parsing; finding none raises an APIException
+		// that it swallows, and building that exception localizes its message. Both are needed.
+		getContext().when(() -> Context.getService(RestService.class)).thenReturn(mock(RestService.class));
+		getContext().when(Context::getMessageSourceService).thenReturn(mock(MessageSourceService.class));
 		
 		getContext().when(() -> Context.getRegisteredComponents(QueueServicesWrapper.class))
 		        .thenReturn(Collections.singletonList(queueServicesWrapper));
@@ -354,42 +374,90 @@ public class QueueEntryResourceTest extends BaseQueueResourceTest<QueueEntry, Qu
 	
 	@Test
 	public void shouldSearchQueueEntriesByStartedOnOrAfter() {
-		String dateStr = "2023-09-10 11:12:13";
-		parameterMap.put(SEARCH_PARAM_STARTED_ON_OR_AFTER, new String[] { dateStr });
+		parameterMap.put(SEARCH_PARAM_STARTED_ON_OR_AFTER, new String[] { DATE_WITH_OFFSET });
 		resource.doSearch(requestContext);
 		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
 		QueueEntrySearchCriteria criteria = queueEntryArgumentCaptor.getValue();
-		assertThat(criteria.getStartedOnOrAfter(), equalTo(QueueUtils.parseDate(dateStr)));
+		assertThat(criteria.getStartedOnOrAfter(), equalTo(EXPECTED_DATE));
 	}
 	
 	@Test
 	public void shouldSearchQueueEntriesByStartedOnOrBefore() {
-		String dateStr = "2023-09-10 11:12:13";
-		parameterMap.put(SEARCH_PARAM_STARTED_ON_OR_BEFORE, new String[] { dateStr });
+		parameterMap.put(SEARCH_PARAM_STARTED_ON_OR_BEFORE, new String[] { DATE_WITH_OFFSET });
 		resource.doSearch(requestContext);
 		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
 		QueueEntrySearchCriteria criteria = queueEntryArgumentCaptor.getValue();
-		assertThat(criteria.getStartedOnOrBefore(), equalTo(QueueUtils.parseDate(dateStr)));
+		assertThat(criteria.getStartedOnOrBefore(), equalTo(EXPECTED_DATE));
+	}
+	
+	@Test
+	public void shouldSearchQueueEntriesByStartedOn() {
+		parameterMap.put(SEARCH_PARAM_STARTED_ON, new String[] { DATE_WITH_OFFSET });
+		resource.doSearch(requestContext);
+		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
+		QueueEntrySearchCriteria criteria = queueEntryArgumentCaptor.getValue();
+		assertThat(criteria.getStartedOn(), equalTo(EXPECTED_DATE));
 	}
 	
 	@Test
 	public void shouldSearchQueueEntriesByEndedOnOrAfter() {
-		String dateStr = "2023-09-10 11:12:13";
-		parameterMap.put(SEARCH_PARAM_ENDED_ON_OR_AFTER, new String[] { dateStr });
+		parameterMap.put(SEARCH_PARAM_ENDED_ON_OR_AFTER, new String[] { DATE_WITH_OFFSET });
 		resource.doSearch(requestContext);
 		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
 		QueueEntrySearchCriteria criteria = queueEntryArgumentCaptor.getValue();
-		assertThat(criteria.getEndedOnOrAfter(), equalTo(QueueUtils.parseDate(dateStr)));
+		assertThat(criteria.getEndedOnOrAfter(), equalTo(EXPECTED_DATE));
 	}
 	
 	@Test
 	public void shouldSearchQueueEntriesByEndedOnOrBefore() {
-		String dateStr = "2023-09-10 11:12:13";
-		parameterMap.put(SEARCH_PARAM_ENDED_ON_OR_BEFORE, new String[] { dateStr });
+		parameterMap.put(SEARCH_PARAM_ENDED_ON_OR_BEFORE, new String[] { DATE_WITH_OFFSET });
 		resource.doSearch(requestContext);
 		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
 		QueueEntrySearchCriteria criteria = queueEntryArgumentCaptor.getValue();
-		assertThat(criteria.getEndedOnOrBefore(), equalTo(QueueUtils.parseDate(dateStr)));
+		assertThat(criteria.getEndedOnOrBefore(), equalTo(EXPECTED_DATE));
+	}
+	
+	@Test
+	public void shouldSearchQueueEntriesByEndedOn() {
+		parameterMap.put(SEARCH_PARAM_ENDED_ON, new String[] { DATE_WITH_OFFSET });
+		resource.doSearch(requestContext);
+		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
+		QueueEntrySearchCriteria criteria = queueEntryArgumentCaptor.getValue();
+		assertThat(criteria.getEndedOn(), equalTo(EXPECTED_DATE));
+	}
+	
+	@Test
+	public void shouldSearchQueueEntriesByDateWithAUtcDesignator() {
+		// The shape Date.toISOString() produces, which is what the O3 service queues app sends
+		parameterMap.put(SEARCH_PARAM_STARTED_ON_OR_AFTER, new String[] { "2023-09-10T11:12:13.000Z" });
+		resource.doSearch(requestContext);
+		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
+		QueueEntrySearchCriteria criteria = queueEntryArgumentCaptor.getValue();
+		assertThat(criteria.getStartedOnOrAfter(), equalTo(EXPECTED_DATE));
+	}
+	
+	@Test
+	public void shouldSearchQueueEntriesByDateWithoutATimezone() {
+		parameterMap.put(SEARCH_PARAM_STARTED_ON_OR_AFTER, new String[] { "2023-09-10 11:12:13" });
+		resource.doSearch(requestContext);
+		verify(queueEntryService).getQueueEntries(queueEntryArgumentCaptor.capture());
+		QueueEntrySearchCriteria criteria = queueEntryArgumentCaptor.getValue();
+		Date expected = new GregorianCalendar(2023, Calendar.SEPTEMBER, 10, 11, 12, 13).getTime();
+		assertThat(criteria.getStartedOnOrAfter(), equalTo(expected));
+	}
+	
+	@Test
+	public void shouldFailToSearchQueueEntriesByAnUnparseableDate() {
+		parameterMap.put(SEARCH_PARAM_STARTED_ON_OR_AFTER, new String[] { "not-a-date" });
+		ConversionException e = assertThrows(ConversionException.class, () -> resource.doSearch(requestContext));
+		assertThat(e.getMessage(), containsString(SEARCH_PARAM_STARTED_ON_OR_AFTER));
+	}
+	
+	@Test
+	public void shouldFailToSearchQueueEntriesByABlankDate() {
+		parameterMap.put(SEARCH_PARAM_STARTED_ON_OR_AFTER, new String[] { "" });
+		ConversionException e = assertThrows(ConversionException.class, () -> resource.doSearch(requestContext));
+		assertThat(e.getMessage(), containsString(SEARCH_PARAM_STARTED_ON_OR_AFTER));
 	}
 	
 	@Test

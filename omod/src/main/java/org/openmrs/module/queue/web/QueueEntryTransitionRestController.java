@@ -57,15 +57,10 @@ public class QueueEntryTransitionRestController extends BaseRestController {
 		        .orElseThrow(() -> new APIException("queueEntryToTransition not specified or found"));
 		transition.setQueueEntryToTransition(queueEntry);
 		
-		// Transition Date
-		Date transitionDate = new Date();
-		if (body.getTransitionDate() != null) {
-			transitionDate = (Date) ConversionUtil.convert(body.getTransitionDate(), Date.class);
-		}
-		if (transitionDate == null) {
-			throw new APIException("Invalid transition date specified: " + body.getTransitionDate());
-		}
-		transition.setTransitionDate(transitionDate);
+		// Transition date is always the server's current time. Any client-supplied transitionDate is
+		// intentionally ignored to avoid clock-skew artifacts between the old entry's ended_at and the
+		// new entry's started_at.
+		transition.setTransitionDate(new Date());
 		
 		// Queue
 		if (body.getNewQueue() != null) {

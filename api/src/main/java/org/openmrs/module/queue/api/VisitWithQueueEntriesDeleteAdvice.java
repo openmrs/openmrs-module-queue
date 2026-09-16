@@ -16,23 +16,29 @@ import org.openmrs.Visit;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.QueueEntry;
+import org.openmrs.module.queue.utils.PrivilegeConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.MethodBeforeAdvice;
 
 /**
- * AOP advice that intercepts {@link org.openmrs.api.VisitService} methods to manage associated
- * queue entries when a visit is voided or purged. For voiding, this ensures queue entries are
- * voided alongside the visit. For purging, this removes queue entries before the visit is
- * permanently deleted to prevent orphaned entries and foreign key constraint violations.
+ * Purges the queue entries of a visit before {@link org.openmrs.api.VisitService#purgeVisit}
+ * deletes it. Core's purge cascade knows nothing about queue entries, so without this the delete
+ * fails on the queue_entry foreign key to visit.
+ * <p>
+ * Purging cannot be done from a handler: core runs save/void handlers through RequiredDataAdvice,
+ * which is not consulted on a purge, so advice on the service is the only hook. Voiding needs no
+ * advice - {@link VisitWithQueueEntriesSaveHandler} already voids the entries on both the
+ * {@code saveVisit} and {@code voidVisit} paths, and stamps them with the visit's own void date and
+ * user so an unvoid can tell them apart from entries voided on their own.
  */
 public class VisitWithQueueEntriesDeleteAdvice implements MethodBeforeAdvice {
 	
 	private static final Logger log = LoggerFactory.getLogger(VisitWithQueueEntriesDeleteAdvice.class);
 	
 	@Override
-	public void before(Method method, Object[] args, Object target) throws Throwable {
-		if (args.length == 0 || !(args[0] instanceof Visit)) {
+	public void before(Method method, Object[] args, Object target) {
+		if (!"purgeVisit".equals(method.getName()) || args.length == 0 || !(args[0] instanceof Visit)) {
 			return;
 		}
 		Visit visit = (Visit) args[0];
@@ -40,34 +46,28 @@ public class VisitWithQueueEntriesDeleteAdvice implements MethodBeforeAdvice {
 			return;
 		}
 		
-		if ("voidVisit".equals(method.getName())) {
-			String voidReason = args.length > 1 && args[1] instanceof String ? (String) args[1] : null;
+		// Purging a visit is driven by a core service whose callers need not hold queue privileges,
+		// so grant them for the duration of this cascade, as the queue handlers do
+		Context.addProxyPrivilege(PrivilegeConstants.GET_QUEUE_ENTRIES);
+		Context.addProxyPrivilege(PrivilegeConstants.MANAGE_QUEUE_ENTRIES);
+		try {
 			QueueEntryService queueEntryService = Context.getService(QueueEntryService.class);
 			QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
 			criteria.setVisit(visit);
-			List<QueueEntry> queueEntries = queueEntryService.getQueueEntries(criteria);
-			if (!queueEntries.isEmpty()) {
-				log.debug("Voiding " + queueEntries.size() + " queue entries associated with voided visit");
-			}
-			for (QueueEntry qe : queueEntries) {
-				if (!qe.getVoided()) {
-					queueEntryService.voidQueueEntry(qe, voidReason);
-					log.trace("Voided queue entry " + qe);
-				}
-			}
-		} else if ("purgeVisit".equals(method.getName())) {
-			QueueEntryService queueEntryService = Context.getService(QueueEntryService.class);
-			QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
-			criteria.setVisit(visit);
+			// the visit or its patient may already be voided, which would hide the entries from the default search
 			criteria.setIncludedVoided(true);
 			List<QueueEntry> queueEntries = queueEntryService.getQueueEntries(criteria);
 			if (!queueEntries.isEmpty()) {
-				log.debug("Purging " + queueEntries.size() + " queue entries associated with purged visit");
+				log.debug("Purging {} queue entries of visit {} being purged", queueEntries.size(), visit.getVisitId());
 			}
 			for (QueueEntry qe : queueEntries) {
 				queueEntryService.purgeQueueEntry(qe);
-				log.trace("Purged queue entry " + qe);
+				log.trace("Purged queue entry {}", qe);
 			}
+		}
+		finally {
+			Context.removeProxyPrivilege(PrivilegeConstants.GET_QUEUE_ENTRIES);
+			Context.removeProxyPrivilege(PrivilegeConstants.MANAGE_QUEUE_ENTRIES);
 		}
 	}
 }

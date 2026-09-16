@@ -86,6 +86,12 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 			predicates.add(cb.or(root.get("endedAt").isNull(), cb.greaterThan(root.get("endedAt"), startedAt)));
 		}
 		
+		Date endedAt = searchCriteria.getEndedOn();
+		if (endedAt != null) {
+			// any queue entries that started before this queue entry ends
+			predicates.add(cb.lessThan(root.get("startedAt"), endedAt));
+		}
+		
 		query.where(cb.and(predicates.toArray(new Predicate[0])));
 		
 		return session.createQuery(query).list();
@@ -99,6 +105,15 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 	@Override
 	public boolean updateIfUnmodified(QueueEntry queueEntry, Date expectedDateChanged) {
 		Session session = getSessionFactory().getCurrentSession();
+		
+		// This path issues a direct JPQL UPDATE and bypasses QueueEntryValidator; enforce the
+		// strict-positive-duration invariant here so the DB never ends up with ended_at <= started_at.
+		Date endedAt = queueEntry.getEndedAt();
+		Date startedAt = queueEntry.getStartedAt();
+		if (endedAt != null && startedAt != null && !endedAt.after(startedAt)) {
+			throw new IllegalArgumentException(
+			        "Queue entry endedAt (" + endedAt + ") must be after startedAt (" + startedAt + ")");
+		}
 		
 		// Evict the entity to prevent Hibernate from auto-flushing changes
 		session.evict(queueEntry);
@@ -116,7 +131,7 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 		}
 		
 		javax.persistence.Query query = session.createQuery(jpql.toString());
-		query.setParameter("endedAt", queueEntry.getEndedAt());
+		query.setParameter("endedAt", endedAt);
 		query.setParameter("id", queueEntry.getQueueEntryId());
 		if (expectedDateChanged != null) {
 			query.setParameter("expectedDateChanged", expectedDateChanged);
@@ -127,12 +142,17 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 	}
 	
 	/**
-	 * Convert the given {@link QueueEntrySearchCriteria} into ORM criteria
+	 * Convert the given {@link QueueEntrySearchCriteria} into ORM criteria. Unless includedVoided is
+	 * set, voided entries and entries whose patient is voided are excluded.
 	 */
 	private Criteria createCriteriaFromSearchCriteria(QueueEntrySearchCriteria searchCriteria) {
 		Criteria c = getCurrentSession().createCriteria(QueueEntry.class, "qe");
 		c.createAlias("queue", "q");
 		includeVoidedObjects(c, searchCriteria.isIncludedVoided());
+		if (!searchCriteria.isIncludedVoided()) {
+			c.createAlias("patient", "p");
+			c.add(Restrictions.eq("p.voided", false));
+		}
 		limitByCollectionProperty(c, "queue", searchCriteria.getQueues());
 		limitByCollectionProperty(c, "q.location", searchCriteria.getLocations());
 		limitByCollectionProperty(c, "q.service", searchCriteria.getServices());

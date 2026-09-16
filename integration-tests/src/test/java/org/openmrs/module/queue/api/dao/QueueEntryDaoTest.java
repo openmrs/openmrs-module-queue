@@ -264,6 +264,23 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	}
 	
 	@Test
+	public void shouldExcludeQueueEntriesOfVoidedPatientsUnlessVoidedIncluded() {
+		executeDataSet("org/openmrs/module/queue/api/dao/QueueEntryDaoTest_voidedPatientInitialDataset.xml");
+		Patient voidedPatient = services.getPatientService().getPatient(101);
+		assertThat(voidedPatient.getVoided(), is(true));
+		
+		criteria.setIsEnded(false);
+		assertResults(criteria, 2, 3);
+		criteria.setIncludedVoided(true);
+		assertResults(criteria, 2, 3, 10, 11);
+		
+		criteria.setPatient(voidedPatient);
+		assertResults(criteria, 11);
+		criteria.setIncludedVoided(false);
+		assertResults(criteria);
+	}
+	
+	@Test
 	public void shouldSearchAndCountQueueEntriesByVisit() {
 		Visit visit1 = services.getVisitService().getVisit(101);
 		Visit visit2 = services.getVisitService().getVisit(102);
@@ -409,6 +426,37 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		assertResults(criteria, 2, 3);
 	}
 	
+	@Test(expected = IllegalArgumentException.class)
+	public void updateIfUnmodified_shouldRejectEndedAtBeforeStartedAt() {
+		QueueEntry queueEntry = dao.get(QUEUE_ENTRY_UUID).orElseThrow(IllegalStateException::new);
+		Date startedAt = queueEntry.getStartedAt();
+		queueEntry.setEndedAt(new Date(startedAt.getTime() - 1000L));
+		dao.updateIfUnmodified(queueEntry, queueEntry.getDateChanged());
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void updateIfUnmodified_shouldRejectEndedAtEqualToStartedAt() {
+		QueueEntry queueEntry = dao.get(QUEUE_ENTRY_UUID).orElseThrow(IllegalStateException::new);
+		queueEntry.setEndedAt(new Date(queueEntry.getStartedAt().getTime()));
+		dao.updateIfUnmodified(queueEntry, queueEntry.getDateChanged());
+	}
+	
+	@Test
+	public void updateIfUnmodified_shouldClearEndedAtWhenSetToNull() {
+		// Entry 1 has ended_at set; this mirrors what undoTransition does when re-opening a previous entry
+		QueueEntry queueEntry = dao.get(QUEUE_ENTRY_UUID).orElseThrow(IllegalStateException::new);
+		assertThat(queueEntry.getEndedAt(), notNullValue());
+		
+		queueEntry.setEndedAt(null);
+		
+		// date_changed is null in the dataset, so expectedDateChanged is null
+		boolean updated = dao.updateIfUnmodified(queueEntry, queueEntry.getDateChanged());
+		
+		assertThat(updated, is(true));
+		QueueEntry reloaded = dao.get(QUEUE_ENTRY_UUID).orElseThrow(IllegalStateException::new);
+		assertThat(reloaded.getEndedAt(), nullValue());
+	}
+	
 	@Test
 	// 2022-02-02 18:40:56.0, 2022-02-02 18:41:56.0
 	public void shouldSearchAndCountQueueEntriesEndedOnOrAfterDate() {
@@ -424,6 +472,35 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		assertResults(criteria, 1, 4);
 		criteria.setIsEnded(false);
 		assertResults(criteria, 2, 3);
+	}
+	
+	@Test
+	// Dataset entries for queue=3, patient=2: only entry 4 [2022-03-02 16:40:56 → 2022-03-02 18:41:56]
+	public void getOverlappingQueueEntries_shouldReturnEntriesOverlappingWithGivenRange() {
+		Queue queue3 = services.getQueueService().getQueueById(3).orElseThrow(IllegalStateException::new);
+		Patient patient2 = services.getPatientService().getPatient(2);
+		
+		// Open-ended new entry: endedAt=null — entry 4 overlaps (its endedAt > new startedAt)
+		QueueEntrySearchCriteria openCriteria = QueueEntrySearchCriteria.builder().queues(Collections.singletonList(queue3))
+		        .patient(patient2).startedOn(date("2022-03-02 10:00:00")).build();
+		List<QueueEntry> openResults = dao.getOverlappingQueueEntries(openCriteria);
+		assertThat(openResults, hasSize(1));
+		assertThat(openResults.get(0).getQueueEntryId(), is(4));
+		
+		// Finite new entry whose range overlaps entry 4: new [10:00 → 17:00], entry 4 starts at 16:40 < 17:00
+		QueueEntrySearchCriteria overlapCriteria = QueueEntrySearchCriteria.builder()
+		        .queues(Collections.singletonList(queue3)).patient(patient2).startedOn(date("2022-03-02 10:00:00"))
+		        .endedOn(date("2022-03-02 17:00:00")).build();
+		List<QueueEntry> overlapResults = dao.getOverlappingQueueEntries(overlapCriteria);
+		assertThat(overlapResults, hasSize(1));
+		assertThat(overlapResults.get(0).getQueueEntryId(), is(4));
+		
+		// Finite new entry that ends BEFORE entry 4 starts: new [10:00 → 15:00], entry 4 starts at 16:40 — no overlap
+		QueueEntrySearchCriteria noOverlapCriteria = QueueEntrySearchCriteria.builder()
+		        .queues(Collections.singletonList(queue3)).patient(patient2).startedOn(date("2022-03-02 10:00:00"))
+		        .endedOn(date("2022-03-02 15:00:00")).build();
+		List<QueueEntry> noOverlapResults = dao.getOverlappingQueueEntries(noOverlapCriteria);
+		assertThat(noOverlapResults, hasSize(0));
 	}
 	
 	/**

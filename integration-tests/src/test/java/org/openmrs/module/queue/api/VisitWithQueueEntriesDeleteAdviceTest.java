@@ -11,14 +11,17 @@ package org.openmrs.module.queue.api;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Visit;
 import org.openmrs.api.VisitService;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.SpringTestConfiguration;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.test.BaseModuleContextSensitiveTest;
@@ -38,9 +41,9 @@ public class VisitWithQueueEntriesDeleteAdviceTest extends BaseModuleContextSens
 	    "org/openmrs/module/queue/api/dao/QueueEntryDaoTest_initialDataset.xml",
 	    "org/openmrs/module/queue/validators/QueueEntryValidatorTest_globalPropertyInitialDataset.xml");
 	
-	private Visit visit;
+	private final VisitWithQueueEntriesDeleteAdvice advice = new VisitWithQueueEntriesDeleteAdvice();
 	
-	private QueueEntry queueEntry;
+	private Visit visit;
 	
 	@Autowired
 	@Qualifier("queue.QueueEntryService")
@@ -52,26 +55,38 @@ public class VisitWithQueueEntriesDeleteAdviceTest extends BaseModuleContextSens
 	@Before
 	public void setup() {
 		INITIAL_DATASET_XML.forEach(this::executeDataSet);
-		queueEntry = queueEntryService.getQueueEntryById(3).get();
-		visit = queueEntry.getVisit();
+		visit = queueEntryService.getQueueEntryById(3).get().getVisit();
+		// config.xml <advice> is not read by module tests, so register it here to exercise the same
+		// interceptor chain that production purges go through
+		Context.addAdvice(VisitService.class, advice);
+	}
+	
+	@After
+	public void tearDown() {
+		// the Spring context is shared across test classes, so this must not outlive the test
+		Context.removeAdvice(VisitService.class, advice);
 	}
 	
 	@Test
-	public void shouldPurgeQueueEntriesWhenVisitIsPurged() throws Throwable {
-		assertFalse(queueEntry.getVoided());
-		int visitId = visit.getVisitId();
-		int queueEntryId = queueEntry.getId();
+	public void shouldPurgeQueueEntriesWhenVisitIsPurged() {
+		Integer visitId = visit.getVisitId();
+		assertTrue(queueEntryService.getQueueEntryById(3).isPresent());
 		
-		// Simulate what the AOP advice does before purgeVisit
-		VisitWithQueueEntriesDeleteAdvice advice = new VisitWithQueueEntriesDeleteAdvice();
-		java.lang.reflect.Method purgeMethod = VisitService.class.getMethod("purgeVisit", Visit.class);
-		advice.before(purgeMethod, new Object[] { visit }, visitService);
-		
-		// Verify the queue entry was purged
-		assertFalse(queueEntryService.getQueueEntryById(queueEntryId).isPresent());
-		
-		// Verify the visit can now be purged without FK constraint violation
 		visitService.purgeVisit(visit);
+		
 		assertNull(visitService.getVisit(visitId));
+		assertFalse(queueEntryService.getQueueEntryById(3).isPresent());
+	}
+	
+	@Test
+	public void shouldPurgeVoidedQueueEntriesOfAPurgedVisit() {
+		// entry 10 on visit 101 is voided, and a voided entry is just as much of a foreign key to the visit
+		Visit visitWithVoidedEntry = visitService.getVisit(101);
+		assertTrue(queueEntryService.getQueueEntryById(10).isPresent());
+		
+		visitService.purgeVisit(visitWithVoidedEntry);
+		
+		assertNull(visitService.getVisit(101));
+		assertFalse(queueEntryService.getQueueEntryById(10).isPresent());
 	}
 }
