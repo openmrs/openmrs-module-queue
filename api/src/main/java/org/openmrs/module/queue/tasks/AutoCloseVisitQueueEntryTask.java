@@ -14,7 +14,6 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 import org.openmrs.Visit;
-import org.openmrs.api.ValidationException;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueEntryService;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
@@ -50,14 +49,9 @@ public class AutoCloseVisitQueueEntryTask extends AbstractTask {
 						if (endQueueEntry(queueEntry, visitStopDatetime)) {
 							log.info("Queue entry auto-closed following close of visit: {}", queueEntry.getQueueEntryId());
 						} else {
-							log.debug("Queue entry {} was ended or modified since it was loaded, leaving it alone",
-							    queueEntry.getQueueEntryId());
+							log.debug("Queue entry {} was left alone by closeQueueEntry", queueEntry.getQueueEntryId());
 						}
 					}
-				}
-				catch (ValidationException ve) {
-					evictFromSession(queueEntry);
-					log.warn("Unable to auto-close queue entry {}: {}", queueEntry.getQueueEntryId(), ve.getMessage());
 				}
 				catch (Exception e) {
 					evictFromSession(queueEntry);

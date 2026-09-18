@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.api.APIException;
-import org.openmrs.api.ValidationException;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.Queue;
@@ -298,12 +297,12 @@ public class AutoCloseQueueEntryTaskTest {
 	}
 	
 	@Test
-	public void shouldEvictAndContinueWhenValidationRejectsAnEntry() throws Exception {
+	public void shouldEvictAndContinueWhenTheDaoRejectsAnEntry() throws Exception {
 		configuredTime = "23:59";
 		QueueEntry rejected = queueEntryStartedAt("2020-01-01 09:00", null);
 		QueueEntry saved = queueEntryStartedAt("2020-01-01 10:00", null);
 		saveFailsFor = rejected;
-		saveFailure = new ValidationException("endedAt is after the visit stop date");
+		saveFailure = new IllegalArgumentException("Queue entry endedAt must be after startedAt");
 		
 		new TestAutoCloseQueueEntryTask().execute();
 		assertThat(evictedFromSession, contains(rejected));

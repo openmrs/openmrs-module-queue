@@ -21,7 +21,6 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.openmrs.api.ValidationException;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
@@ -42,9 +41,9 @@ public class AutoCloseQueueEntryTask extends AbstractTask {
 	private static final String TIME_FORMAT = "HH:mm";
 	
 	/**
-	 * The first run after an implementer configures a close time can find a very large number of
-	 * never-ended entries, so the session is flushed and cleared periodically to keep it from growing
-	 * over the whole sweep, which would make every save dirty-check every entry loaded before it.
+	 * One task run uses one Hibernate session. Each save checks every entry still in the session for
+	 * changes, so a first run over thousands of old entries slows down as it goes. The task empties the
+	 * session every FLUSH_BATCH_SIZE entries to keep each check small.
 	 */
 	private static final int FLUSH_BATCH_SIZE = 250;
 	
@@ -104,19 +103,15 @@ public class AutoCloseQueueEntryTask extends AbstractTask {
 			Date startedAt = queueEntry.getStartedAt();
 			if (startedAt != null && !endedAt.after(startedAt)) {
 				// startedOnOrBefore is inclusive, so an entry started exactly at the close time is swept
-				// too, and QueueEntryValidator requires endedAt to be strictly after startedAt
+				// too, and QueueEntryDaoImpl.updateIfUnmodified rejects an endedAt that is not strictly
+				// after startedAt
 				endedAt = new Date(startedAt.getTime() + 1000L);
 			}
 			if (endQueueEntry(queueEntry, endedAt)) {
 				log.info("Queue entry auto-closed on schedule: {}", queueEntry.getQueueEntryId());
 			} else {
-				log.debug("Queue entry {} was ended or modified since it was loaded, leaving it alone",
-				    queueEntry.getQueueEntryId());
+				log.debug("Queue entry {} was left alone by closeQueueEntry", queueEntry.getQueueEntryId());
 			}
-		}
-		catch (ValidationException ve) {
-			evictFromSession(queueEntry);
-			log.warn("Unable to auto-close queue entry {}: {}", queueEntry.getQueueEntryId(), ve.getMessage());
 		}
 		catch (Exception e) {
 			evictFromSession(queueEntry);

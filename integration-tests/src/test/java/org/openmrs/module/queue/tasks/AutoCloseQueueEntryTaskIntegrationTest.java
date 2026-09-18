@@ -10,12 +10,14 @@
 package org.openmrs.module.queue.tasks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.openmrs.module.queue.QueueModuleConstants.AUTO_CLOSE_QUEUE_ENTRIES_AT_TIME;
 
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -24,6 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Concept;
 import org.openmrs.Patient;
+import org.openmrs.Visit;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.context.Context;
@@ -87,11 +90,51 @@ public class AutoCloseQueueEntryTaskIntegrationTest extends BaseModuleContextSen
 	@Test
 	public void shouldEndAnActiveQueueEntryOnceTheCloseTimeHasPassed() throws Exception {
 		Integer queueEntryId = activeQueueEntryStartedHoursAgo(3);
+		Date closeTime = setCloseTimeToHoursAgo(1);
+		
+		task().execute();
+		
+		assertThat(reloadedEndedAt(queueEntryId), equalTo(closeTime));
+	}
+	
+	@Test
+	public void shouldLeaveAQueueEntryEndedByAnotherSessionAfterItWasLoadedAlone() throws Exception {
+		Integer queueEntryId = activeQueueEntryStartedHoursAgo(3);
+		Context.flushSession();
+		Context.clearSession();
+		// the copy a task holds, loaded before it works through its list
+		QueueEntry loadedByTheTask = queueEntryService.getQueueEntryById(queueEntryId).get();
+		// another session ends the entry the way a transition does: ended_at only, date_changed untouched
+		Date transitionTime = DateUtils.truncate(DateUtils.addHours(new Date(), -2), Calendar.SECOND);
+		Context.getAdministrationService()
+		        .executeSQL("UPDATE queue_entry SET ended_at = '"
+		                + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(transitionTime) + "' WHERE queue_entry_id = "
+		                + queueEntryId,
+		            false);
+		
+		boolean closed = queueEntryService.closeQueueEntry(loadedByTheTask, DateUtils.addHours(new Date(), -1));
+		
+		assertThat(closed, is(false));
+		assertThat(reloadedEndedAt(queueEntryId), equalTo(transitionTime));
+	}
+	
+	@Test
+	public void shouldNotEndAQueueEntryAfterItsVisitStopped() throws Exception {
+		Date visitStoppedAt = DateUtils.truncate(DateUtils.addHours(new Date(), -2), Calendar.SECOND);
+		Visit visit = Context.getVisitService().getVisit(101);
+		Integer queueEntryId = activeQueueEntryStartedHoursAgo(3, visit);
+		// stop the visit behind the module's save handler, as core's own stopVisits does
+		Context.getAdministrationService()
+		        .executeSQL("UPDATE visit SET date_stopped = '"
+		                + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(visitStoppedAt) + "' WHERE visit_id = 101",
+		            false);
+		Context.flushSession();
+		Context.clearSession();
 		setCloseTimeToHoursAgo(1);
 		
 		task().execute();
 		
-		assertThat(reloadedEndedAt(queueEntryId), notNullValue());
+		assertThat(reloadedEndedAt(queueEntryId), equalTo(visitStoppedAt));
 	}
 	
 	@Test
@@ -102,6 +145,26 @@ public class AutoCloseQueueEntryTaskIntegrationTest extends BaseModuleContextSen
 		task().execute();
 		
 		assertThat(reloadedEndedAt(queueEntryId), nullValue());
+	}
+	
+	@Test
+	public void shouldNotEndAQueueEntryAfterItsVisitStoppedWhileTheTaskWasRunning() throws Exception {
+		Date visitStoppedAt = DateUtils.truncate(DateUtils.addHours(new Date(), -2), Calendar.SECOND);
+		Visit visit = Context.getVisitService().getVisit(101);
+		Integer queueEntryId = activeQueueEntryStartedHoursAgo(3, visit);
+		Context.flushSession();
+		Context.clearSession();
+		// the copy a task holds, with its visit loaded into the session while the visit was still open
+		QueueEntry loadedByTheTask = queueEntryService.getQueueEntryById(queueEntryId).get();
+		// another session stops the visit while the task works through its list
+		Context.getAdministrationService()
+		        .executeSQL("UPDATE visit SET date_stopped = '"
+		                + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(visitStoppedAt) + "' WHERE visit_id = 101",
+		            false);
+		
+		queueEntryService.closeQueueEntry(loadedByTheTask, DateUtils.addHours(new Date(), -1));
+		
+		assertThat(reloadedEndedAt(queueEntryId), equalTo(visitStoppedAt));
 	}
 	
 	/**
@@ -117,13 +180,21 @@ public class AutoCloseQueueEntryTaskIntegrationTest extends BaseModuleContextSen
 		return task;
 	}
 	
-	private void setCloseTimeToHoursAgo(int hours) {
-		Date closeTime = DateUtils.addHours(new Date(), -hours);
+	/**
+	 * @return the close time the task will work from, truncated to the minute the property holds
+	 */
+	private Date setCloseTimeToHoursAgo(int hours) {
+		Date closeTime = DateUtils.truncate(DateUtils.addHours(new Date(), -hours), Calendar.MINUTE);
 		Context.getAdministrationService().setGlobalProperty(AUTO_CLOSE_QUEUE_ENTRIES_AT_TIME,
 		    new SimpleDateFormat("HH:mm").format(closeTime));
+		return closeTime;
 	}
 	
 	private Integer activeQueueEntryStartedHoursAgo(int hours) {
+		return activeQueueEntryStartedHoursAgo(hours, null);
+	}
+	
+	private Integer activeQueueEntryStartedHoursAgo(int hours, Visit visit) {
 		Queue queue = queueService.getQueueByUuid(TEST_QUEUE_UUID).orElse(null);
 		Patient patient = patientService.getPatientByUuid(PATIENT_UUID);
 		Concept status = conceptService.getConceptByUuid(STATUS_CONCEPT_UUID);
@@ -135,6 +206,7 @@ public class AutoCloseQueueEntryTaskIntegrationTest extends BaseModuleContextSen
 		queueEntry.setStatus(status);
 		queueEntry.setPriority(priority);
 		queueEntry.setStartedAt(DateUtils.addHours(new Date(), -hours));
+		queueEntry.setVisit(visit);
 		return queueEntryService.saveQueueEntry(queueEntry).getQueueEntryId();
 	}
 	
@@ -144,6 +216,8 @@ public class AutoCloseQueueEntryTaskIntegrationTest extends BaseModuleContextSen
 	private Date reloadedEndedAt(Integer queueEntryId) {
 		Context.flushSession();
 		Context.clearSession();
-		return queueEntryService.getQueueEntryById(queueEntryId).get().getEndedAt();
+		Date endedAt = queueEntryService.getQueueEntryById(queueEntryId).get().getEndedAt();
+		// Hibernate hands back a java.sql.Timestamp, which is never equal to a java.util.Date
+		return endedAt == null ? null : new Date(endedAt.getTime());
 	}
 }

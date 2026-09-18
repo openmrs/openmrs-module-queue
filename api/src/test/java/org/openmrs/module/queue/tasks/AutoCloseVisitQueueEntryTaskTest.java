@@ -25,7 +25,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.Visit;
 import org.openmrs.api.APIException;
-import org.openmrs.api.ValidationException;
 import org.openmrs.module.queue.model.QueueEntry;
 
 public class AutoCloseVisitQueueEntryTaskTest {
@@ -124,11 +123,11 @@ public class AutoCloseVisitQueueEntryTaskTest {
 	}
 	
 	@Test
-	public void shouldEvictAndContinueWhenValidationRejectsAnEntry() throws Exception {
+	public void shouldEvictAndContinueWhenTheDaoRejectsAnEntry() throws Exception {
 		QueueEntry rejected = closedVisitQueueEntry("2020-01-01 10:00", "2020-01-01 09:00");
 		QueueEntry saved = closedVisitQueueEntry("2020-01-01 10:00", "2020-01-01 23:15");
 		saveFailsFor = rejected;
-		saveFailure = new ValidationException("endedAt is before startedAt");
+		saveFailure = new IllegalArgumentException("Queue entry endedAt must be after startedAt");
 		
 		new TestAutoCloseVisitEntryTask().execute();
 		assertThat(evictedFromSession, contains(rejected));

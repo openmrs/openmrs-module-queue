@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang.time.DateUtils;
+import org.hibernate.UnresolvableObjectException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -563,9 +564,73 @@ public class QueueEntryServiceTest {
 		when(dao.updateIfUnmodified(any(), any())).thenReturn(true);
 		
 		assertThat(queueEntryService.closeQueueEntry(staleState, endedAt), is(true));
+		verify(dao).refresh(currentState);
 		verify(dao).updateIfUnmodified(eq(currentState), any());
 		assertThat(currentState.getEndedAt(), equalTo(endedAt));
 		assertNull(staleState.getEndedAt());
+	}
+	
+	@Test
+	public void shouldCloseQueueEntryAtTheVisitStopTimeWhenTheVisitStoppedEarlier() {
+		Date startedAt = DateUtils.addHours(DateUtils.truncate(new Date(), Calendar.SECOND), -3);
+		Date visitStoppedAt = DateUtils.addHours(startedAt, 1);
+		Date closeTime = DateUtils.addHours(startedAt, 2);
+		Visit visit = new Visit();
+		visit.setStopDatetime(visitStoppedAt);
+		QueueEntry queueEntry = new QueueEntry();
+		queueEntry.setQueueEntryId(1);
+		queueEntry.setStartedAt(startedAt);
+		queueEntry.setVisit(visit);
+		when(dao.get(1)).thenReturn(Optional.of(queueEntry));
+		when(dao.updateIfUnmodified(any(), any())).thenReturn(true);
+		
+		assertThat(queueEntryService.closeQueueEntry(queueEntry, closeTime), is(true));
+		assertThat(queueEntry.getEndedAt(), equalTo(visitStoppedAt));
+	}
+	
+	@Test
+	public void shouldNotCloseQueueEntryWhoseVisitStoppedBeforeItStarted() {
+		Date startedAt = DateUtils.addHours(DateUtils.truncate(new Date(), Calendar.SECOND), -3);
+		Visit visit = new Visit();
+		visit.setStopDatetime(DateUtils.addHours(startedAt, -1));
+		QueueEntry queueEntry = new QueueEntry();
+		queueEntry.setQueueEntryId(1);
+		queueEntry.setStartedAt(startedAt);
+		queueEntry.setVisit(visit);
+		when(dao.get(1)).thenReturn(Optional.of(queueEntry));
+		
+		assertThat(queueEntryService.closeQueueEntry(queueEntry, DateUtils.addHours(startedAt, 2)), is(false));
+		assertNull(queueEntry.getEndedAt());
+		verify(dao, never()).updateIfUnmodified(any(), any());
+	}
+	
+	@Test
+	public void shouldNotCloseQueueEntryRemovedSinceItWasLoaded() {
+		QueueEntry queueEntry = new QueueEntry();
+		queueEntry.setQueueEntryId(1);
+		queueEntry.setStartedAt(DateUtils.addHours(new Date(), -3));
+		when(dao.get(1)).thenReturn(Optional.of(queueEntry));
+		doThrow(new UnresolvableObjectException(1, QueueEntry.class.getName())).when(dao).refresh(queueEntry);
+		
+		assertThat(queueEntryService.closeQueueEntry(queueEntry, new Date()), is(false));
+		verify(dao, never()).updateIfUnmodified(any(), any());
+	}
+	
+	@Test
+	public void shouldCloseQueueEntryAtTheGivenTimeWhenTheVisitStoppedLater() {
+		Date startedAt = DateUtils.addHours(DateUtils.truncate(new Date(), Calendar.SECOND), -3);
+		Date closeTime = DateUtils.addHours(startedAt, 1);
+		Visit visit = new Visit();
+		visit.setStopDatetime(DateUtils.addHours(startedAt, 2));
+		QueueEntry queueEntry = new QueueEntry();
+		queueEntry.setQueueEntryId(1);
+		queueEntry.setStartedAt(startedAt);
+		queueEntry.setVisit(visit);
+		when(dao.get(1)).thenReturn(Optional.of(queueEntry));
+		when(dao.updateIfUnmodified(any(), any())).thenReturn(true);
+		
+		assertThat(queueEntryService.closeQueueEntry(queueEntry, closeTime), is(true));
+		assertThat(queueEntry.getEndedAt(), equalTo(closeTime));
 	}
 	
 	@Test
