@@ -25,6 +25,7 @@ import java.util.Optional;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.UnresolvableObjectException;
 import org.openmrs.Location;
 import org.openmrs.Patient;
 import org.openmrs.Visit;
@@ -267,12 +268,56 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		return queueNumber;
 	}
 	
+	/**
+	 * @see QueueEntryService#closeQueueEntry(QueueEntry, Date)
+	 */
 	@Override
-	public void closeActiveQueueEntries() {
-		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
-		criteria.setIsEnded(Boolean.FALSE);
-		List<QueueEntry> queueEntries = getQueueEntries(criteria);
-		queueEntries.forEach(this::endQueueEntry);
+	public boolean closeQueueEntry(@NotNull QueueEntry queueEntry, @NotNull Date endedAt) {
+		if (queueEntry.getId() == null) {
+			throw new IllegalArgumentException("Cannot close a queue entry that has not been saved");
+		}
+		
+		QueueEntry currentState = dao.get(queueEntry.getId()).orElse(null);
+		if (currentState == null) {
+			log.debug("Queue entry {} no longer exists, not closing it", queueEntry.getId());
+			return false;
+		}
+		// dao.get returns the instance already in this session, which for the scheduled tasks is the
+		// copy loaded at the start of the run; re-read it so the checks below see the current row
+		try {
+			dao.refresh(currentState);
+		}
+		catch (UnresolvableObjectException e) {
+			log.debug("Queue entry {} no longer exists, not closing it", queueEntry.getId());
+			return false;
+		}
+		if (currentState.getVoided() || currentState.getEndedAt() != null) {
+			log.debug("Queue entry {} is already voided or ended, not closing it", queueEntry.getId());
+			return false;
+		}
+		
+		// updateIfUnmodified bypasses QueueEntryValidator, so apply its visit rule here: a queue entry
+		// cannot end after its visit stopped
+		Visit visit = currentState.getVisit();
+		if (visit != null && visit.getStopDatetime() != null && endedAt.after(visit.getStopDatetime())) {
+			log.debug("Queue entry {} ends at the stop time {} of visit {} rather than at {}", queueEntry.getId(),
+			    visit.getStopDatetime(), visit.getId(), endedAt);
+			endedAt = visit.getStopDatetime();
+		}
+		Date startedAt = currentState.getStartedAt();
+		if (startedAt != null && !endedAt.after(startedAt)) {
+			log.warn(
+			    "Queue entry {} cannot be ended: its visit {} stopped at {}, which is not after the entry started at {}",
+			    queueEntry.getId(), visit == null ? null : visit.getId(), endedAt, startedAt);
+			return false;
+		}
+		
+		// Capture the dateChanged for optimistic locking. The refresh above read it from the current row,
+		// so this guard covers only a write that lands between the refresh and the update.
+		Date expectedDateChanged = currentState.getDateChanged();
+		
+		currentState.setEndedAt(endedAt);
+		return dao.updateIfUnmodified(currentState, expectedDateChanged);
 	}
 	
 	@Override
@@ -294,11 +339,6 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	 */
 	protected QueueEntryService getProxiedQueueEntryService() {
 		return Context.getService(QueueEntryService.class);
-	}
-	
-	private void endQueueEntry(@NotNull QueueEntry queueEntry) {
-		queueEntry.setEndedAt(new Date());
-		dao.createOrUpdate(queueEntry);
 	}
 	
 	private static Date roundToSecond(Date date) {

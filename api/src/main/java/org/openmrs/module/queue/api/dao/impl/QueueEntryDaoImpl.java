@@ -141,6 +141,16 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 		return rowsUpdated > 0;
 	}
 	
+	@Override
+	public void refresh(QueueEntry queueEntry) {
+		Session session = getSessionFactory().getCurrentSession();
+		session.refresh(queueEntry);
+		// refresh does not cascade to the visit, and its stop date is what closeQueueEntry checks
+		if (queueEntry.getVisit() != null) {
+			session.refresh(queueEntry.getVisit());
+		}
+	}
+	
 	/**
 	 * Convert the given {@link QueueEntrySearchCriteria} into ORM criteria. Unless includedVoided is
 	 * set, voided entries and entries whose patient is voided are excluded.

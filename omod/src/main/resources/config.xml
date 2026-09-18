@@ -55,5 +55,15 @@
         <defaultValue></defaultValue>
         <description>The bean name of a registered component that provides an algorithm to set a queue entry sort weight when saved</description>
     </globalProperty>
+    <globalProperty>
+        <property>${project.parent.artifactId}.autoCloseQueueEntriesAtTime</property>
+        <defaultValue></defaultValue>
+        <description>Time of day (HH:mm, server local time) at which active queue entries are automatically ended each day. Blank by default, which disables automatic clearing; an outpatient clinic that wants its queues cleared at end of day would set this to 23:59.</description>
+    </globalProperty>
+    <globalProperty>
+        <property>${project.parent.artifactId}.autoCloseQueueEntriesForQueues</property>
+        <defaultValue></defaultValue>
+        <description>Comma-separated list of queue uuids whose entries are automatically ended at the configured time. Leave blank to clear entries in all queues.</description>
+    </globalProperty>
 </module>
 
