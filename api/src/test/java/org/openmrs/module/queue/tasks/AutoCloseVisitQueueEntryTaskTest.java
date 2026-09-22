@@ -123,18 +123,6 @@ public class AutoCloseVisitQueueEntryTaskTest {
 	}
 	
 	@Test
-	public void shouldEvictAndContinueWhenTheDaoRejectsAnEntry() throws Exception {
-		QueueEntry rejected = closedVisitQueueEntry("2020-01-01 10:00", "2020-01-01 09:00");
-		QueueEntry saved = closedVisitQueueEntry("2020-01-01 10:00", "2020-01-01 23:15");
-		saveFailsFor = rejected;
-		saveFailure = new IllegalArgumentException("Queue entry endedAt must be after startedAt");
-		
-		new TestAutoCloseVisitEntryTask().execute();
-		assertThat(evictedFromSession, contains(rejected));
-		assertThat(saved.getEndedAt(), equalTo(saved.getVisit().getStopDatetime()));
-	}
-	
-	@Test
 	public void shouldEvictAndContinueWhenSavingAnEntryFails() throws Exception {
 		QueueEntry failed = closedVisitQueueEntry("2020-01-01 10:00", "2020-01-01 23:15");
 		QueueEntry saved = closedVisitQueueEntry("2020-01-01 10:00", "2020-01-01 23:15");

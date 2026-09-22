@@ -289,9 +289,8 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		}
 		Date startedAt = currentState.getStartedAt();
 		if (startedAt != null && !endedAt.after(startedAt)) {
-			log.warn(
-			    "Queue entry {} cannot be ended: its visit {} stopped at {}, which is not after the entry started at {}",
-			    queueEntry.getId(), visit == null ? null : visit.getId(), endedAt, startedAt);
+			log.warn("Queue entry {} cannot be ended at {}, which is not after it started at {}", queueEntry.getId(),
+			    endedAt, startedAt);
 			return false;
 		}
 		

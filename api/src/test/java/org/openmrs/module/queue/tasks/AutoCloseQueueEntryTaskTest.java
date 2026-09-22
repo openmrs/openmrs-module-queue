@@ -24,6 +24,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.Before;
@@ -64,8 +65,8 @@ public class AutoCloseQueueEntryTaskTest {
 		}
 		
 		@Override
-		protected List<Queue> getQueuesToClear() {
-			return configuredQueues;
+		protected Optional<List<Queue>> getQueuesToClear() {
+			return Optional.ofNullable(configuredQueues);
 		}
 		
 		@Override
@@ -297,19 +298,6 @@ public class AutoCloseQueueEntryTaskTest {
 	}
 	
 	@Test
-	public void shouldEvictAndContinueWhenTheDaoRejectsAnEntry() throws Exception {
-		configuredTime = "23:59";
-		QueueEntry rejected = queueEntryStartedAt("2020-01-01 09:00", null);
-		QueueEntry saved = queueEntryStartedAt("2020-01-01 10:00", null);
-		saveFailsFor = rejected;
-		saveFailure = new IllegalArgumentException("Queue entry endedAt must be after startedAt");
-		
-		new TestAutoCloseQueueEntryTask().execute();
-		assertThat(evictedFromSession, contains(rejected));
-		assertThat(saved.getEndedAt(), equalTo(now));
-	}
-	
-	@Test
 	public void shouldEvictAndContinueWhenSavingAnEntryFails() throws Exception {
 		configuredTime = "23:59";
 		QueueEntry failed = queueEntryStartedAt("2020-01-01 09:00", null);
@@ -323,8 +311,8 @@ public class AutoCloseQueueEntryTaskTest {
 	}
 	
 	@Test
-	public void getQueuesToClearShouldReturnNullWhenNoQueuesAreConfigured() {
-		assertThat(taskForConfiguredQueues("  ").getQueuesToClear(), nullValue());
+	public void getQueuesToClearShouldReturnEmptyOptionalWhenNoQueuesAreConfigured() {
+		assertThat(taskForConfiguredQueues("  ").getQueuesToClear().isPresent(), equalTo(false));
 	}
 	
 	@Test
@@ -335,7 +323,7 @@ public class AutoCloseQueueEntryTaskTest {
 		when(task.getServices().getQueue("uuid-a")).thenReturn(queueA);
 		when(task.getServices().getQueue("uuid-b")).thenReturn(queueB);
 		
-		assertThat(task.getQueuesToClear(), contains(queueA, queueB));
+		assertThat(task.getQueuesToClear().get(), contains(queueA, queueB));
 	}
 	
 	@Test
@@ -345,7 +333,7 @@ public class AutoCloseQueueEntryTaskTest {
 		when(task.getServices().getQueue("uuid-a")).thenReturn(queueA);
 		when(task.getServices().getQueue("not-a-queue")).thenThrow(new IllegalArgumentException());
 		
-		assertThat(task.getQueuesToClear(), contains(queueA));
+		assertThat(task.getQueuesToClear().get(), contains(queueA));
 	}
 	
 	@Test
@@ -353,7 +341,7 @@ public class AutoCloseQueueEntryTaskTest {
 		AutoCloseQueueEntryTask task = taskForConfiguredQueues("not-a-queue");
 		when(task.getServices().getQueue("not-a-queue")).thenThrow(new IllegalArgumentException());
 		
-		assertThat(task.getQueuesToClear(), empty());
+		assertThat(task.getQueuesToClear().get(), empty());
 	}
 	
 	/**

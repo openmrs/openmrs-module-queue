@@ -20,6 +20,7 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -72,8 +73,8 @@ public class AutoCloseQueueEntryTask extends AbstractTask {
 				return;
 			}
 			
-			List<Queue> queues = getQueuesToClear();
-			if (queues != null && queues.isEmpty()) {
+			Optional<List<Queue>> queues = getQueuesToClear();
+			if (queues.isPresent() && queues.get().isEmpty()) {
 				log.debug("None of the queues configured for auto-close could be resolved, nothing to do");
 				return;
 			}
@@ -81,7 +82,8 @@ public class AutoCloseQueueEntryTask extends AbstractTask {
 			QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
 			criteria.setIsEnded(false);
 			criteria.setStartedOnOrBefore(closeTime);
-			criteria.setQueues(queues);
+			// a null queue list means the search is not limited by queue
+			criteria.setQueues(queues.orElse(null));
 			
 			List<QueueEntry> queueEntries = getQueueEntries(criteria);
 			log.debug("There are {} queue entries to auto-close", queueEntries.size());
@@ -156,12 +158,14 @@ public class AutoCloseQueueEntryTask extends AbstractTask {
 	}
 	
 	/**
-	 * @return the queues whose entries should be cleared, or null to clear entries in all queues
+	 * @return the queues whose entries should be cleared, or an empty Optional if no queues are
+	 *         configured and entries in all queues should be cleared. A present but empty list means
+	 *         queues were configured but none of them could be resolved.
 	 */
-	protected List<Queue> getQueuesToClear() {
+	protected Optional<List<Queue>> getQueuesToClear() {
 		String configuredQueues = getServices().getGlobalProperty(AUTO_CLOSE_QUEUE_ENTRIES_FOR_QUEUES);
 		if (StringUtils.isBlank(configuredQueues)) {
-			return null;
+			return Optional.empty();
 		}
 		List<Queue> queues = new ArrayList<>();
 		for (String queueRef : configuredQueues.split(",")) {
@@ -177,7 +181,7 @@ public class AutoCloseQueueEntryTask extends AbstractTask {
 				    AUTO_CLOSE_QUEUE_ENTRIES_FOR_QUEUES, e.getMessage());
 			}
 		}
-		return queues;
+		return Optional.of(queues);
 	}
 	
 	/**

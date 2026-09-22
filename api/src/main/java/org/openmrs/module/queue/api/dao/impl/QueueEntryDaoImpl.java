@@ -38,6 +38,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 @SuppressWarnings("unchecked")
 public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> implements QueueEntryDao {
 	
+	private static final String ENDED_AT = "endedAt";
+	
+	private static final String DATE_CHANGED = "dateChanged";
+	
 	public QueueEntryDaoImpl(@Qualifier("sessionFactory") SessionFactory sessionFactory) {
 		super(sessionFactory);
 	}
@@ -131,11 +135,11 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 		Root<QueueEntry> root = update.from(QueueEntry.class);
 		
 		if (endedAt == null) {
-			update.set(root.<Date> get("endedAt"), cb.nullLiteral(Date.class));
+			update.set(root.<Date> get(ENDED_AT), cb.nullLiteral(Date.class));
 		} else {
-			update.set(root.<Date> get("endedAt"), endedAt);
+			update.set(root.<Date> get(ENDED_AT), endedAt);
 		}
-		update.set(root.<Date> get("dateChanged"), dateChanged);
+		update.set(root.<Date> get(DATE_CHANGED), dateChanged);
 		if (changedBy != null) {
 			update.set(root.<User> get("changedBy"), changedBy);
 		}
@@ -144,14 +148,14 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 		List<Predicate> predicates = new ArrayList<>();
 		predicates.add(cb.equal(root.get("queueEntryId"), queueEntry.getQueueEntryId()));
 		if (expectedDateChanged == null) {
-			predicates.add(root.get("dateChanged").isNull());
+			predicates.add(root.get(DATE_CHANGED).isNull());
 		} else {
-			predicates.add(cb.equal(root.get("dateChanged"), expectedDateChanged));
+			predicates.add(cb.equal(root.get(DATE_CHANGED), expectedDateChanged));
 		}
 		if (endedAt != null) {
 			// Never end an entry another transaction has already ended; re-opening one deliberately
 			// targets an ended row, so it is exempt
-			predicates.add(root.get("endedAt").isNull());
+			predicates.add(root.get(ENDED_AT).isNull());
 		}
 		update.where(cb.and(predicates.toArray(new Predicate[0])));
 		
