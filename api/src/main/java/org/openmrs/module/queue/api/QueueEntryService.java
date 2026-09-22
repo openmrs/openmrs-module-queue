@@ -163,6 +163,16 @@ public interface QueueEntryService {
 	boolean closeQueueEntry(@NotNull QueueEntry queueEntry, @NotNull Date endedAt);
 	
 	/**
+	 * Closes all active queue entries
+	 *
+	 * @deprecated as of 3.1.0, use {@link #closeQueueEntry(QueueEntry, Date)}, which ends one entry at
+	 *             a caller-supplied time and guards against concurrent modification
+	 */
+	@Deprecated
+	@Authorized(PrivilegeConstants.MANAGE_QUEUE_ENTRIES)
+	void closeActiveQueueEntries();
+	
+	/**
 	 * @return the instance of SortWeightGenerator that is configured via global property, or null if
 	 *         none configured
 	 */

@@ -195,7 +195,7 @@ public class QueueServicesWrapper {
 	}
 	
 	/**
-	 * @param queueRef a uuid for the queue to retrieve
+	 * @param queueRef a uuid or unique name for the queue to retrieve
 	 * @return the queue that matches the queueRef
 	 */
 	public Queue getQueue(String queueRef) {
@@ -205,6 +205,17 @@ public class QueueServicesWrapper {
 		Queue queue = getQueueService().getQueueByUuid(queueRef).orElse(null);
 		if (queue != null) {
 			return queue;
+		}
+		List<Queue> matches = new ArrayList<>();
+		for (Queue candidate : getQueueService().getAllQueues()) {
+			if (queueRef.equalsIgnoreCase(candidate.getName())) {
+				matches.add(candidate);
+			}
+		}
+		if (matches.size() == 1) {
+			return matches.get(0);
+		} else if (matches.size() > 1) {
+			throw new IllegalArgumentException("More than one queue is found with name: " + queueRef);
 		}
 		throw new IllegalArgumentException("Unable to find queue: " + queueRef);
 	}

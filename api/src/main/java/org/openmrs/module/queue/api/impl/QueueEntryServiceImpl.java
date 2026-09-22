@@ -303,6 +303,19 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 		return dao.updateIfUnmodified(currentState, expectedDateChanged);
 	}
 	
+	/**
+	 * @see QueueEntryService#closeActiveQueueEntries()
+	 * @deprecated as of 3.1.0, use {@link #closeQueueEntry(QueueEntry, Date)}
+	 */
+	@Override
+	@Deprecated
+	public void closeActiveQueueEntries() {
+		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
+		criteria.setIsEnded(Boolean.FALSE);
+		List<QueueEntry> queueEntries = getQueueEntries(criteria);
+		queueEntries.forEach(this::endQueueEntry);
+	}
+	
 	@Override
 	public SortWeightGenerator getSortWeightGenerator() {
 		if (sortWeightGenerator == null) {
@@ -322,6 +335,11 @@ public class QueueEntryServiceImpl extends BaseOpenmrsService implements QueueEn
 	 */
 	protected QueueEntryService getProxiedQueueEntryService() {
 		return Context.getService(QueueEntryService.class);
+	}
+	
+	private void endQueueEntry(@NotNull QueueEntry queueEntry) {
+		queueEntry.setEndedAt(new Date());
+		dao.createOrUpdate(queueEntry);
 	}
 	
 	private static Date roundToSecond(Date date) {

@@ -63,7 +63,7 @@
     <globalProperty>
         <property>${project.parent.artifactId}.autoCloseQueueEntriesForQueues</property>
         <defaultValue></defaultValue>
-        <description>Comma-separated list of queue uuids whose entries are automatically ended at the configured time. Leave blank to clear entries in all queues.</description>
+        <description>Comma-separated list of the queues whose entries are automatically ended at the configured time, each given as a queue name or, where names are not unique, a queue uuid. Leave blank to clear entries in all queues.</description>
     </globalProperty>
 </module>
 

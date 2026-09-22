@@ -77,24 +77,17 @@ a particular Queue.  By default, the `existingValueSortWeightGenerator` will be 
 
 **Description:**  
 The time of day, in `HH:mm` 24-hour format and the server's local time, at which active queue entries are
-automatically ended each day. A scheduled task ends every queue entry that was still active as of this time; entries
-started later in the day are left untouched.
+automatically ended. A scheduled task ends every queue entry still active as of that time; entries started since then
+are left alone. Each run works from the most recent occurrence of the configured time, so a missed run is caught up
+by the next one, and the first run after this property is set ends everything open from before that time.
 
-This property is blank by default, so no clearing happens until an implementer sets it. An ordinary outpatient clinic
-that wants its queues emptied at end of day would set `23:59`. Leave it blank if queue entries are used for anything
-that should survive overnight — tracking where inpatients currently are within a multi-day visit, for instance, or a
-queue of patients to follow up with over the coming week. Use `queue.autoCloseQueueEntriesForQueues` to enable
-clearing for some queues but not others.
+Blank by default, so nothing is cleared until it is set. An outpatient clinic emptying its queues at end of day would
+set `23:59`, which records the end on the day the entry started; `00:00` clears the same entries but dates them to
+the following day. Leave it blank where entries are meant to survive overnight, for instance where they track
+inpatients within a multi-day visit. Use `queue.autoCloseQueueEntriesForQueues` to clear only some queues.
 
-The task is registered with the scheduler as `Queue Module - Auto Close Queue Entries` and appears on the Manage
-Scheduler page, where its interval can be changed or the task stopped until the next restart. Blanking this
-property is what turns the clear off for good.
-
-The task works from the most recent occurrence of the configured time rather than from the moment it happens to run,
-so if it does not get a chance to run at that time (a restart or a maintenance window, say) the next run catches up
-instead of leaving the queues uncleared until the following day. One consequence: the first run after this property
-is set ends anything still open from before the most recent occurrence of the configured time, rather than waiting
-for the next one.
+The task appears on the Manage Scheduler page as `Queue Module - Auto Close Queue Entries`, where its interval can be
+changed or the task stopped until the next restart. Blanking this property is what turns the clear off for good.
 
 #### queue.autoCloseQueueEntriesForQueues
 
@@ -103,9 +96,10 @@ for the next one.
 **Required?**  False
 
 **Description:**  
-A comma-separated list of queue uuids whose entries are automatically ended at the time configured by
-`queue.autoCloseQueueEntriesAtTime`. Leave this property blank to clear entries in **all** queues. Unknown uuids are
-logged and skipped rather than aborting the task.
+A comma-separated list of the queues whose entries are automatically ended at the time configured by
+`queue.autoCloseQueueEntriesAtTime`. Each element is a queue name or, where names are not unique, a queue uuid. Leave
+this property blank to clear entries in **all** queues. References that do not resolve are logged and skipped rather
+than aborting the task.
 
 ### Sort Weight Generators
 

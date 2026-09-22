@@ -12,10 +12,12 @@ package org.openmrs.module.queue.tasks;
 import static org.openmrs.module.queue.QueueModuleConstants.AUTO_CLOSE_QUEUE_ENTRIES_AT_TIME;
 import static org.openmrs.module.queue.QueueModuleConstants.AUTO_CLOSE_QUEUE_ENTRIES_FOR_QUEUES;
 
-import java.text.ParsePosition;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -39,6 +41,8 @@ import org.openmrs.scheduler.tasks.AbstractTask;
 public class AutoCloseQueueEntryTask extends AbstractTask {
 	
 	private static final String TIME_FORMAT = "HH:mm";
+	
+	private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern(TIME_FORMAT);
 	
 	/**
 	 * One task run uses one Hibernate session. Each save checks every entry still in the session for
@@ -102,9 +106,9 @@ public class AutoCloseQueueEntryTask extends AbstractTask {
 			Date endedAt = closeTime;
 			Date startedAt = queueEntry.getStartedAt();
 			if (startedAt != null && !endedAt.after(startedAt)) {
-				// startedOnOrBefore is inclusive, so an entry started exactly at the close time is swept
-				// too, and QueueEntryDaoImpl.updateIfUnmodified rejects an endedAt that is not strictly
-				// after startedAt
+				// QueueEntryDaoImpl.updateIfUnmodified rejects an endedAt that is not strictly after
+				// startedAt. A whole second rather than 1ms because the DATETIME column stores second
+				// precision, so a smaller bump would come back out of the database as the same instant.
 				endedAt = new Date(startedAt.getTime() + 1000L);
 			}
 			if (endQueueEntry(queueEntry, endedAt)) {
@@ -125,28 +129,22 @@ public class AutoCloseQueueEntryTask extends AbstractTask {
 	 * configured value cannot be parsed.
 	 */
 	protected Date getMostRecentCloseTime(String configuredTime, Date referenceDate) {
-		SimpleDateFormat format = new SimpleDateFormat(TIME_FORMAT);
-		format.setLenient(false);
-		ParsePosition position = new ParsePosition(0);
-		Date parsedTime = format.parse(configuredTime, position);
-		if (parsedTime == null || position.getIndex() != configuredTime.length()) {
+		LocalTime timeOfDay;
+		try {
+			timeOfDay = LocalTime.parse(configuredTime, TIME_FORMATTER);
+		}
+		catch (DateTimeParseException e) {
 			log.warn("Invalid value '{}' for global property {}, expected format {}", configuredTime,
 			    AUTO_CLOSE_QUEUE_ENTRIES_AT_TIME, TIME_FORMAT);
 			return null;
 		}
-		Calendar parsed = Calendar.getInstance();
-		parsed.setTime(parsedTime);
-		
-		Calendar closeTime = Calendar.getInstance();
-		closeTime.setTime(referenceDate);
-		closeTime.set(Calendar.HOUR_OF_DAY, parsed.get(Calendar.HOUR_OF_DAY));
-		closeTime.set(Calendar.MINUTE, parsed.get(Calendar.MINUTE));
-		closeTime.set(Calendar.SECOND, 0);
-		closeTime.set(Calendar.MILLISECOND, 0);
-		if (closeTime.getTime().after(referenceDate)) {
-			closeTime.add(Calendar.DATE, -1);
+		ZoneId zone = ZoneId.systemDefault();
+		LocalDateTime reference = LocalDateTime.ofInstant(referenceDate.toInstant(), zone);
+		LocalDateTime closeTime = reference.toLocalDate().atTime(timeOfDay);
+		if (closeTime.isAfter(reference)) {
+			closeTime = closeTime.minusDays(1);
 		}
-		return closeTime.getTime();
+		return Date.from(closeTime.atZone(zone).toInstant());
 	}
 	
 	/**
@@ -175,8 +173,8 @@ public class AutoCloseQueueEntryTask extends AbstractTask {
 				queues.add(getServices().getQueue(trimmed));
 			}
 			catch (IllegalArgumentException e) {
-				log.warn("Ignoring unknown queue '{}' configured in global property {}", trimmed,
-				    AUTO_CLOSE_QUEUE_ENTRIES_FOR_QUEUES);
+				log.warn("Ignoring queue '{}' configured in global property {}: {}", trimmed,
+				    AUTO_CLOSE_QUEUE_ENTRIES_FOR_QUEUES, e.getMessage());
 			}
 		}
 		return queues;
