@@ -42,6 +42,10 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 	
 	private static final String DATE_CHANGED = "dateChanged";
 	
+	private static final String CHANGED_BY = "changedBy";
+	
+	private static final String QUEUE_ENTRY_ID = "queueEntryId";
+	
 	public QueueEntryDaoImpl(@Qualifier("sessionFactory") SessionFactory sessionFactory) {
 		super(sessionFactory);
 	}
@@ -137,16 +141,16 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 		if (endedAt == null) {
 			update.set(root.<Date> get(ENDED_AT), cb.nullLiteral(Date.class));
 		} else {
-			update.set(root.<Date> get(ENDED_AT), endedAt);
+			update.set(root.get(ENDED_AT), endedAt);
 		}
-		update.set(root.<Date> get(DATE_CHANGED), dateChanged);
+		update.set(root.get(DATE_CHANGED), dateChanged);
 		if (changedBy != null) {
-			update.set(root.<User> get("changedBy"), changedBy);
+			update.set(root.get(CHANGED_BY), changedBy);
 		}
 		
 		// Only update if dateChanged still matches the value the caller loaded
 		List<Predicate> predicates = new ArrayList<>();
-		predicates.add(cb.equal(root.get("queueEntryId"), queueEntry.getQueueEntryId()));
+		predicates.add(cb.equal(root.get(QUEUE_ENTRY_ID), queueEntry.getQueueEntryId()));
 		if (expectedDateChanged == null) {
 			predicates.add(root.get(DATE_CHANGED).isNull());
 		} else {

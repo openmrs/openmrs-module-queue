@@ -24,6 +24,7 @@ import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
@@ -111,7 +112,7 @@ public class AutoCloseQueueEntryTask extends AbstractTask {
 				// QueueEntryDaoImpl.updateIfUnmodified rejects an endedAt that is not strictly after
 				// startedAt. A whole second rather than 1ms because the DATETIME column stores second
 				// precision, so a smaller bump would come back out of the database as the same instant.
-				endedAt = new Date(startedAt.getTime() + 1000L);
+				endedAt = DateUtils.addSeconds(startedAt, 1);
 			}
 			if (endQueueEntry(queueEntry, endedAt)) {
 				log.info("Queue entry auto-closed on schedule: {}", queueEntry.getQueueEntryId());

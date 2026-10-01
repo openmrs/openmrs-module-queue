@@ -9,7 +9,7 @@
  */
 package org.openmrs.module.queue.api;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -82,7 +82,11 @@ public class QueueServicesWrapper {
 	 * @return a List of Concepts matching those references
 	 */
 	public List<Concept> getConcepts(String[] conceptRefs) {
-		return Arrays.stream(conceptRefs).map(ref -> getConcept(ref.trim())).collect(Collectors.toList());
+		List<Concept> ret = new ArrayList<>();
+		for (String conceptRef : conceptRefs) {
+			ret.add(getConcept(conceptRef.trim()));
+		}
+		return ret;
 	}
 	
 	/**
@@ -121,7 +125,11 @@ public class QueueServicesWrapper {
 	 * @return a List of Locations matching those references
 	 */
 	public List<Location> getLocations(String[] locationRefs) {
-		return Arrays.stream(locationRefs).map(ref -> getLocation(ref.trim())).collect(Collectors.toList());
+		List<Location> ret = new ArrayList<>();
+		for (String locationRef : locationRefs) {
+			ret.add(getLocation(locationRef.trim()));
+		}
+		return ret;
 	}
 	
 	/**
@@ -180,7 +188,11 @@ public class QueueServicesWrapper {
 	 * @return a List of Queues matching those references
 	 */
 	public List<Queue> getQueues(String[] queueRefs) {
-		return Arrays.stream(queueRefs).map(ref -> getQueue(ref.trim())).collect(Collectors.toList());
+		List<Queue> ret = new ArrayList<>();
+		for (String queueRef : queueRefs) {
+			ret.add(getQueue(queueRef.trim()));
+		}
+		return ret;
 	}
 	
 	/**
@@ -210,7 +222,11 @@ public class QueueServicesWrapper {
 	 * @return a List of Providers matching those references
 	 */
 	public List<Provider> getProviders(String[] providerRefs) {
-		return Arrays.stream(providerRefs).map(ref -> getProvider(ref.trim())).collect(Collectors.toList());
+		List<Provider> ret = new ArrayList<>();
+		for (String providerRef : providerRefs) {
+			ret.add(getProvider(providerRef.trim()));
+		}
+		return ret;
 	}
 	
 	/**
@@ -233,7 +249,11 @@ public class QueueServicesWrapper {
 	 * @return a List of QueueRooms matching those references
 	 */
 	public List<QueueRoom> getQueueRooms(String[] queueRoomRefs) {
-		return Arrays.stream(queueRoomRefs).map(ref -> getQueueRoom(ref.trim())).collect(Collectors.toList());
+		List<QueueRoom> ret = new ArrayList<>();
+		for (String queueRoomRef : queueRoomRefs) {
+			ret.add(getQueueRoom(queueRoomRef.trim()));
+		}
+		return ret;
 	}
 	
 	/**

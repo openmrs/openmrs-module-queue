@@ -104,7 +104,7 @@ public class AutoCloseQueueEntryTaskIntegrationTest extends BaseModuleContextSen
 		Context.clearSession();
 		// the copy a task holds, loaded before it works through its list
 		QueueEntry loadedByTheTask = queueEntryService.getQueueEntryById(queueEntryId).get();
-		// another session ends the entry the way a transition does: ended_at only, date_changed untouched
+		// another session sets ended_at alone, leaving date_changed as the task loaded it
 		Date transitionTime = DateUtils.truncate(DateUtils.addHours(new Date(), -2), Calendar.SECOND);
 		Context.getAdministrationService()
 		        .executeSQL("UPDATE queue_entry SET ended_at = '"
