@@ -76,18 +76,11 @@ a particular Queue.  By default, the `existingValueSortWeightGenerator` will be 
 **Required?**  False
 
 **Description:**  
-The time of day, in `HH:mm` 24-hour format and the server's local time, at which active queue entries are
-automatically ended. A scheduled task ends every queue entry still active as of that time; entries started since then
-are left alone. Each run works from the most recent occurrence of the configured time, so a missed run is caught up
-by the next one, and the first run after this property is set ends everything open from before that time.
-
-Blank by default, so nothing is cleared until it is set. An outpatient clinic emptying its queues at end of day would
-set `23:59`, which records the end on the day the entry started; `00:00` clears the same entries but dates them to
-the following day. Leave it blank where entries are meant to survive overnight, for instance where they track
-inpatients within a multi-day visit. Use `queue.autoCloseQueueEntriesForQueues` to clear only some queues.
-
-The task appears on the Manage Scheduler page as `Queue Module - Auto Close Queue Entries`, where its interval can be
-changed or the task stopped until the next restart. Blanking this property is what turns the clear off for good.
+The time of day (`HH:mm`, server local time) at which active queue entries started before it are automatically ended.
+A missed run is caught up by the next one. An outpatient clinic would typically set `23:59`, which keeps the end on
+the same day as the start (`00:00` would date it to the next day). Leave blank where entries must survive overnight,
+such as inpatients within a multi-day visit. Stopping the `Queue Module - Auto Close Queue Entries` task from the
+Manage Scheduler page lasts only until the next restart; blank this property to turn the clear off.
 
 #### queue.autoCloseQueueEntriesForQueues
 
@@ -96,10 +89,8 @@ changed or the task stopped until the next restart. Blanking this property is wh
 **Required?**  False
 
 **Description:**  
-A comma-separated list of the queues whose entries are automatically ended at the time configured by
-`queue.autoCloseQueueEntriesAtTime`. Each element is a queue name or, where names are not unique, a queue uuid. Leave
-this property blank to clear entries in **all** queues. References that do not resolve are logged and skipped rather
-than aborting the task.
+Comma-separated names (or uuids, where names are not unique) of the queues cleared at
+`queue.autoCloseQueueEntriesAtTime`. Blank clears **all** queues. Unresolvable values are logged and skipped.
 
 ### Sort Weight Generators
 

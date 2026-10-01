@@ -12,6 +12,7 @@ package org.openmrs.module.queue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.api.context.Context;
@@ -36,6 +37,13 @@ public class QueueModuleActivatorTest extends BaseModuleContextSensitiveTest {
 	@Before
 	public void setup() {
 		new QueueModuleActivator().started();
+	}
+	
+	@After
+	public void stopTasks() throws SchedulerException {
+		// started() schedules real timers that would otherwise keep running for the rest of the test run
+		Context.getSchedulerService().shutdownTask(taskDefinition(AUTO_CLOSE_VISIT_QUEUE_ENTRY_TASK));
+		Context.getSchedulerService().shutdownTask(taskDefinition(AUTO_CLOSE_QUEUE_ENTRY_TASK));
 	}
 	
 	@Test

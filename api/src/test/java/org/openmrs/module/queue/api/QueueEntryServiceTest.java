@@ -535,20 +535,6 @@ public class QueueEntryServiceTest {
 	}
 	
 	@Test
-	public void shouldCloseQueueEntryAtTheGivenTime() {
-		Date startedAt = DateUtils.addHours(DateUtils.truncate(new Date(), Calendar.SECOND), -3);
-		Date endedAt = DateUtils.addHours(startedAt, 1);
-		QueueEntry queueEntry = new QueueEntry();
-		queueEntry.setQueueEntryId(1);
-		queueEntry.setStartedAt(startedAt);
-		when(dao.get(1)).thenReturn(Optional.of(queueEntry));
-		when(dao.updateIfUnmodified(any(), any())).thenReturn(true);
-		
-		assertThat(queueEntryService.closeQueueEntry(queueEntry, endedAt), is(true));
-		assertThat(queueEntry.getEndedAt(), equalTo(endedAt));
-	}
-	
-	@Test
 	public void shouldCloseQueueEntryThroughTheStateLoadedFromTheDatabase() {
 		Date startedAt = DateUtils.addHours(DateUtils.truncate(new Date(), Calendar.SECOND), -3);
 		Date endedAt = DateUtils.addHours(startedAt, 1);

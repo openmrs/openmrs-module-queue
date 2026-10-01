@@ -151,9 +151,7 @@ public interface QueueEntryService {
 	 * database first, so an entry that was ended, voided or removed since it was loaded is left alone.
 	 * If the entry's visit stopped before the given time, the entry is ended at the visit stop time
 	 * instead, as {@link org.openmrs.module.queue.validators.QueueEntryValidator} requires. If that
-	 * leaves no time after the entry started, the entry is left alone and a warning is logged. This is
-	 * intended for the scheduled tasks, which work from a list of entries loaded before the first of
-	 * them is saved.
+	 * leaves no time after the entry started, the entry is left alone and a warning is logged.
 	 *
 	 * @param queueEntry the queue entry to end
 	 * @param endedAt the time at which to end it

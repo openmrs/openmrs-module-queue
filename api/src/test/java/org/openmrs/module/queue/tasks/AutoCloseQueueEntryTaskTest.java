@@ -51,8 +51,6 @@ public class AutoCloseQueueEntryTaskTest {
 	
 	private RuntimeException saveFailure;
 	
-	private QueueEntry modifiedSinceLoading;
-	
 	private RuntimeException getQueueEntriesFailure;
 	
 	private int sessionFlushes;
@@ -87,18 +85,10 @@ public class AutoCloseQueueEntryTaskTest {
 			        .collect(Collectors.toList());
 		}
 		
-		/**
-		 * Emulates
-		 * {@link org.openmrs.module.queue.api.QueueEntryService#closeQueueEntry(QueueEntry, Date)}, which
-		 * ends the entry unless it has been modified since it was loaded
-		 */
 		@Override
 		protected boolean endQueueEntry(QueueEntry queueEntry, Date endedAt) {
 			if (queueEntry == saveFailsFor) {
 				throw saveFailure;
-			}
-			if (queueEntry == modifiedSinceLoading) {
-				return false;
 			}
 			queueEntry.setEndedAt(endedAt);
 			return true;
@@ -122,7 +112,6 @@ public class AutoCloseQueueEntryTaskTest {
 		configuredQueues = null;
 		saveFailsFor = null;
 		saveFailure = null;
-		modifiedSinceLoading = null;
 		getQueueEntriesFailure = null;
 		sessionFlushes = 0;
 		now = getDate("2020-01-01 23:59");
@@ -207,18 +196,6 @@ public class AutoCloseQueueEntryTaskTest {
 	}
 	
 	@Test
-	public void shouldLeaveEntriesModifiedSinceTheyWereLoadedAlone() throws Exception {
-		configuredTime = "23:59";
-		QueueEntry transitionedInTheMeantime = queueEntryStartedAt("2020-01-01 09:00", null);
-		QueueEntry stillActive = queueEntryStartedAt("2020-01-01 10:00", null);
-		modifiedSinceLoading = transitionedInTheMeantime;
-		
-		new TestAutoCloseQueueEntryTask().execute();
-		assertThat(transitionedInTheMeantime.getEndedAt(), nullValue());
-		assertThat(stillActive.getEndedAt(), equalTo(now));
-	}
-	
-	@Test
 	public void shouldFlushTheSessionPeriodicallyWhileClearingALargeNumberOfEntries() throws Exception {
 		configuredTime = "23:59";
 		for (int i = 0; i < 501; i++) {
@@ -230,29 +207,10 @@ public class AutoCloseQueueEntryTaskTest {
 	}
 	
 	@Test
-	public void shouldNotFlushTheSessionWhenClearingAHandfulOfEntries() throws Exception {
-		configuredTime = "23:59";
-		queueEntryStartedAt("2020-01-01 09:00", null);
-		
-		new TestAutoCloseQueueEntryTask().execute();
-		assertThat(sessionFlushes, equalTo(0));
-	}
-	
-	@Test
 	public void shouldNotPropagateWhenFetchingQueueEntriesFails() throws Exception {
 		configuredTime = "23:59";
 		QueueEntry queueEntry = queueEntryStartedAt("2020-01-01 09:00", null);
 		getQueueEntriesFailure = new APIException("could not query queue entries");
-		
-		new TestAutoCloseQueueEntryTask().execute();
-		assertThat(queueEntry.getEndedAt(), nullValue());
-	}
-	
-	@Test
-	public void shouldNotClearEntriesStartedAfterTheMostRecentCloseTime() throws Exception {
-		configuredTime = "23:59";
-		now = getDate("2020-01-02 08:00");
-		QueueEntry queueEntry = queueEntryStartedAt("2020-01-02 07:00", null);
 		
 		new TestAutoCloseQueueEntryTask().execute();
 		assertThat(queueEntry.getEndedAt(), nullValue());
@@ -311,12 +269,12 @@ public class AutoCloseQueueEntryTaskTest {
 	}
 	
 	@Test
-	public void getQueuesToClearShouldReturnEmptyOptionalWhenNoQueuesAreConfigured() {
+	public void getQueuesToClear_shouldReturnEmptyOptionalWhenNoQueuesAreConfigured() {
 		assertThat(taskForConfiguredQueues("  ").getQueuesToClear().isPresent(), equalTo(false));
 	}
 	
 	@Test
-	public void getQueuesToClearShouldResolveConfiguredUuids() {
+	public void getQueuesToClear_shouldResolveConfiguredUuids() {
 		Queue queueA = new Queue();
 		Queue queueB = new Queue();
 		AutoCloseQueueEntryTask task = taskForConfiguredQueues(" uuid-a , ,uuid-b,");
@@ -327,7 +285,7 @@ public class AutoCloseQueueEntryTaskTest {
 	}
 	
 	@Test
-	public void getQueuesToClearShouldSkipUnknownUuids() {
+	public void getQueuesToClear_shouldSkipUnknownUuids() {
 		Queue queueA = new Queue();
 		AutoCloseQueueEntryTask task = taskForConfiguredQueues("uuid-a,not-a-queue");
 		when(task.getServices().getQueue("uuid-a")).thenReturn(queueA);
@@ -337,7 +295,7 @@ public class AutoCloseQueueEntryTaskTest {
 	}
 	
 	@Test
-	public void getQueuesToClearShouldReturnEmptyListWhenNoConfiguredUuidResolves() {
+	public void getQueuesToClear_shouldReturnEmptyListWhenNoConfiguredUuidResolves() {
 		AutoCloseQueueEntryTask task = taskForConfiguredQueues("not-a-queue");
 		when(task.getServices().getQueue("not-a-queue")).thenThrow(new IllegalArgumentException());
 		

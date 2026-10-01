@@ -154,8 +154,9 @@ public class AutoCloseQueueEntryTaskIntegrationTest extends BaseModuleContextSen
 		Integer queueEntryId = activeQueueEntryStartedHoursAgo(3, visit);
 		Context.flushSession();
 		Context.clearSession();
-		// the copy a task holds, with its visit loaded into the session while the visit was still open
+		// the copy a task holds, with its lazy visit read into the session while the visit was still open
 		QueueEntry loadedByTheTask = queueEntryService.getQueueEntryById(queueEntryId).get();
+		assertThat(loadedByTheTask.getVisit().getStopDatetime(), nullValue());
 		// another session stops the visit while the task works through its list
 		Context.getAdministrationService()
 		        .executeSQL("UPDATE visit SET date_stopped = '"
