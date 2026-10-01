@@ -9,8 +9,9 @@
  */
 package org.openmrs.module.queue.api;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -81,11 +82,7 @@ public class QueueServicesWrapper {
 	 * @return a List of Concepts matching those references
 	 */
 	public List<Concept> getConcepts(String[] conceptRefs) {
-		List<Concept> ret = new ArrayList<>();
-		for (String conceptRef : conceptRefs) {
-			ret.add(getConcept(conceptRef.trim()));
-		}
-		return ret;
+		return Arrays.stream(conceptRefs).map(ref -> getConcept(ref.trim())).collect(Collectors.toList());
 	}
 	
 	/**
@@ -124,11 +121,7 @@ public class QueueServicesWrapper {
 	 * @return a List of Locations matching those references
 	 */
 	public List<Location> getLocations(String[] locationRefs) {
-		List<Location> ret = new ArrayList<>();
-		for (String locationRef : locationRefs) {
-			ret.add(getLocation(locationRef.trim()));
-		}
-		return ret;
+		return Arrays.stream(locationRefs).map(ref -> getLocation(ref.trim())).collect(Collectors.toList());
 	}
 	
 	/**
@@ -187,11 +180,7 @@ public class QueueServicesWrapper {
 	 * @return a List of Queues matching those references
 	 */
 	public List<Queue> getQueues(String[] queueRefs) {
-		List<Queue> ret = new ArrayList<>();
-		for (String queueRef : queueRefs) {
-			ret.add(getQueue(queueRef.trim()));
-		}
-		return ret;
+		return Arrays.stream(queueRefs).map(ref -> getQueue(ref.trim())).collect(Collectors.toList());
 	}
 	
 	/**
@@ -206,12 +195,8 @@ public class QueueServicesWrapper {
 		if (queue != null) {
 			return queue;
 		}
-		List<Queue> matches = new ArrayList<>();
-		for (Queue candidate : getQueueService().getAllQueues()) {
-			if (queueRef.equalsIgnoreCase(candidate.getName())) {
-				matches.add(candidate);
-			}
-		}
+		List<Queue> matches = getQueueService().getAllQueues().stream()
+		        .filter(candidate -> queueRef.equalsIgnoreCase(candidate.getName())).collect(Collectors.toList());
 		if (matches.size() == 1) {
 			return matches.get(0);
 		} else if (matches.size() > 1) {
@@ -225,11 +210,7 @@ public class QueueServicesWrapper {
 	 * @return a List of Providers matching those references
 	 */
 	public List<Provider> getProviders(String[] providerRefs) {
-		List<Provider> ret = new ArrayList<>();
-		for (String providerRef : providerRefs) {
-			ret.add(getProvider(providerRef.trim()));
-		}
-		return ret;
+		return Arrays.stream(providerRefs).map(ref -> getProvider(ref.trim())).collect(Collectors.toList());
 	}
 	
 	/**
@@ -252,11 +233,7 @@ public class QueueServicesWrapper {
 	 * @return a List of QueueRooms matching those references
 	 */
 	public List<QueueRoom> getQueueRooms(String[] queueRoomRefs) {
-		List<QueueRoom> ret = new ArrayList<>();
-		for (String queueRoomRef : queueRoomRefs) {
-			ret.add(getQueueRoom(queueRoomRef.trim()));
-		}
-		return ret;
+		return Arrays.stream(queueRoomRefs).map(ref -> getQueueRoom(ref.trim())).collect(Collectors.toList());
 	}
 	
 	/**
