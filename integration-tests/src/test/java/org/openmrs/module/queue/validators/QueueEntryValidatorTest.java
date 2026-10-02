@@ -19,9 +19,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.lang.time.DateUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.apache.commons.lang3.time.DateUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.openmrs.Concept;
 import org.openmrs.Patient;
 import org.openmrs.Visit;
@@ -30,7 +30,7 @@ import org.openmrs.module.queue.SpringTestConfiguration;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
-import org.openmrs.test.BaseModuleContextSensitiveTest;
+import org.openmrs.test.jupiter.BaseModuleContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.validation.BindException;
@@ -71,7 +71,7 @@ public class QueueEntryValidatorTest extends BaseModuleContextSensitiveTest {
 	@Autowired
 	private QueueServicesWrapper services;
 	
-	@Before
+	@BeforeEach
 	public void setup() {
 		INITIAL_CONCEPTS_DATASETS.forEach(this::executeDataSet);
 		Queue queue = services.getQueueService().getQueueByUuid(QUEUE_UUID).orElse(null);

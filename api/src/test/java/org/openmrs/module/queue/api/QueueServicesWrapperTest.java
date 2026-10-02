@@ -11,16 +11,19 @@ package org.openmrs.module.queue.api;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.openmrs.Concept;
 import org.openmrs.api.AdministrationService;
 import org.openmrs.api.ConceptService;
@@ -31,7 +34,8 @@ import org.openmrs.api.VisitService;
 import org.openmrs.module.queue.QueueModuleConstants;
 import org.openmrs.module.queue.model.Queue;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class QueueServicesWrapperTest {
 	
 	QueueServicesWrapper wrapper;
@@ -72,7 +76,7 @@ public class QueueServicesWrapperTest {
 	
 	private Concept conceptSet2;
 	
-	@Before
+	@BeforeEach
 	public void setupMocks() {
 		MockitoAnnotations.openMocks(this);
 		wrapper = new QueueServicesWrapper(queueService, queueEntryService, queueRoomService, roomProviderMapService,
@@ -86,16 +90,16 @@ public class QueueServicesWrapperTest {
 		queue = new Queue();
 	}
 	
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void getAllowedServices_shouldThrowErrorIfNoGpConfigured() {
 		when(administrationService.getGlobalProperty(QueueModuleConstants.QUEUE_SERVICE)).thenReturn(null);
-		wrapper.getAllowedServices();
+		assertThrows(IllegalStateException.class, () -> wrapper.getAllowedServices());
 	}
 	
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void getAllowedServices_shouldThrowErrorIfInvalidGpConfigured() {
 		when(administrationService.getGlobalProperty(QueueModuleConstants.QUEUE_SERVICE)).thenReturn("invalid");
-		wrapper.getAllowedServices();
+		assertThrows(IllegalArgumentException.class, () -> wrapper.getAllowedServices());
 	}
 	
 	@Test
@@ -106,16 +110,16 @@ public class QueueServicesWrapperTest {
 		assertThat(services.size(), equalTo(2));
 	}
 	
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void getAllowedPriorities_shouldThrowErrorIfNoGpConfigured() {
 		when(administrationService.getGlobalProperty(QueueModuleConstants.QUEUE_PRIORITY)).thenReturn(null);
-		wrapper.getAllowedPriorities(queue);
+		assertThrows(IllegalStateException.class, () -> wrapper.getAllowedPriorities(queue));
 	}
 	
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void getAllowedPriorities_shouldThrowErrorIfInvalidGpConfigured() {
 		when(administrationService.getGlobalProperty(QueueModuleConstants.QUEUE_PRIORITY)).thenReturn("invalid");
-		wrapper.getAllowedPriorities(queue);
+		assertThrows(IllegalArgumentException.class, () -> wrapper.getAllowedPriorities(queue));
 	}
 	
 	@Test
@@ -133,16 +137,16 @@ public class QueueServicesWrapperTest {
 		assertThat(priorities.size(), equalTo(1));
 	}
 	
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void getAllowedStatuses_shouldThrowErrorIfNoGpConfigured() {
 		when(administrationService.getGlobalProperty(QueueModuleConstants.QUEUE_STATUS)).thenReturn(null);
-		wrapper.getAllowedStatuses(queue);
+		assertThrows(IllegalStateException.class, () -> wrapper.getAllowedStatuses(queue));
 	}
 	
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void getAllowedStatuses_shouldThrowErrorIfInvalidGpConfigured() {
 		when(administrationService.getGlobalProperty(QueueModuleConstants.QUEUE_STATUS)).thenReturn("invalid");
-		wrapper.getAllowedStatuses(queue);
+		assertThrows(IllegalArgumentException.class, () -> wrapper.getAllowedStatuses(queue));
 	}
 	
 	@Test

@@ -12,15 +12,15 @@ package org.openmrs.module.queue.api.sort;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.openmrs.module.queue.model.QueueEntry;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ExistingValueSortWeightGeneratorTest {
 	
 	AutoCloseable mockCloseable = null;
@@ -29,14 +29,14 @@ public class ExistingValueSortWeightGeneratorTest {
 	
 	ExistingValueSortWeightGenerator generator;
 	
-	@Before
+	@BeforeEach
 	public void setupMocks() {
 		mockCloseable = MockitoAnnotations.openMocks(this);
 		queueEntry = new QueueEntry();
 		generator = new ExistingValueSortWeightGenerator();
 	}
 	
-	@After
+	@AfterEach
 	public void tearDownMocks() {
 		if (mockCloseable != null) {
 			try {

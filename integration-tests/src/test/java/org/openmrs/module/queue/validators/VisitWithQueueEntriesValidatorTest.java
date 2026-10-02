@@ -9,20 +9,21 @@
  */
 package org.openmrs.module.queue.validators;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.lang.time.DateUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.apache.commons.lang3.time.DateUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.openmrs.Visit;
 import org.openmrs.module.queue.SpringTestConfiguration;
 import org.openmrs.module.queue.api.QueueEntryService;
 import org.openmrs.module.queue.model.QueueEntry;
-import org.openmrs.test.BaseModuleContextSensitiveTest;
+import org.openmrs.test.jupiter.BaseModuleContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
@@ -55,7 +56,7 @@ public class VisitWithQueueEntriesValidatorTest extends BaseModuleContextSensiti
 	@Autowired
 	private VisitWithQueueEntriesValidator validator;
 	
-	@Before
+	@BeforeEach
 	public void setup() {
 		INITIAL_DATASET_XML.forEach(this::executeDataSet);
 		queueEntry = queueEntryService.getQueueEntryById(3).get();

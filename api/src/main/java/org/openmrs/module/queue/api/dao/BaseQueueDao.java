@@ -9,7 +9,7 @@
  */
 package org.openmrs.module.queue.api.dao;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 import java.util.Optional;

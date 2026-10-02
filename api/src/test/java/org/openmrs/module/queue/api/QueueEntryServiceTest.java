@@ -11,7 +11,8 @@ package org.openmrs.module.queue.api;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
@@ -24,16 +25,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.lang.time.DateUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.apache.commons.lang3.time.DateUtils;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.openmrs.Concept;
 import org.openmrs.Location;
 import org.openmrs.Patient;
@@ -52,7 +53,7 @@ import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.model.QueueEntryTransition;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class QueueEntryServiceTest {
 	
 	private static final String QUEUE_ENTRY_UUID = "j8f0bb90-86f4-4d9c-8b6c-3713d748ef74";
@@ -72,7 +73,7 @@ public class QueueEntryServiceTest {
 	
 	AutoCloseable mocksCloser = null;
 	
-	@Before
+	@BeforeEach
 	public void setupMocks() {
 		mocksCloser = MockitoAnnotations.openMocks(this);
 		queueEntryService = new QueueEntryServiceImpl() {
@@ -87,7 +88,7 @@ public class QueueEntryServiceTest {
 		queueEntryService.setSortWeightGenerator(new ExistingValueSortWeightGenerator());
 	}
 	
-	@After
+	@AfterEach
 	public void tearDownMocks() throws Exception {
 		mocksCloser.close();
 	}
@@ -360,16 +361,16 @@ public class QueueEntryServiceTest {
 		}
 	}
 	
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void shouldThrowWhenTransitioningUnsavedEntry() {
 		QueueEntry unsavedEntry = new QueueEntry();
 		QueueEntryTransition transition = new QueueEntryTransition();
 		transition.setQueueEntryToTransition(unsavedEntry);
 		transition.setTransitionDate(new Date());
-		queueEntryService.transitionQueueEntry(transition);
+		assertThrows(IllegalArgumentException.class, () -> queueEntryService.transitionQueueEntry(transition));
 	}
 	
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void shouldThrowWhenTransitioningVoidedEntry() {
 		QueueEntry voidedEntry = new QueueEntry();
 		voidedEntry.setQueueEntryId(1);
@@ -379,10 +380,10 @@ public class QueueEntryServiceTest {
 		QueueEntryTransition transition = new QueueEntryTransition();
 		transition.setQueueEntryToTransition(voidedEntry);
 		transition.setTransitionDate(new Date());
-		queueEntryService.transitionQueueEntry(transition);
+		assertThrows(IllegalStateException.class, () -> queueEntryService.transitionQueueEntry(transition));
 	}
 	
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void shouldThrowWhenTransitioningEndedEntry() {
 		QueueEntry endedEntry = new QueueEntry();
 		endedEntry.setQueueEntryId(1);
@@ -392,36 +393,36 @@ public class QueueEntryServiceTest {
 		QueueEntryTransition transition = new QueueEntryTransition();
 		transition.setQueueEntryToTransition(endedEntry);
 		transition.setTransitionDate(new Date());
-		queueEntryService.transitionQueueEntry(transition);
+		assertThrows(IllegalStateException.class, () -> queueEntryService.transitionQueueEntry(transition));
 	}
 	
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void shouldThrowWhenUndoingTransitionOnUnsavedEntry() {
 		QueueEntry unsavedEntry = new QueueEntry();
-		queueEntryService.undoTransition(unsavedEntry);
+		assertThrows(IllegalArgumentException.class, () -> queueEntryService.undoTransition(unsavedEntry));
 	}
 	
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void shouldThrowWhenUndoingTransitionOnVoidedEntry() {
 		QueueEntry voidedEntry = new QueueEntry();
 		voidedEntry.setQueueEntryId(1);
 		voidedEntry.setVoided(true);
 		when(dao.get(1)).thenReturn(Optional.of(voidedEntry));
 		
-		queueEntryService.undoTransition(voidedEntry);
+		assertThrows(IllegalStateException.class, () -> queueEntryService.undoTransition(voidedEntry));
 	}
 	
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void shouldThrowWhenUndoingTransitionOnEndedEntry() {
 		QueueEntry endedEntry = new QueueEntry();
 		endedEntry.setQueueEntryId(1);
 		endedEntry.setEndedAt(new Date());
 		when(dao.get(1)).thenReturn(Optional.of(endedEntry));
 		
-		queueEntryService.undoTransition(endedEntry);
+		assertThrows(IllegalStateException.class, () -> queueEntryService.undoTransition(endedEntry));
 	}
 	
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void shouldThrowWhenTransitioningConcurrentlyModifiedEntry() {
 		QueueEntry queueEntry = new QueueEntry();
 		queueEntry.setQueueEntryId(1);
@@ -436,10 +437,10 @@ public class QueueEntryServiceTest {
 		QueueEntryTransition transition = new QueueEntryTransition();
 		transition.setQueueEntryToTransition(queueEntry);
 		transition.setTransitionDate(new Date());
-		queueEntryService.transitionQueueEntry(transition);
+		assertThrows(IllegalStateException.class, () -> queueEntryService.transitionQueueEntry(transition));
 	}
 	
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void shouldThrowWhenUndoingTransitionOnConcurrentlyModifiedPreviousEntry() {
 		Queue queue1 = new Queue();
 		Patient patient1 = new Patient();
@@ -474,7 +475,7 @@ public class QueueEntryServiceTest {
 		when(dao.getQueueEntries(any())).thenReturn(Arrays.asList(prevEntry));
 		when(dao.updateIfUnmodified(any(), any())).thenReturn(false);
 		
-		queueEntryService.undoTransition(currentEntry);
+		assertThrows(IllegalStateException.class, () -> queueEntryService.undoTransition(currentEntry));
 	}
 	
 	@Test

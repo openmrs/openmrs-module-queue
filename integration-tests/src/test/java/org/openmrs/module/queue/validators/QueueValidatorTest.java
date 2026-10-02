@@ -9,15 +9,15 @@
  */
 package org.openmrs.module.queue.validators;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.SpringTestConfiguration;
 import org.openmrs.module.queue.model.Queue;
-import org.openmrs.test.BaseModuleContextSensitiveTest;
+import org.openmrs.test.jupiter.BaseModuleContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.validation.BindException;
@@ -46,7 +46,7 @@ public class QueueValidatorTest extends BaseModuleContextSensitiveTest {
 	
 	private Errors errors;
 	
-	@Before
+	@BeforeEach
 	public void setup() {
 		for (String dataset : QUEUE_VALIDATOR_INITIAL_DATASET_XML) {
 			executeDataSet(dataset);

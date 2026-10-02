@@ -9,11 +9,15 @@
  */
 package org.openmrs.module.queue.api.dao.impl;
 
-import static org.hibernate.criterion.Restrictions.eq;
-
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.validation.constraints.NotNull;
 
 import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -22,14 +26,13 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Restrictions;
 import org.openmrs.Auditable;
 import org.openmrs.OpenmrsObject;
 import org.openmrs.Retireable;
 import org.openmrs.Voidable;
+import org.openmrs.api.db.hibernate.HibernateUtil;
 import org.openmrs.module.queue.api.dao.BaseQueueDao;
 
 @Slf4j
@@ -53,26 +56,29 @@ public class AbstractBaseQueueDaoImpl<Q extends OpenmrsObject & Auditable> imple
 	
 	@Override
 	public Optional<Q> get(int id) {
-		return Optional.ofNullable((Q) getCurrentSession().get(this.clazz, id));
+		return Optional.ofNullable(getCurrentSession().get(this.clazz, id));
 	}
 	
 	@Override
 	public Optional<Q> get(@NotNull String uuid) {
-		Criteria criteria = getCurrentSession().createCriteria(getClazz());
-		includeVoidedObjects(criteria, false);
-		criteria.add(eq("uuid", uuid)).uniqueResult();
-		return Optional.ofNullable((Q) criteria.add(eq("uuid", uuid)).uniqueResult());
+		CriteriaBuilder cb = getCurrentSession().getCriteriaBuilder();
+		CriteriaQuery<Q> query = cb.createQuery(getClazz());
+		Root<Q> root = query.from(getClazz());
+		List<Predicate> predicates = new ArrayList<>();
+		includeVoidedObjects(cb, predicates, root, false);
+		predicates.add(cb.equal(root.get("uuid"), uuid));
+		query.where(predicates.toArray(new Predicate[0]));
+		return getCurrentSession().createQuery(query).uniqueResultOptional();
 	}
 	
 	@Override
 	public Q createOrUpdate(Q queue) {
-		this.getCurrentSession().saveOrUpdate(queue);
-		return queue;
+		return HibernateUtil.saveOrUpdate(this.getCurrentSession(), queue);
 	}
 	
 	@Override
 	public void delete(Q queue) {
-		this.getCurrentSession().delete(queue);
+		this.getCurrentSession().remove(queue);
 	}
 	
 	@Override
@@ -87,9 +93,13 @@ public class AbstractBaseQueueDaoImpl<Q extends OpenmrsObject & Auditable> imple
 	
 	@Override
 	public List<Q> findAll(boolean includeVoided) {
-		Criteria criteria = getCurrentSession().createCriteria(clazz);
-		includeVoidedObjects(criteria, includeVoided);
-		return criteria.list();
+		CriteriaBuilder cb = getCurrentSession().getCriteriaBuilder();
+		CriteriaQuery<Q> query = cb.createQuery(clazz);
+		Root<Q> root = query.from(clazz);
+		List<Predicate> predicates = new ArrayList<>();
+		includeVoidedObjects(cb, predicates, root, includeVoided);
+		query.where(predicates.toArray(new Predicate[0]));
+		return getCurrentSession().createQuery(query).list();
 	}
 	
 	protected boolean isVoidable() {
@@ -100,20 +110,21 @@ public class AbstractBaseQueueDaoImpl<Q extends OpenmrsObject & Auditable> imple
 		return Retireable.class.isAssignableFrom(clazz);
 	}
 	
-	protected void handleVoidable(Criteria criteria) {
-		criteria.add(eq("voided", false));
+	protected void handleVoidable(CriteriaBuilder cb, List<Predicate> predicates, Root<Q> root) {
+		predicates.add(cb.equal(root.get("voided"), false));
 	}
 	
-	protected void handleRetireable(Criteria criteria) {
-		criteria.add(eq("retired", false));
+	protected void handleRetireable(CriteriaBuilder cb, List<Predicate> predicates, Root<Q> root) {
+		predicates.add(cb.equal(root.get("retired"), false));
 	}
 	
-	protected void includeVoidedObjects(Criteria criteria, boolean includeRetired) {
+	protected void includeVoidedObjects(CriteriaBuilder cb, List<Predicate> predicates, Root<Q> root,
+	        boolean includeRetired) {
 		if (!includeRetired) {
 			if (isVoidable()) {
-				handleVoidable(criteria);
+				handleVoidable(cb, predicates, root);
 			} else if (isRetireable()) {
-				handleRetireable(criteria);
+				handleRetireable(cb, predicates, root);
 			}
 		}
 	}
@@ -122,9 +133,9 @@ public class AbstractBaseQueueDaoImpl<Q extends OpenmrsObject & Auditable> imple
 	 * If the passed value is null, return without limiting If the passed value is not null, add clause
 	 * that the property must be equal to the value
 	 */
-	protected void limitToEqualsProperty(Criteria criteria, String property, Object value) {
+	protected void limitToEqualsProperty(CriteriaBuilder cb, List<Predicate> predicates, Path<?> property, Object value) {
 		if (value != null) {
-			criteria.add(Restrictions.eq(property, value));
+			predicates.add(cb.equal(property, value));
 		}
 	}
 	
@@ -132,9 +143,10 @@ public class AbstractBaseQueueDaoImpl<Q extends OpenmrsObject & Auditable> imple
 	 * If the passed value is null, return without limiting If the passed value is not null, add clause
 	 * that the property must greater or equal to the value
 	 */
-	protected void limitToGreaterThanOrEqualToProperty(Criteria criteria, String property, Object value) {
+	protected <Y extends Comparable<? super Y>> void limitToGreaterThanOrEqualToProperty(CriteriaBuilder cb,
+	        List<Predicate> predicates, Path<Y> property, Y value) {
 		if (value != null) {
-			criteria.add(Restrictions.ge(property, value));
+			predicates.add(cb.greaterThanOrEqualTo(property, value));
 		}
 	}
 	
@@ -142,9 +154,10 @@ public class AbstractBaseQueueDaoImpl<Q extends OpenmrsObject & Auditable> imple
 	 * If the passed value is null, return without limiting If the passed value is not null, add clause
 	 * that the property must be less or equal to the value
 	 */
-	protected void limitToLessThanOrEqualToProperty(Criteria criteria, String property, Object value) {
+	protected <Y extends Comparable<? super Y>> void limitToLessThanOrEqualToProperty(CriteriaBuilder cb,
+	        List<Predicate> predicates, Path<Y> property, Y value) {
 		if (value != null) {
-			criteria.add(Restrictions.le(property, value));
+			predicates.add(cb.lessThanOrEqualTo(property, value));
 		}
 	}
 	
@@ -153,12 +166,12 @@ public class AbstractBaseQueueDaoImpl<Q extends OpenmrsObject & Auditable> imple
 	 * that the property must be null If the passed values is not empty, add clause that the property
 	 * must be one of the given values
 	 */
-	protected void limitByCollectionProperty(Criteria criteria, String property, Collection<?> values) {
+	protected void limitByCollectionProperty(List<Predicate> predicates, Path<?> property, Collection<?> values) {
 		if (values != null) {
 			if (values.isEmpty()) {
-				criteria.add(Restrictions.isNull(property));
+				predicates.add(property.isNull());
 			} else {
-				criteria.add(Restrictions.in(property, values));
+				predicates.add(property.in(values));
 			}
 		}
 	}

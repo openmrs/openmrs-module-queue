@@ -12,7 +12,7 @@ package org.openmrs.module.queue.api.impl;
 import static org.openmrs.module.queue.QueueModuleConstants.EXISTING_VALUE_SORT_WEIGHT_GENERATOR;
 import static org.openmrs.module.queue.QueueModuleConstants.QUEUE_SORT_WEIGHT_GENERATOR;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;

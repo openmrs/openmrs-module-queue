@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_LOCATION;
 import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_SERVICE;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Arrays;
 import java.util.Collection;

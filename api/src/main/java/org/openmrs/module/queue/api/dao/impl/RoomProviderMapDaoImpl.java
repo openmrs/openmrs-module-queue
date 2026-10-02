@@ -9,9 +9,14 @@
  */
 package org.openmrs.module.queue.api.dao.impl;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+
+import java.util.ArrayList;
 import java.util.List;
 
-import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
 import org.openmrs.module.queue.api.dao.RoomProviderMapDao;
 import org.openmrs.module.queue.api.search.RoomProviderMapSearchCriteria;
@@ -25,12 +30,15 @@ public class RoomProviderMapDaoImpl extends AbstractBaseQueueDaoImpl<RoomProvide
 	}
 	
 	@Override
-	@SuppressWarnings("unchecked")
 	public List<RoomProviderMap> getRoomProviderMaps(RoomProviderMapSearchCriteria searchCriteria) {
-		Criteria c = getCurrentSession().createCriteria(RoomProviderMap.class, "rpm");
-		includeVoidedObjects(c, searchCriteria.isIncludeVoided());
-		limitByCollectionProperty(c, "rpm.queueRoom", searchCriteria.getQueueRooms());
-		limitByCollectionProperty(c, "rpm.provider", searchCriteria.getProviders());
-		return c.list();
+		CriteriaBuilder cb = getCurrentSession().getCriteriaBuilder();
+		CriteriaQuery<RoomProviderMap> query = cb.createQuery(RoomProviderMap.class);
+		Root<RoomProviderMap> rpm = query.from(RoomProviderMap.class);
+		List<Predicate> predicates = new ArrayList<>();
+		includeVoidedObjects(cb, predicates, rpm, searchCriteria.isIncludeVoided());
+		limitByCollectionProperty(predicates, rpm.get("queueRoom"), searchCriteria.getQueueRooms());
+		limitByCollectionProperty(predicates, rpm.get("provider"), searchCriteria.getProviders());
+		query.where(predicates.toArray(new Predicate[0]));
+		return getCurrentSession().createQuery(query).list();
 	}
 }

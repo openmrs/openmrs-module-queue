@@ -14,15 +14,15 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.lang.time.DateUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.apache.commons.lang3.time.DateUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.openmrs.Concept;
 import org.openmrs.Patient;
 import org.openmrs.api.ConceptService;
@@ -32,7 +32,7 @@ import org.openmrs.module.queue.SpringTestConfiguration;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.model.QueueEntryTransition;
-import org.openmrs.test.BaseModuleContextSensitiveTest;
+import org.openmrs.test.jupiter.BaseModuleContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
@@ -71,7 +71,7 @@ public class QueueEntryServiceTest extends BaseModuleContextSensitiveTest {
 	@Autowired
 	private ConceptService conceptService;
 	
-	@Before
+	@BeforeEach
 	public void setup() {
 		INITIAL_DATASET_XML.forEach(this::executeDataSet);
 	}

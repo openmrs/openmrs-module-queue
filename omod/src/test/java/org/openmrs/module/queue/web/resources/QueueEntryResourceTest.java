@@ -43,7 +43,7 @@ import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCrit
 import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_STATUS;
 import static org.openmrs.module.queue.web.resources.parser.QueueEntrySearchCriteriaParser.SEARCH_PARAM_VISIT;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.time.Instant;
 import java.util.Arrays;

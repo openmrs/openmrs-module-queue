@@ -9,7 +9,7 @@
 
     <groupId>org.openmrs.module</groupId>
     <artifactId>queue</artifactId>
-    <version>3.1.0-SNAPSHOT</version>
+    <version>4.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Queue</name>
     <description>Patient Queues</description>
@@ -69,6 +69,13 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>org.openmrs</groupId>
+                <artifactId>openmrs-bom</artifactId>
+                <version>${openmrsPlatformVersion}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
                 <version>${lombokVersion}</version>
@@ -87,18 +94,6 @@
                 <version>${webservicesRestVersion}</version>
                 <scope>provided</scope>
             </dependency>
-            <dependency>
-                <groupId>org.mockito</groupId>
-                <artifactId>mockito-inline</artifactId>
-                <version>${mockitoInlineVersion}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>net.bytebuddy</groupId>
-                <artifactId>byte-buddy</artifactId>
-                <version>${byteBuddyVersion}</version>
-                <scope>test</scope>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -112,24 +107,6 @@
             <artifactId>openmrs-test</artifactId>
             <type>pom</type>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.powermock</groupId>
-                    <artifactId>powermock-module-junit4</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.powermock</groupId>
-                    <artifactId>powermock-api-mockito2</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-inline</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>net.bytebuddy</groupId>
-            <artifactId>byte-buddy</artifactId>
         </dependency>
     </dependencies>
 
@@ -162,15 +139,13 @@
 
     <properties>
         <main.basedir>${project.basedir}</main.basedir>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.release>21</maven.compiler.release>
+        <maven.compiler.parameters>true</maven.compiler.parameters>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
         <lombokVersion>1.18.42</lombokVersion>
-        <webservicesRestVersion>3.0.0</webservicesRestVersion>
-        <byteBuddyVersion>1.17.7</byteBuddyVersion>
-        <mockitoInlineVersion>4.8.0</mockitoInlineVersion>
-        <openmrsPlatformVersion>2.7.4</openmrsPlatformVersion>
+        <webservicesRestVersion>5.0.0-SNAPSHOT</webservicesRestVersion>
+        <openmrsPlatformVersion>3.0.0-SNAPSHOT</openmrsPlatformVersion>
         <openmrsPlatformToolsVersion>2.7.4</openmrsPlatformToolsVersion>
     </properties>
 </project>

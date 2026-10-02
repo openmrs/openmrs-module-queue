@@ -9,9 +9,14 @@
  */
 package org.openmrs.module.queue.api.dao.impl;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+
+import java.util.ArrayList;
 import java.util.List;
 
-import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
 import org.openmrs.module.queue.api.dao.QueueDao;
 import org.openmrs.module.queue.api.search.QueueSearchCriteria;
@@ -27,10 +32,14 @@ public class QueueDaoImpl extends AbstractBaseQueueDaoImpl<Queue> implements Que
 	
 	@Override
 	public List<Queue> getQueues(QueueSearchCriteria searchCriteria) {
-		Criteria c = getCurrentSession().createCriteria(Queue.class, "q");
-		includeVoidedObjects(c, searchCriteria.isIncludeRetired());
-		limitByCollectionProperty(c, "q.location", searchCriteria.getLocations());
-		limitByCollectionProperty(c, "q.service", searchCriteria.getServices());
-		return c.list();
+		CriteriaBuilder cb = getCurrentSession().getCriteriaBuilder();
+		CriteriaQuery<Queue> query = cb.createQuery(Queue.class);
+		Root<Queue> q = query.from(Queue.class);
+		List<Predicate> predicates = new ArrayList<>();
+		includeVoidedObjects(cb, predicates, q, searchCriteria.isIncludeRetired());
+		limitByCollectionProperty(predicates, q.get("location"), searchCriteria.getLocations());
+		limitByCollectionProperty(predicates, q.get("service"), searchCriteria.getServices());
+		query.where(predicates.toArray(new Predicate[0]));
+		return getCurrentSession().createQuery(query).list();
 	}
 }

@@ -20,7 +20,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.openmrs.Visit;
 import org.openmrs.module.queue.model.QueueEntry;
 

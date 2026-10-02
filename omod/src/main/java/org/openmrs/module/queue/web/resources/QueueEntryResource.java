@@ -9,7 +9,7 @@
  */
 package org.openmrs.module.queue.web.resources;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
