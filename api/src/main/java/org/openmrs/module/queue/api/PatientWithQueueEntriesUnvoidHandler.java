@@ -85,7 +85,7 @@ public class PatientWithQueueEntriesUnvoidHandler implements UnvoidHandler<Patie
 	
 	/**
 	 * @return true if the entry was voided together with the patient and can be restored with it. An
-	 *         entry on a voided visit was taken down by VisitWithQueueEntriesSaveHandler, not by this
+	 *         entry on a voided visit was taken down by VisitWithQueueEntriesVoidHandler, not by this
 	 *         cascade; restoring it would put an active entry back on a visit that is still voided.
 	 */
 	private static boolean shouldRestore(QueueEntry qe, User originalVoidingUser, Date originalVoidedDate) {
