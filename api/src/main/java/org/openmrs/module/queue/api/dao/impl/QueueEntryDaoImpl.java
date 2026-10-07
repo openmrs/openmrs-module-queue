@@ -11,6 +11,7 @@ package org.openmrs.module.queue.api.dao.impl;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.CriteriaUpdate;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
@@ -23,6 +24,8 @@ import java.util.List;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.openmrs.Patient;
+import org.openmrs.User;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.dao.QueueEntryDao;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.Queue;
@@ -31,6 +34,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 @SuppressWarnings("unchecked")
 public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> implements QueueEntryDao {
+	
+	private static final String ENDED_AT = "endedAt";
+	
+	private static final String DATE_CHANGED = "dateChanged";
+	
+	private static final String CHANGED_BY = "changedBy";
+	
+	private static final String QUEUE_ENTRY_ID = "queueEntryId";
 	
 	public QueueEntryDaoImpl(@Qualifier("sessionFactory") SessionFactory sessionFactory) {
 		super(sessionFactory);
@@ -109,7 +120,7 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 	public boolean updateIfUnmodified(QueueEntry queueEntry, Date expectedDateChanged) {
 		Session session = getSessionFactory().getCurrentSession();
 		
-		// This path issues a direct JPQL UPDATE and bypasses QueueEntryValidator; enforce the
+		// This path issues a direct update and bypasses QueueEntryValidator; enforce the
 		// strict-positive-duration invariant here so the DB never ends up with ended_at <= started_at.
 		Date endedAt = queueEntry.getEndedAt();
 		Date startedAt = queueEntry.getStartedAt();
@@ -121,27 +132,51 @@ public class QueueEntryDaoImpl extends AbstractBaseQueueDaoImpl<QueueEntry> impl
 		// Evict the entity to prevent Hibernate from auto-flushing changes
 		session.evict(queueEntry);
 		
-		// Build conditional update query - only succeeds if dateChanged matches expected value
-		StringBuilder jpql = new StringBuilder();
-		jpql.append("UPDATE QueueEntry qe SET ");
-		jpql.append("qe.endedAt = :endedAt ");
-		jpql.append("WHERE qe.queueEntryId = :id ");
+		// A bulk update also bypasses AuditableInterceptor, so set the audit fields here; without them
+		// the dateChanged guard below has nothing to detect a concurrent write with.
+		Date dateChanged = new Date();
+		User changedBy = Context.getAuthenticatedUser();
 		
-		if (expectedDateChanged == null) {
-			jpql.append("AND qe.dateChanged IS NULL");
+		CriteriaBuilder cb = session.getCriteriaBuilder();
+		CriteriaUpdate<QueueEntry> update = cb.createCriteriaUpdate(QueueEntry.class);
+		Root<QueueEntry> root = update.from(QueueEntry.class);
+		
+		if (endedAt == null) {
+			update.set(root.<Date> get(ENDED_AT), cb.nullLiteral(Date.class));
 		} else {
-			jpql.append("AND qe.dateChanged = :expectedDateChanged");
+			update.set(root.get(ENDED_AT), endedAt);
+		}
+		update.set(root.get(DATE_CHANGED), dateChanged);
+		if (changedBy != null) {
+			update.set(root.get(CHANGED_BY), changedBy);
 		}
 		
-		org.hibernate.query.MutationQuery query = session.createMutationQuery(jpql.toString());
-		query.setParameter("endedAt", endedAt);
-		query.setParameter("id", queueEntry.getQueueEntryId());
-		if (expectedDateChanged != null) {
-			query.setParameter("expectedDateChanged", expectedDateChanged);
+		// Only update if dateChanged still matches the value the caller loaded
+		List<Predicate> predicates = new ArrayList<>();
+		predicates.add(cb.equal(root.get(QUEUE_ENTRY_ID), queueEntry.getQueueEntryId()));
+		if (expectedDateChanged == null) {
+			predicates.add(root.get(DATE_CHANGED).isNull());
+		} else {
+			predicates.add(cb.equal(root.get(DATE_CHANGED), expectedDateChanged));
 		}
+		if (endedAt != null) {
+			// Never end an entry another transaction has already ended; re-opening one deliberately
+			// targets an ended row, so it is exempt
+			predicates.add(root.get(ENDED_AT).isNull());
+		}
+		update.where(cb.and(predicates.toArray(new Predicate[0])));
 		
-		int rowsUpdated = query.executeUpdate();
-		return rowsUpdated > 0;
+		return session.createMutationQuery(update).executeUpdate() > 0;
+	}
+	
+	@Override
+	public void refresh(QueueEntry queueEntry) {
+		Session session = getSessionFactory().getCurrentSession();
+		session.refresh(queueEntry);
+		// refresh does not cascade to the visit, and its stop date is what closeQueueEntry checks
+		if (queueEntry.getVisit() != null) {
+			session.refresh(queueEntry.getVisit());
+		}
 	}
 	
 	/**

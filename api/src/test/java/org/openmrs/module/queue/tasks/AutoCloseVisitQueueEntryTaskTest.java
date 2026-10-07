@@ -10,6 +10,7 @@
 package org.openmrs.module.queue.tasks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
 
@@ -20,13 +21,21 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openmrs.Visit;
+import org.openmrs.api.APIException;
 import org.openmrs.module.queue.model.QueueEntry;
 
 public class AutoCloseVisitQueueEntryTaskTest {
 	
 	final List<QueueEntry> queueEntries = new ArrayList<>();
+	
+	private final List<QueueEntry> evictedFromSession = new ArrayList<>();
+	
+	private QueueEntry saveFailsFor;
+	
+	private RuntimeException saveFailure;
 	
 	class TestAutoCloseVisitEntryTask extends AutoCloseVisitQueueEntryTask {
 		
@@ -36,9 +45,26 @@ public class AutoCloseVisitQueueEntryTaskTest {
 		}
 		
 		@Override
-		protected void saveQueueEntry(QueueEntry queueEntry) {
-			// Do nothing
+		protected boolean endQueueEntry(QueueEntry queueEntry, Date endedAt) {
+			if (queueEntry == saveFailsFor) {
+				throw saveFailure;
+			}
+			queueEntry.setEndedAt(endedAt);
+			return true;
 		}
+		
+		@Override
+		protected void evictFromSession(QueueEntry queueEntry) {
+			evictedFromSession.add(queueEntry);
+		}
+	}
+	
+	@BeforeEach
+	public void setup() {
+		queueEntries.clear();
+		evictedFromSession.clear();
+		saveFailsFor = null;
+		saveFailure = null;
 	}
 	
 	@Test
@@ -59,19 +85,42 @@ public class AutoCloseVisitQueueEntryTaskTest {
 		queueEntries.add(queueEntry2);
 		
 		TestAutoCloseVisitEntryTask task = new TestAutoCloseVisitEntryTask();
-		task.run();
+		task.execute();
 		assertThat(queueEntry1.getEndedAt(), nullValue());
 		assertThat(queueEntry2.getEndedAt(), nullValue());
 		
 		visit1.setStopDatetime(getDate("2020-01-01 23:15"));
-		task.run();
+		task.execute();
 		assertThat(queueEntry1.getEndedAt(), equalTo(visit1.getStopDatetime()));
 		assertThat(queueEntry2.getEndedAt(), nullValue());
 		
 		visit2.setStopDatetime(getDate("2021-01-05 11:30"));
-		task.run();
+		task.execute();
 		assertThat(queueEntry1.getEndedAt(), equalTo(visit1.getStopDatetime()));
 		assertThat(queueEntry2.getEndedAt(), equalTo(visit2.getStopDatetime()));
+	}
+	
+	@Test
+	public void shouldEvictAndContinueWhenSavingAnEntryFails() throws Exception {
+		QueueEntry failed = closedVisitQueueEntry("2020-01-01 10:00", "2020-01-01 23:15");
+		QueueEntry saved = closedVisitQueueEntry("2020-01-01 10:00", "2020-01-01 23:15");
+		saveFailsFor = failed;
+		saveFailure = new APIException("could not save");
+		
+		new TestAutoCloseVisitEntryTask().execute();
+		assertThat(evictedFromSession, contains(failed));
+		assertThat(saved.getEndedAt(), equalTo(saved.getVisit().getStopDatetime()));
+	}
+	
+	QueueEntry closedVisitQueueEntry(String startedAt, String visitStopDatetime) throws Exception {
+		Visit visit = new Visit();
+		visit.setStartDatetime(getDate("2020-01-01 09:00"));
+		visit.setStopDatetime(getDate(visitStopDatetime));
+		QueueEntry queueEntry = new QueueEntry();
+		queueEntry.setStartedAt(getDate(startedAt));
+		queueEntry.setVisit(visit);
+		queueEntries.add(queueEntry);
+		return queueEntry;
 	}
 	
 	Date getDate(String dateStr) throws Exception {

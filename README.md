@@ -69,6 +69,29 @@ A typical set of priorities might include:  `Normal` and `Emergency`
 This provides a means to configure the sort weight generator that maintains the primary ordering of Queue Entries on
 a particular Queue.  By default, the `existingValueSortWeightGenerator` will be utilized.
 
+#### queue.autoCloseQueueEntriesAtTime
+
+**Default Value:**  None (empty), which disables automatic clearing
+
+**Required?**  False
+
+**Description:**  
+The time of day (`HH:mm`, server local time) at which active queue entries started before it are automatically ended.
+A missed run is caught up by the next one. An outpatient clinic would typically set `23:59`, which keeps the end on
+the same day as the start (`00:00` would date it to the next day). Leave blank where entries must survive overnight,
+such as inpatients within a multi-day visit. Stopping the `Queue Module - Auto Close Queue Entries` task from the
+Manage Scheduler page lasts only until the next restart; blank this property to turn the clear off.
+
+#### queue.autoCloseQueueEntriesForQueues
+
+**Default Value:**  None (empty)
+
+**Required?**  False
+
+**Description:**  
+Comma-separated names (or uuids, where names are not unique) of the queues cleared at
+`queue.autoCloseQueueEntriesAtTime`. Blank clears **all** queues. Unresolvable values are logged and skipped.
+
 ### Sort Weight Generators
 
 As described above in Global Property configuration, one can configure the specific algorithm to use to generate and 

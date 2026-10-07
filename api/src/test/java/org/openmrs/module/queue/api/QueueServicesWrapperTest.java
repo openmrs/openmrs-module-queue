@@ -15,7 +15,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -160,5 +163,37 @@ public class QueueServicesWrapperTest {
 		queue.setStatusConceptSet(conceptSet2);
 		List<Concept> statuses = wrapper.getAllowedStatuses(queue);
 		assertThat(statuses.size(), equalTo(1));
+	}
+	
+	@Test
+	public void getQueue_shouldGetQueueByUuid() {
+		when(queueService.getQueueByUuid(queue.getUuid())).thenReturn(Optional.of(queue));
+		assertThat(wrapper.getQueue(queue.getUuid()), equalTo(queue));
+	}
+	
+	@Test
+	public void getQueue_shouldGetQueueByName() {
+		queue.setName("Triage");
+		when(queueService.getQueueByUuid("Triage")).thenReturn(Optional.empty());
+		when(queueService.getAllQueues()).thenReturn(Collections.singletonList(queue));
+		assertThat(wrapper.getQueue("Triage"), equalTo(queue));
+		assertThat(wrapper.getQueue("triage"), equalTo(queue));
+	}
+	
+	@Test
+	public void getQueue_shouldThrowErrorIfNameIsAmbiguous() {
+		queue.setName("Triage");
+		Queue otherQueue = new Queue();
+		otherQueue.setName("Triage");
+		when(queueService.getQueueByUuid("Triage")).thenReturn(Optional.empty());
+		when(queueService.getAllQueues()).thenReturn(Arrays.asList(queue, otherQueue));
+		assertThrows(IllegalArgumentException.class, () -> wrapper.getQueue("Triage"));
+	}
+	
+	@Test
+	public void getQueue_shouldThrowErrorIfQueueRefDoesNotResolve() {
+		when(queueService.getQueueByUuid("unknown")).thenReturn(Optional.empty());
+		when(queueService.getAllQueues()).thenReturn(Collections.emptyList());
+		assertThrows(IllegalArgumentException.class, () -> wrapper.getQueue("unknown"));
 	}
 }

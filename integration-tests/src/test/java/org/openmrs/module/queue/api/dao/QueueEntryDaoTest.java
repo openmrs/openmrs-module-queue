@@ -50,6 +50,8 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	
 	private static final String VOIDED_QUEUE_ENTRY_UUID = "4gb8fe43-2813-4kbc-80dc-2e5d30252ff0";
 	
+	private static final String ACTIVE_QUEUE_ENTRY_UUID = "0ab72588-741b-11ee-9149-0242ac120002";
+	
 	private static final String NEW_QUEUE_ENTRY_UUID = "5kb8fe43-2813-4kbc-80dc-2e5d30252cc87";
 	
 	private static final String PATIENT_UUID = "90b38324-e2fd-4feb-95b7-9e9a2a8876fg";
@@ -456,6 +458,36 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		assertThat(updated, is(true));
 		QueueEntry reloaded = dao.get(QUEUE_ENTRY_UUID).orElseThrow(IllegalStateException::new);
 		assertThat(reloaded.getEndedAt(), nullValue());
+	}
+	
+	@Test
+	public void updateIfUnmodified_shouldSetAuditFields() {
+		// The bulk update bypasses AuditableInterceptor, so the DAO has to set these itself
+		QueueEntry queueEntry = dao.get(ACTIVE_QUEUE_ENTRY_UUID).orElseThrow(IllegalStateException::new);
+		assertThat(queueEntry.getDateChanged(), nullValue());
+		queueEntry.setEndedAt(new Date(queueEntry.getStartedAt().getTime() + 60000L));
+		
+		assertThat(dao.updateIfUnmodified(queueEntry, null), is(true));
+		
+		QueueEntry reloaded = dao.get(ACTIVE_QUEUE_ENTRY_UUID).orElseThrow(IllegalStateException::new);
+		assertThat(reloaded.getDateChanged(), notNullValue());
+		assertThat(reloaded.getChangedBy(), equalTo(Context.getAuthenticatedUser()));
+	}
+	
+	@Test
+	public void updateIfUnmodified_shouldNotEndAnEntryThatIsAlreadyEnded() {
+		QueueEntry queueEntry = dao.get(ACTIVE_QUEUE_ENTRY_UUID).orElseThrow(IllegalStateException::new);
+		Date firstEndedAt = new Date(queueEntry.getStartedAt().getTime() + 60000L);
+		queueEntry.setEndedAt(firstEndedAt);
+		assertThat(dao.updateIfUnmodified(queueEntry, null), is(true));
+		
+		// A second close that is otherwise unmodified still must not overwrite the end that is there
+		QueueEntry reloaded = dao.get(ACTIVE_QUEUE_ENTRY_UUID).orElseThrow(IllegalStateException::new);
+		reloaded.setEndedAt(new Date(reloaded.getStartedAt().getTime() + 120000L));
+		assertThat(dao.updateIfUnmodified(reloaded, reloaded.getDateChanged()), is(false));
+		
+		QueueEntry afterSecondUpdate = dao.get(ACTIVE_QUEUE_ENTRY_UUID).orElseThrow(IllegalStateException::new);
+		assertThat(afterSecondUpdate.getEndedAt().getTime(), equalTo(firstEndedAt.getTime()));
 	}
 	
 	@Test

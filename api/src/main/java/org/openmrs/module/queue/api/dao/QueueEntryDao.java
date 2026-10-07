@@ -38,6 +38,12 @@ public interface QueueEntryDao extends BaseQueueDao<QueueEntry> {
 	void flushSession();
 	
 	/**
+	 * Re-reads the given queue entry and its visit from the database, replacing whatever state the
+	 * current session holds for them.
+	 */
+	void refresh(QueueEntry queueEntry);
+	
+	/**
 	 * Updates the queue entry only if it hasn't been modified since it was loaded. This provides
 	 * optimistic locking to prevent concurrent modifications.
 	 *
