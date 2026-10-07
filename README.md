@@ -9,9 +9,9 @@ OpenMRS Queue Module (backend)
 
 ## Prerequisites
 
-- OpenMRS Platform ≥ 2.3.x
+- OpenMRS Platform ≥ 3.0.0
   - Specifically REST web services
-- Java 8 or higher
+- Java 21 or higher
 
 ## Configuration
 
