@@ -27,8 +27,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.openmrs.api.APIException;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
@@ -105,7 +105,7 @@ public class AutoCloseQueueEntryTaskTest {
 		}
 	}
 	
-	@Before
+	@BeforeEach
 	public void setup() throws Exception {
 		queueEntries.clear();
 		evictedFromSession.clear();

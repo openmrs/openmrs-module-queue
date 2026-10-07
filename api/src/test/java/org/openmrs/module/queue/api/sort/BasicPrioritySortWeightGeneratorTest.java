@@ -16,17 +16,17 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.openmrs.Concept;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.model.QueueEntry;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class BasicPrioritySortWeightGeneratorTest {
 	
 	@Mock
@@ -45,7 +45,7 @@ public class BasicPrioritySortWeightGeneratorTest {
 	
 	BasicPrioritySortWeightGenerator generator;
 	
-	@Before
+	@BeforeEach
 	public void setupMocks() {
 		MockitoAnnotations.openMocks(this);
 		when(services.getAllowedPriorities(any())).thenReturn(Arrays.asList(concept1, concept2, concept3));

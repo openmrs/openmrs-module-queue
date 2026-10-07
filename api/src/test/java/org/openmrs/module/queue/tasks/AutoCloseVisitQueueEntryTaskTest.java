@@ -21,8 +21,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.openmrs.Visit;
 import org.openmrs.api.APIException;
 import org.openmrs.module.queue.model.QueueEntry;
@@ -59,7 +59,7 @@ public class AutoCloseVisitQueueEntryTaskTest {
 		}
 	}
 	
-	@Before
+	@BeforeEach
 	public void setup() {
 		queueEntries.clear();
 		evictedFromSession.clear();

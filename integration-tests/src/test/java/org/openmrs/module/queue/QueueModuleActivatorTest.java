@@ -12,15 +12,15 @@ package org.openmrs.module.queue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.tasks.AutoCloseQueueEntryTask;
 import org.openmrs.module.queue.tasks.AutoCloseVisitQueueEntryTask;
 import org.openmrs.scheduler.SchedulerException;
 import org.openmrs.scheduler.TaskDefinition;
-import org.openmrs.test.BaseModuleContextSensitiveTest;
+import org.openmrs.test.jupiter.BaseModuleContextSensitiveTest;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -34,14 +34,15 @@ public class QueueModuleActivatorTest extends BaseModuleContextSensitiveTest {
 	
 	private static final String AUTO_CLOSE_QUEUE_ENTRY_TASK = "Queue Module - Auto Close Queue Entries";
 	
-	@Before
+	@BeforeEach
 	public void setup() {
 		new QueueModuleActivator().started();
 	}
 	
-	@After
+	@AfterEach
 	public void stopTasks() throws SchedulerException {
-		// started() schedules real timers that would otherwise keep running for the rest of the test run
+		// started() schedules both tasks in JobRunr, which writes them on its own connection, so they would
+		// outlive the test's rollback
 		Context.getSchedulerService().shutdownTask(taskDefinition(AUTO_CLOSE_VISIT_QUEUE_ENTRY_TASK));
 		Context.getSchedulerService().shutdownTask(taskDefinition(AUTO_CLOSE_QUEUE_ENTRY_TASK));
 	}

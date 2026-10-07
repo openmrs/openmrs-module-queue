@@ -15,6 +15,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -23,8 +24,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.openmrs.Concept;
 import org.openmrs.Location;
 import org.openmrs.Patient;
@@ -37,7 +38,7 @@ import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.openmrs.module.queue.utils.QueueUtils;
-import org.openmrs.test.BaseModuleContextSensitiveTest;
+import org.openmrs.test.jupiter.BaseModuleContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
@@ -78,7 +79,7 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 	
 	private QueueEntrySearchCriteria criteria;
 	
-	@Before
+	@BeforeEach
 	public void setup() {
 		QUEUE_INITIAL_DATASET_XML.forEach(this::executeDataSet);
 		criteria = new QueueEntrySearchCriteria();
@@ -428,19 +429,19 @@ public class QueueEntryDaoTest extends BaseModuleContextSensitiveTest {
 		assertResults(criteria, 2, 3);
 	}
 	
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void updateIfUnmodified_shouldRejectEndedAtBeforeStartedAt() {
 		QueueEntry queueEntry = dao.get(QUEUE_ENTRY_UUID).orElseThrow(IllegalStateException::new);
 		Date startedAt = queueEntry.getStartedAt();
 		queueEntry.setEndedAt(new Date(startedAt.getTime() - 1000L));
-		dao.updateIfUnmodified(queueEntry, queueEntry.getDateChanged());
+		assertThrows(IllegalArgumentException.class, () -> dao.updateIfUnmodified(queueEntry, queueEntry.getDateChanged()));
 	}
 	
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void updateIfUnmodified_shouldRejectEndedAtEqualToStartedAt() {
 		QueueEntry queueEntry = dao.get(QUEUE_ENTRY_UUID).orElseThrow(IllegalStateException::new);
 		queueEntry.setEndedAt(new Date(queueEntry.getStartedAt().getTime()));
-		dao.updateIfUnmodified(queueEntry, queueEntry.getDateChanged());
+		assertThrows(IllegalArgumentException.class, () -> dao.updateIfUnmodified(queueEntry, queueEntry.getDateChanged()));
 	}
 	
 	@Test

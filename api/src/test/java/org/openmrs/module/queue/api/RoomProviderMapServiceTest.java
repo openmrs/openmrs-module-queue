@@ -20,14 +20,14 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.context.UserContext;
@@ -36,7 +36,7 @@ import org.openmrs.module.queue.api.impl.RoomProviderMapServiceImpl;
 import org.openmrs.module.queue.api.search.RoomProviderMapSearchCriteria;
 import org.openmrs.module.queue.model.RoomProviderMap;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class RoomProviderMapServiceTest {
 	
 	private static final String ROOM_PROVIDER_MAP_UUID = "4eb8fe43-2813-4kbc-80dc-2e5d30252cc6";
@@ -53,7 +53,7 @@ public class RoomProviderMapServiceTest {
 	@Captor
 	ArgumentCaptor<RoomProviderMapSearchCriteria> roomProviderMapSearchCriteriaArgumentCaptor;
 	
-	@Before
+	@BeforeEach
 	public void setupMocks() {
 		MockitoAnnotations.openMocks(this);
 		roomProviderMapService = new RoomProviderMapServiceImpl();

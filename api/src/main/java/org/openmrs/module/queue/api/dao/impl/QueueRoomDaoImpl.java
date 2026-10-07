@@ -9,12 +9,19 @@
  */
 package org.openmrs.module.queue.api.dao.impl;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+
+import java.util.ArrayList;
 import java.util.List;
 
-import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
 import org.openmrs.module.queue.api.dao.QueueRoomDao;
 import org.openmrs.module.queue.api.search.QueueRoomSearchCriteria;
+import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueRoom;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -25,15 +32,18 @@ public class QueueRoomDaoImpl extends AbstractBaseQueueDaoImpl<QueueRoom> implem
 	}
 	
 	@Override
-	@SuppressWarnings("unchecked")
 	public List<QueueRoom> getQueueRooms(QueueRoomSearchCriteria searchCriteria) {
-		Criteria c = getCurrentSession().createCriteria(QueueRoom.class, "qr");
-		c.createAlias("queue", "q");
-		includeVoidedObjects(c, searchCriteria.isIncludeRetired());
-		limitByCollectionProperty(c, "qr.queue", searchCriteria.getQueues());
-		limitByCollectionProperty(c, "q.location", searchCriteria.getLocations());
-		limitByCollectionProperty(c, "q.service", searchCriteria.getServices());
-		return c.list();
+		CriteriaBuilder cb = getCurrentSession().getCriteriaBuilder();
+		CriteriaQuery<QueueRoom> query = cb.createQuery(QueueRoom.class);
+		Root<QueueRoom> qr = query.from(QueueRoom.class);
+		Join<QueueRoom, Queue> q = qr.join("queue");
+		List<Predicate> predicates = new ArrayList<>();
+		includeVoidedObjects(cb, predicates, qr, searchCriteria.isIncludeRetired());
+		limitByCollectionProperty(predicates, qr.get("queue"), searchCriteria.getQueues());
+		limitByCollectionProperty(predicates, q.get("location"), searchCriteria.getLocations());
+		limitByCollectionProperty(predicates, q.get("service"), searchCriteria.getServices());
+		query.where(predicates.toArray(new Predicate[0]));
+		return getCurrentSession().createQuery(query).list();
 	}
 	
 }

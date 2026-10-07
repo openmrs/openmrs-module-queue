@@ -21,15 +21,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.openmrs.Location;
 import org.openmrs.module.queue.SpringTestConfiguration;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
 import org.openmrs.module.queue.api.search.QueueRoomSearchCriteria;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueRoom;
-import org.openmrs.test.BaseModuleContextSensitiveTest;
+import org.openmrs.test.jupiter.BaseModuleContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
@@ -62,7 +62,7 @@ public class QueueRoomDaoTest extends BaseModuleContextSensitiveTest {
 	@Autowired
 	private QueueServicesWrapper services;
 	
-	@Before
+	@BeforeEach
 	public void setup() {
 		QUEUE_ROOM_INITIAL_DATASET_XML.forEach(this::executeDataSet);
 	}

@@ -44,11 +44,12 @@ public class QueueModuleActivator extends BaseModuleActivator {
 	}
 	
 	/**
-	 * Creates the task definition the first time this module starts, and does nothing thereafter, so
-	 * that an interval change or a stop made from the Manage Scheduler page is left alone. The
-	 * scheduler starts the task at server startup and restores it across a module being started or
-	 * stopped; starting it here covers only the case it cannot, of this module being installed into a
-	 * running server.
+	 * Creates and schedules the task definition the first time this module starts, and does nothing
+	 * thereafter, so that an interval change or a stop made from the Manage Scheduler page is left
+	 * alone. Rescheduling the task after that is left to the scheduler, which on 2.x did it at every
+	 * server startup and module start. The 3.0 scheduler does neither yet, so a task whose recurring
+	 * job is gone, because it or this module was stopped or its definition came from a 2.x install,
+	 * stays unscheduled until it is started from the Manage Scheduler page.
 	 */
 	private void registerTask(Class<? extends Task> taskClass, String name, String description) {
 		try {

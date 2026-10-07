@@ -22,8 +22,8 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang3.time.DateUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.openmrs.Concept;
 import org.openmrs.Patient;
 import org.openmrs.Visit;
@@ -35,10 +35,9 @@ import org.openmrs.module.queue.api.QueueEntryService;
 import org.openmrs.module.queue.api.QueueService;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
-import org.openmrs.scheduler.Task;
+import org.openmrs.scheduler.LegacyTask;
 import org.openmrs.scheduler.TaskDefinition;
-import org.openmrs.scheduler.TaskFactory;
-import org.openmrs.test.BaseModuleContextSensitiveTest;
+import org.openmrs.test.jupiter.BaseModuleContextSensitiveTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
@@ -82,7 +81,7 @@ public class AutoCloseQueueEntryTaskIntegrationTest extends BaseModuleContextSen
 	@Autowired
 	private ConceptService conceptService;
 	
-	@Before
+	@BeforeEach
 	public void setup() {
 		INITIAL_DATASET_XML.forEach(this::executeDataSet);
 	}
@@ -92,7 +91,7 @@ public class AutoCloseQueueEntryTaskIntegrationTest extends BaseModuleContextSen
 		Integer queueEntryId = activeQueueEntryStartedHoursAgo(3);
 		Date closeTime = setCloseTimeToHoursAgo(1);
 		
-		task().execute();
+		runTask();
 		
 		assertThat(reloadedEndedAt(queueEntryId), equalTo(closeTime));
 	}
@@ -132,7 +131,7 @@ public class AutoCloseQueueEntryTaskIntegrationTest extends BaseModuleContextSen
 		Context.clearSession();
 		setCloseTimeToHoursAgo(1);
 		
-		task().execute();
+		runTask();
 		
 		assertThat(reloadedEndedAt(queueEntryId), equalTo(visitStoppedAt));
 	}
@@ -142,7 +141,7 @@ public class AutoCloseQueueEntryTaskIntegrationTest extends BaseModuleContextSen
 		Integer queueEntryId = activeQueueEntryStartedHoursAgo(3);
 		Context.getAdministrationService().setGlobalProperty(AUTO_CLOSE_QUEUE_ENTRIES_AT_TIME, "");
 		
-		task().execute();
+		runTask();
 		
 		assertThat(reloadedEndedAt(queueEntryId), nullValue());
 	}
@@ -169,16 +168,15 @@ public class AutoCloseQueueEntryTaskIntegrationTest extends BaseModuleContextSen
 	}
 	
 	/**
-	 * @return the task built the way the scheduler builds it, from the class name on the definition
+	 * Runs the task through LegacyTask, which is how the scheduler runs a task definition: it builds
+	 * the task from the class name on the definition, initializes it and executes it.
 	 */
-	private Task task() throws Exception {
+	private void runTask() throws Exception {
 		TaskDefinition taskDefinition = new TaskDefinition();
 		taskDefinition.setName("Auto Close Queue Entries");
 		taskDefinition.setTaskClass(AutoCloseQueueEntryTask.class.getName());
 		taskDefinition.setRepeatInterval(60L);
-		Task task = TaskFactory.getInstance().createInstance(taskDefinition);
-		task.initialize(taskDefinition);
-		return task;
+		new LegacyTask().execute(taskDefinition, null);
 	}
 	
 	/**
