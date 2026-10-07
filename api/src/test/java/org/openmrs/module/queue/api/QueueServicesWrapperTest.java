@@ -12,6 +12,7 @@ package org.openmrs.module.queue.api;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -22,8 +23,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import org.openmrs.Concept;
 import org.openmrs.api.AdministrationService;
 import org.openmrs.api.ConceptService;
@@ -35,7 +34,6 @@ import org.openmrs.module.queue.QueueModuleConstants;
 import org.openmrs.module.queue.model.Queue;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 public class QueueServicesWrapperTest {
 	
 	QueueServicesWrapper wrapper;
@@ -86,7 +84,7 @@ public class QueueServicesWrapperTest {
 		conceptSet1.addSetMember(new Concept());
 		conceptSet2 = new Concept();
 		conceptSet2.addSetMember(new Concept());
-		when(conceptService.getConceptByUuid(conceptSet1.getUuid())).thenReturn(conceptSet1);
+		lenient().when(conceptService.getConceptByUuid(conceptSet1.getUuid())).thenReturn(conceptSet1);
 		queue = new Queue();
 	}
 	
