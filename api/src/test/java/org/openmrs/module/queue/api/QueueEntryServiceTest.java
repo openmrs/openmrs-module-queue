@@ -359,7 +359,7 @@ public class QueueEntryServiceTest {
 			assertNull(queueEntry1.getEndedAt());
 		}
 		finally {
-			Context.setUserContext(null);
+			Context.clearUserContext();
 		}
 	}
 	
