@@ -387,6 +387,60 @@ public class QueueEntryValidatorTest extends BaseModuleContextSensitiveTest {
 		assertThat(e.getFieldError("queueComingFrom").getCode(), is("queue.entry.error.multiplePreviousQueueEntries"));
 	}
 	
+	@Test
+	public void shouldNotRejectWhenThereIsNoPreviousQueueEntry() {
+		Queue triage = services.getQueueService().getQueueByUuid(QUEUE_UUID).orElse(null);
+		Queue consultation = services.getQueueService().getQueueByUuid("5ob7fe43-2813-4kbc-80dc-2e5d30252bb3").orElse(null);
+		Patient patient = Context.getPatientService().getPatientByUuid(PATIENT_UUID);
+		Concept status = Context.getConceptService().getConceptByUuid(VALID_STATUS_CONCEPT);
+		Concept priority = Context.getConceptService().getConceptByUuid(VALID_PRIORITY_CONCEPT);
+		Date t = DateUtils.truncate(new Date(), Calendar.SECOND);
+		
+		QueueEntry next = new QueueEntry();
+		next.setQueue(consultation);
+		next.setPatient(patient);
+		next.setStatus(status);
+		next.setPriority(priority);
+		next.setQueueComingFrom(triage);
+		next.setStartedAt(t);
+		Errors e = new BindException(next, next.getClass().getName());
+		validator.validate(next, e);
+		
+		assertThat(e.getFieldError("queueComingFrom"), is(nullValue()));
+	}
+	
+	@Test
+	public void shouldNotRejectWhenThereIsExactlyOnePreviousQueueEntry() {
+		Queue triage = services.getQueueService().getQueueByUuid(QUEUE_UUID).orElse(null);
+		Queue consultation = services.getQueueService().getQueueByUuid("5ob7fe43-2813-4kbc-80dc-2e5d30252bb3").orElse(null);
+		Patient patient = Context.getPatientService().getPatientByUuid(PATIENT_UUID);
+		Concept status = Context.getConceptService().getConceptByUuid(VALID_STATUS_CONCEPT);
+		Concept priority = Context.getConceptService().getConceptByUuid(VALID_PRIORITY_CONCEPT);
+		Date t = DateUtils.truncate(new Date(), Calendar.SECOND);
+		
+		QueueEntry prev = new QueueEntry();
+		prev.setQueue(triage);
+		prev.setPatient(patient);
+		prev.setStatus(status);
+		prev.setPriority(priority);
+		prev.setStartedAt(DateUtils.addHours(t, -1));
+		prev.setEndedAt(t);
+		dao.createOrUpdate(prev);
+		Context.flushSession();
+		
+		QueueEntry next = new QueueEntry();
+		next.setQueue(consultation);
+		next.setPatient(patient);
+		next.setStatus(status);
+		next.setPriority(priority);
+		next.setQueueComingFrom(triage);
+		next.setStartedAt(t);
+		Errors e = new BindException(next, next.getClass().getName());
+		validator.validate(next, e);
+		
+		assertThat(e.getFieldError("queueComingFrom"), is(nullValue()));
+	}
+	
 	private Date yesterday() {
 		Calendar calendar = Calendar.getInstance();
 		calendar.add(Calendar.DATE, -1);
