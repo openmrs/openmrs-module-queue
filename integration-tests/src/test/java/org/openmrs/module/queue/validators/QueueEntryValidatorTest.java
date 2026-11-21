@@ -71,6 +71,9 @@ public class QueueEntryValidatorTest extends BaseModuleContextSensitiveTest {
 	@Autowired
 	private QueueServicesWrapper services;
 	
+	@Autowired
+	private org.openmrs.module.queue.api.dao.QueueEntryDao dao;
+	
 	@Before
 	public void setup() {
 		INITIAL_CONCEPTS_DATASETS.forEach(this::executeDataSet);
@@ -346,6 +349,42 @@ public class QueueEntryValidatorTest extends BaseModuleContextSensitiveTest {
 		validator.validate(secondEntry, secondEntryErrors);
 		
 		assertThat(secondEntryErrors.hasGlobalErrors(), is(false));
+	}
+	
+	@Test
+	public void shouldRejectWhenMultiplePreviousQueueEntriesExist() {
+		Queue triage = services.getQueueService().getQueueByUuid(QUEUE_UUID).orElse(null);
+		Queue consultation = services.getQueueService().getQueueByUuid("5ob7fe43-2813-4kbc-80dc-2e5d30252bb3").orElse(null);
+		Patient patient = Context.getPatientService().getPatientByUuid(PATIENT_UUID);
+		Concept status = Context.getConceptService().getConceptByUuid(VALID_STATUS_CONCEPT);
+		Concept priority = Context.getConceptService().getConceptByUuid(VALID_PRIORITY_CONCEPT);
+		Date t = DateUtils.truncate(new Date(), Calendar.SECOND);
+		
+		// the DAO skips the validator, so we can plant the bad data
+		for (int hoursAgo : new int[] { 1, 2 }) {
+			QueueEntry prev = new QueueEntry();
+			prev.setQueue(triage);
+			prev.setPatient(patient);
+			prev.setStatus(status);
+			prev.setPriority(priority);
+			prev.setStartedAt(DateUtils.addHours(t, -hoursAgo));
+			prev.setEndedAt(t);
+			dao.createOrUpdate(prev);
+		}
+		Context.flushSession();
+		
+		QueueEntry next = new QueueEntry();
+		next.setQueue(consultation);
+		next.setPatient(patient);
+		next.setStatus(status);
+		next.setPriority(priority);
+		next.setQueueComingFrom(triage);
+		next.setStartedAt(t);
+		Errors e = new BindException(next, next.getClass().getName());
+		validator.validate(next, e);
+		
+		assertThat(e.getFieldError("queueComingFrom"), is(notNullValue()));
+		assertThat(e.getFieldError("queueComingFrom").getCode(), is("queue.entry.error.multiplePreviousQueueEntries"));
 	}
 	
 	private Date yesterday() {

@@ -11,6 +11,8 @@ package org.openmrs.module.queue.validators;
 
 import static org.springframework.validation.ValidationUtils.rejectIfEmptyOrWhitespace;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.openmrs.Visit;
@@ -18,6 +20,7 @@ import org.openmrs.annotation.Handler;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.queue.api.QueueEntryService;
 import org.openmrs.module.queue.api.QueueServicesWrapper;
+import org.openmrs.module.queue.api.search.QueueEntrySearchCriteria;
 import org.openmrs.module.queue.model.Queue;
 import org.openmrs.module.queue.model.QueueEntry;
 import org.springframework.validation.Errors;
@@ -106,6 +109,11 @@ public class QueueEntryValidator implements Validator {
 		if (canCheckDuplicate && isDuplicate(queueEntry, queueServices.getQueueEntryService())) {
 			errors.rejectValue("", "queue.entry.error.duplicate", "This patient is already in this queue");
 		}
+		if (queueEntry.getQueueComingFrom() != null && queueEntry.getPatient() != null && queueEntry.getStartedAt() != null
+		        && hasMultiplePreviousEntries(queueEntry, queueServices.getQueueEntryService())) {
+			errors.rejectValue("queueComingFrom", "queue.entry.error.multiplePreviousQueueEntries",
+			    "Multiple previous queue entries found");
+		}
 	}
 	
 	private boolean isDuplicate(QueueEntry queueEntry, QueueEntryService queueEntryService) {
@@ -128,5 +136,18 @@ public class QueueEntryValidator implements Validator {
 			}
 		}
 		return false;
+	}
+	
+	// getPreviousQueueEntry() throws when more than one entry matches, so refuse to save that state
+	private boolean hasMultiplePreviousEntries(QueueEntry queueEntry, QueueEntryService queueEntryService) {
+		QueueEntrySearchCriteria criteria = new QueueEntrySearchCriteria();
+		criteria.setPatient(queueEntry.getPatient());
+		criteria.setVisit(queueEntry.getVisit());
+		criteria.setEndedOn(queueEntry.getStartedAt());
+		criteria.setQueues(Collections.singletonList(queueEntry.getQueueComingFrom()));
+		List<QueueEntry> previous = new ArrayList<>(queueEntryService.getQueueEntries(criteria));
+		previous.removeIf(QueueEntry::getVoided);
+		previous.removeIf(qe -> qe.getId() != null && qe.getId().equals(queueEntry.getId()));
+		return previous.size() > 1;
 	}
 }
